@@ -7,7 +7,9 @@
 
 ## 🏗️ System Architecture & Data Isolation
 
-Aurwell operates on a **"Clinic-First" multi-tenant architecture**. All assets, patients, transactions, and configurations are securely isolated at the database level using a single-database, multi-tenant hierarchy in Firebase/Firestore, protected by Custom JWT Auth Claims and Firestore Security Rules.
+Aurwell operates on a **"Clinic-First" multi-tenant architecture**. All assets, patients, transactions, and configurations are securely isolated at the database level using a single-database, multi-tenant hierarchy in Firebase/Firestore. The frontend client integrates directly with the Firebase client SDK (and access controls are fully enforced at the database level by Firestore Security Rules). 
+
+For sensitive operations like **Stripe Payments**, the apps call a dedicated, secure **Stripe Payment Backend** API, which processes checkout sessions, webhooks, and connects to the Stripe API, updating transaction states directly back to Firestore.
 
 ```mermaid
 graph TD
@@ -15,13 +17,17 @@ graph TD
     classDef platform fill:#6366f1,stroke:#4f46e5,color:#fff,stroke-width:2px;
     classDef tenant fill:#f97316,stroke:#ea580c,color:#fff,stroke-width:2px;
     classDef client fill:#10b981,stroke:#059669,color:#fff,stroke-width:2px;
+    classDef backend fill:#ec4899,stroke:#db2777,color:#fff,stroke-width:2px;
 
     %% Platform Super Admin
-    SA[Super Admin Panel]:::platform -->|Global Queries| Firestore[(Firestore DB)]
-    SA -->|Manage Payouts| Stripe[Stripe Connect]
+    SA[Super Admin Panel]:::platform -->|Direct Queries| Firestore[(Firestore DB)]
+
+    %% Dedicated Stripe Payment Backend
+    SB[Stripe Payment Backend API]:::backend -->|Update Transaction Docs| Firestore
+    SB -->|API Calls| StripeAPI[Stripe Connect API]
 
     %% Tenant Isolation
-    subgraph Tenant Isolation Boundary [clinics/{clinicId}]
+    subgraph Tenant Isolation Boundary ["clinics/{clinicId}"]
         Firestore --> ClinicDoc[Clinic Document: Settings & Brand Configuration]:::tenant
         ClinicDoc --> SubColl1[patients]:::tenant
         ClinicDoc --> SubColl2[memberships]:::tenant
@@ -30,53 +36,42 @@ graph TD
     end
 
     %% Access Layer
-    ClinicAdmin[Clinic Admin Panel]:::tenant -->|Access scoped strictly by clinicId Claim| ClinicDoc
-    PatientApp[White-Labeled Patient App]:::client -->|Read-only branding / Read-write own profile| ClinicDoc
+    ClinicAdmin[Clinic Admin Panel]:::tenant -->|Direct SDK Calls - Scoped by Rules| ClinicDoc
+    ClinicAdmin -->|Process Payments / Connect Setup| SB
+    PatientApp[White-Labeled Patient App]:::client -->|Direct SDK Calls - Scoped by Rules| ClinicDoc
+    PatientApp -->|Buy Membership / Pay Invoices| SB
 ```
 
 ---
 
 ## 🚀 Sign-Up ➔ App-Build ➔ Dashboard Onboarding Flow
 
-When a clinic registers and initiates their app generation, they follow an automated, secure onboarding funnel. The diagram below details the interaction between the **Frontend (what the clinic sees)** and the **Backend (what happens behind the scenes)**.
+Since there is no custom API or backend compute layer (Cloud Run/Cloud Functions), the Frontend handles the entire onboarding flow directly through client SDK operations, relying on Firestore rules to assert write permission.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Clinic as Clinic Owner (Frontend)
-    participant API as API (Cloud Functions)
-    participant DB as Firestore Database
-    participant Auth as Firebase Authentication
-    participant Mail as Transactional Mail (SendGrid)
+    actor Clinic as Clinic Owner (Frontend App)
+    participant Auth as Firebase Authentication (Client SDK)
+    participant DB as Firestore Database (Client SDK)
 
-    Clinic->>API: Clicks "Build App" on Marketing Page
-    activate API
-    API->>DB: Provision Root Document: clinics/{clinicId}
-    API->>DB: Seed Default Branding (colors, fonts, layout templates)
-    API-->>Clinic: Render App Generation / Loading Screen
-    deactivate API
+    Clinic->>DB: Clicks "Build App" -> Create document: clinics/{clinicId}
+    DB-->>Clinic: Write Success (Seeds default branding settings)
+    Clinic-->>Clinic: Render App Settings / Mock Emulator
 
-    Clinic->>Auth: Request OTP (Phone/Email verification)
-    Auth-->>Clinic: OTP Code Sent
-    Clinic->>Auth: Submit OTP Code
-    Auth->>Auth: Validate OTP & Mark Verification Status
+    Clinic->>Auth: Request OTP / Email Verification Link
+    Auth-->>Clinic: OTP Code / Verification Email sent
+    Clinic->>Auth: Submit OTP Code / Confirm verification
 
-    API->>Mail: Trigger Onboarding Setup Link
-    Mail-->>Clinic: Receive Secure Setup Email (Signed Token)
+    Clinic->>Auth: Set Password & Create User Account
+    Auth->>Auth: Create User & Log in (Retrieve UID)
 
-    Clinic->>API: Click Setup Link (Lands on Account Creation Page)
-    activate API
-    API->>API: Validate Temporary Token & Bind Session to clinicId
-    deactivate API
-
-    Clinic->>Auth: Submit Password
-    Auth->>Auth: Create User Record
-    Auth->>Auth: Attach Custom Claim: { role: 'clinic_admin', clinicId: '...' }
-    Auth-->>Clinic: Issue JWT Session Token
-
-    Clinic->>DB: Read clinics/{clinicId} (via Live Listeners)
-    DB-->>Clinic: Render Full Clinic Admin Dashboard
+    Clinic->>DB: Link User UID to clinicId in user profile document
+    Clinic->>DB: Listen to clinics/{clinicId} (via Live Listeners)
+    DB-->>Clinic: Sync brand configuration & client list
+    Clinic-->>Clinic: Redirect & Render Full Clinic Admin Dashboard
 ```
+
 
 ---
 
