@@ -1,7 +1,7 @@
 # 🩺 Aurwell
 
 > **Enterprise Multi-Tenant Clinic Patient & Loyalty Platform**  
-> A premium solution for aesthetic clinics across the USA & Europe. Positioned as the ultimate competitor to Dermis.
+> A premium solution for aesthetic clinics across the USA & Europe.
 
 ---
 
