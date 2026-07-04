@@ -145,14 +145,13 @@ mindmap
 
 To safely serve clinics in the US and Europe, Aurwell is architected to exceed standard security baselines:
 
-1. **HIPAA & GDPR Ready**: All PHI (Protected Health Information) stored within `clinics/{clinicId}/patients` is encrypted at rest. Action logs record every instance of patient data access for strict auditing.
-2. **Deterministic Database Rules**: Database separation is not handled at the UI layer. Firestore Rules validate the user's custom JWT claim (`request.auth.token.clinicId`) against the path of the document they are accessing:
+1. **Deterministic Database Rules**: Database separation is not handled at the UI layer. Firestore Rules validate the user's custom JWT claim (`request.auth.token.clinicId`) against the path of the document they are accessing:
    ```javascript
    match /clinics/{clinicId}/{document=**} {
      allow read, write: if request.auth != null && request.auth.token.clinicId == clinicId;
    }
    ```
-3. **High-Frequency Ephemeral Data**: To optimize database costs and delivery speeds, live clinic queues and patient check-in statuses are routed through **Firebase Realtime Database** rather than Firestore.
+2. **High-Frequency Ephemeral Data**: To optimize database costs and delivery speeds, live clinic queues and patient check-in statuses are routed through **Firebase Realtime Database** rather than Firestore.
 
 ---
 
