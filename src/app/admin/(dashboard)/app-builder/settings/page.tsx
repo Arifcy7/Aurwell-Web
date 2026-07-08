@@ -22,6 +22,7 @@ export default function SettingsPage() {
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [phone, setPhone] = useState("");
+  const [googleMapUrl, setGoogleMapUrl] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -45,6 +46,7 @@ export default function SettingsPage() {
             setAddress(data.address || "");
             setPostalCode(data.postalCode || "");
             setPhone(data.phone || "");
+            setGoogleMapUrl(data.googleMapUrl || "");
           }
         }
       } catch (err) {
@@ -75,6 +77,7 @@ export default function SettingsPage() {
         address,
         postalCode,
         phone,
+        googleMapUrl,
       });
 
       setSuccessMsg("Settings updated successfully!");
@@ -197,6 +200,17 @@ export default function SettingsPage() {
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700">Google Map Link of Address</label>
+              <input
+                type="url"
+                value={googleMapUrl}
+                onChange={(e) => setGoogleMapUrl(e.target.value)}
+                placeholder="https://maps.app.goo.gl/..."
                 className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
               />
             </div>

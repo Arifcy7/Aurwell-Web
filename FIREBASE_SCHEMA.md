@@ -26,6 +26,8 @@ This document details the complete Firestore database schema, paths, data types,
          │     └── {rewardId}
          ├── /settings
          │     └── rewards_ratio (fixed document ID)
+         ├── /blogs
+         │     └── {blogId}
          ├── /patients
          │     └── {patientId}
          ├── /transactions
@@ -76,6 +78,8 @@ Houses base branding, settings, and profile details for individual clinics.
 | `address` | `string` | Physical location street address |
 | `postalCode` | `string` | Local address zip/postal code |
 | `phone` | `string` | Formatted contact number containing dial code |
+| `googleMapUrl` | `string` | Optional Google Map URL of the address |
+| `blogSectionTitle` | `string` | Customized title label for the blogs section/tab (default `"Blogs"`) |
 | `createdAt` | `timestamp` | Provisioning timestamp |
 | `ownerUid` | `string` | Owner profile UID |
 
@@ -257,3 +261,20 @@ Active patient subscription trackers.
 | `price` | `number` | Recurring price rate |
 | `nextBilling` | `timestamp` | Renewal billing timestamp |
 | `status` | `string` | Active state (`"Active"`, `"Failed"`, `"Cancelled"`) |
+
+---
+
+### 13. Subcollection: `blogs`
+Informational and promotional blog articles for patient education.
+
+- **Path**: `/clinics/{clinicId}/blogs/{blogId}`
+- **Document ID**: Firestore Auto-Generated
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | `string` | Article title |
+| `description` | `string` | Brief summary of the article |
+| `imageUrl` | `string` | Banner image URL |
+| `articleUrl` | `string` | URL to the full article on the clinic's website |
+| `isActive` | `boolean` | Visible/Active switch toggle |
+| `createdAt` | `timestamp` | Creation timestamp |
