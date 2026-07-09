@@ -137,8 +137,8 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
         pointsAwarded = firstVisitBonus;
       }
 
-      // 5. Query RTDB loyalty balances
-      const loyaltyRef = ref(rtdb, `loyalty_points/${userid}`);
+      // 5. Query RTDB loyalty balances under the specific clinicId
+      const loyaltyRef = ref(rtdb, `loyalty_points/${clinicId}/${userid}`);
       const loyaltySnapshot = await get(loyaltyRef);
       const currentLoyalty = loyaltySnapshot.exists() ? (loyaltySnapshot.val() || 0) : 0;
       const newLoyaltyBalance = currentLoyalty + pointsAwarded;

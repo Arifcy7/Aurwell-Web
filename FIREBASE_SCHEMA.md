@@ -28,6 +28,8 @@ This document details the complete Firestore database schema, paths, data types,
          │     └── rewards_ratio (fixed document ID)
          ├── /blogs
          │     └── {blogId}
+         ├── /banners
+         │     └── {bannerId}
          ├── /patients
          │     └── {patientId}
          ├── /transactions
@@ -118,9 +120,9 @@ Stores services, description details, dynamic advantages, and pricing variants.
 #### `types` Object Schema:
 ```json
 {
-  "title": "string (e.g. Forehead Wrinkles)",
-  "originalPrice": "number (e.g. 250)",
-  "discountedPrice": "number (e.g. 199)"
+  "title": "string (e.g. Full Face)",
+  "nonMemberPrice": "number (e.g. 250)",
+  "memberPrice": "number (e.g. 199)"
 }
 ```
 
@@ -287,16 +289,36 @@ Informational and promotional blog articles for patient education.
 In addition to Firestore, Aurwell uses Firebase Realtime Database for high-performance and low-latency synchronization of key metrics (such as client loyalty balances).
 
 ### 1. Root Node: `loyalty_points`
-Stores the active balance of loyalty points for each registered patient across the Aurwell engine.
+Stores the active balance of loyalty points for each registered patient partitioned by clinic ID.
 
-- **Path**: `/loyalty_points/{userId}`
-- **Data Format**: Flat key-value pair of string (User ID) mapped to number (Loyalty Points balance)
+- **Path**: `/loyalty_points/{clinicId}/{userId}`
+- **Data Format**: Clinic ID containing key-value pair of string (User ID) mapped to number (Loyalty Points balance)
 
 ```json
 {
   "loyalty_points": {
-    "CqJSmHls3qPFHx48ncEVo1Kc9GB3": 50,
-    "patient_another_uid": 120
+    "clinic_abc123": {
+      "CqJSmHls3qPFHx48ncEVo1Kc9GB3": 50,
+      "patient_another_uid": 120
+    }
   }
 }
 ```
+
+---
+
+### 14. Subcollection: `banners`
+Announcement banners displayed inside the customer mobile app (Home or Shop screens).
+
+- **Path**: `/clinics/{clinicId}/banners/{bannerId}`
+- **Document ID**: Firestore Auto-Generated
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | `string` | Announcement text of the banner |
+| `screen` | `string` | Target display screen (fixed to `"home"`) |
+| `isActive` | `boolean` | Status toggle switch for display visibility |
+| `buttonText` | `string` | Optional text shown on the call-to-action button (e.g. `"Learn More"`) |
+| `targetType` | `string` | Optional navigation destination action: `"SHOP_TREATMENTS"`, `"SHOP_MEMBERSHIPS"`, `"TREATMENT_DETAIL"`, `"MEMBERSHIP_DETAIL"`, `"REWARDS_PAGE"`, `"SCAN_PAGE"`, or `"URL"` |
+| `targetId` | `string` | Optional target reference payload (contains treatment ID, membership ID, or URL string corresponding to the `targetType`) |
+| `createdAt` | `timestamp` | Creation timestamp |

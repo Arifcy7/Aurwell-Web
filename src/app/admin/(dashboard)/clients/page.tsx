@@ -34,8 +34,8 @@ export default function ClientsPage() {
           const q = query(collection(db, "clinics", clinicId, "patients"));
           const snapshot = await getDocs(q);
           
-          // Fetch loyalty points from Realtime Database
-          const loyaltySnapshot = await get(ref(rtdb, "loyalty_points"));
+          // Fetch loyalty points from Realtime Database under this specific clinicId
+          const loyaltySnapshot = await get(ref(rtdb, `loyalty_points/${clinicId}`));
           const loyaltyMap = loyaltySnapshot.exists() ? (loyaltySnapshot.val() || {}) : {};
 
           const loadedClients: ClientProfile[] = [];

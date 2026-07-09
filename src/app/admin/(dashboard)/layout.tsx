@@ -41,6 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Membership", href: "/admin/app-builder/membership" },
     { name: "Rewards", href: "/admin/app-builder/rewards" },
     { name: "Blogs", href: "/admin/app-builder/blogs" },
+    { name: "Banners", href: "/admin/app-builder/banners" },
     { name: "Settings", href: "/admin/app-builder/settings" },
   ];
 

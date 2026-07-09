@@ -7,8 +7,8 @@ import { auth, db } from "@/lib/firebase/client";
 
 interface TreatmentType {
   title: string;
-  originalPrice: number;
-  discountedPrice?: number | null;
+  nonMemberPrice: number;
+  memberPrice?: number | null;
 }
 
 interface Treatment {
@@ -50,7 +50,7 @@ export default function TreatmentsPage() {
 
   // Treatment Types State (multiple types)
   const [types, setTypes] = useState<any[]>([
-    { title: "Standard", originalPrice: "", discountedPrice: "" },
+    { title: "Standard", nonMemberPrice: "", memberPrice: "" },
   ]);
 
   const loadData = async (cId: string) => {
@@ -71,10 +71,16 @@ export default function TreatmentsPage() {
       const loadedTreatments: Treatment[] = [];
       treatSnapshot.forEach((d) => {
         const data = d.data();
+        const typesMapped = (data.types || []).map((t: any) => ({
+          title: t.title || "Standard",
+          nonMemberPrice: t.nonMemberPrice !== undefined ? t.nonMemberPrice : (t.originalPrice || 0),
+          memberPrice: t.memberPrice !== undefined ? t.memberPrice : (t.discountedPrice !== undefined ? t.discountedPrice : null),
+        }));
         loadedTreatments.push({
           id: d.id,
           isActive: data.isActive !== false,
           ...data,
+          types: typesMapped,
         } as Treatment);
       });
       setTreatments(loadedTreatments);
@@ -127,7 +133,7 @@ export default function TreatmentsPage() {
   };
 
   const handleAddTypeRow = () => {
-    setTypes((prev) => [...prev, { title: "", originalPrice: "", discountedPrice: "" }]);
+    setTypes((prev) => [...prev, { title: "", nonMemberPrice: "", memberPrice: "" }]);
   };
 
   const handleTypeRowChange = (index: number, field: keyof TreatmentType, value: string) => {
@@ -149,11 +155,11 @@ export default function TreatmentsPage() {
       featuresHeading,
       features: featuresListInput.split(",").map((f) => f.trim()).filter(Boolean),
       types: types
-        .filter((t) => t.title && t.originalPrice)
+        .filter((t) => t.title && t.nonMemberPrice)
         .map((t) => ({
           title: t.title,
-          originalPrice: Number(t.originalPrice),
-          discountedPrice: t.discountedPrice ? Number(t.discountedPrice) : null,
+          nonMemberPrice: Number(t.nonMemberPrice),
+          memberPrice: t.memberPrice ? Number(t.memberPrice) : null,
         })),
     };
 
@@ -180,7 +186,7 @@ export default function TreatmentsPage() {
       setBannerUrl("");
       setFeaturesHeading("Key Benefits");
       setFeaturesListInput("");
-      setTypes([{ title: "Standard", originalPrice: "", discountedPrice: "" }]);
+      setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
       setEditId(null);
       setShowTreatmentForm(false);
     } catch (err) {
@@ -202,10 +208,10 @@ export default function TreatmentsPage() {
       treatment.types.length > 0
         ? treatment.types.map((t) => ({
             title: t.title,
-            originalPrice: String(t.originalPrice),
-            discountedPrice: t.discountedPrice ? String(t.discountedPrice) : "",
+            nonMemberPrice: String(t.nonMemberPrice),
+            memberPrice: t.memberPrice ? String(t.memberPrice) : "",
           }))
-        : [{ title: "Standard", originalPrice: "", discountedPrice: "" }]
+        : [{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]
     );
     setShowTreatmentForm(true);
   };
@@ -248,7 +254,7 @@ export default function TreatmentsPage() {
               setBannerUrl("");
               setFeaturesHeading("Key Benefits");
               setFeaturesListInput("");
-              setTypes([{ title: "Standard", originalPrice: "", discountedPrice: "" }]);
+              setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
               setShowTreatmentForm(!showTreatmentForm);
             }}
             className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition"
@@ -395,16 +401,16 @@ export default function TreatmentsPage() {
                     />
                     <input
                       type="number"
-                      placeholder="Original Price"
-                      value={type.originalPrice}
-                      onChange={(e) => handleTypeRowChange(idx, "originalPrice", e.target.value)}
+                      placeholder="Non-Member Price"
+                      value={type.nonMemberPrice}
+                      onChange={(e) => handleTypeRowChange(idx, "nonMemberPrice", e.target.value)}
                       className="rounded border border-neutral-300 px-2 py-1 text-xs bg-white text-black"
                     />
                     <input
                       type="number"
-                      placeholder="Discount Price"
-                      value={type.discountedPrice}
-                      onChange={(e) => handleTypeRowChange(idx, "discountedPrice", e.target.value)}
+                      placeholder="Member-Only Price"
+                      value={type.memberPrice}
+                      onChange={(e) => handleTypeRowChange(idx, "memberPrice", e.target.value)}
                       className="rounded border border-neutral-300 px-2 py-1 text-xs bg-white text-black"
                     />
                   </div>
@@ -479,14 +485,20 @@ export default function TreatmentsPage() {
                                 <div key={idx} className="flex justify-between text-xs text-neutral-700">
                                   <span>{type.title}</span>
                                   <div className="space-x-1.5">
-                                    {type.discountedPrice && (
-                                      <span className="line-through text-neutral-400">
-                                        €{type.originalPrice}
+                                    {type.memberPrice ? (
+                                      <>
+                                        <span className="line-through text-neutral-400">
+                                          €{type.nonMemberPrice}
+                                        </span>
+                                        <span className="font-bold text-neutral-950">
+                                          Member: €{type.memberPrice}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="font-bold text-neutral-950">
+                                        €{type.nonMemberPrice}
                                       </span>
                                     )}
-                                    <span className="font-bold text-neutral-950">
-                                      €{type.discountedPrice || type.originalPrice}
-                                    </span>
                                   </div>
                                 </div>
                               ))}
