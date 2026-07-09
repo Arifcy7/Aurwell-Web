@@ -6,6 +6,7 @@ import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
+import QRScannerModal from "@/components/QRScannerModal";
 
 interface SidebarItem {
   name: string;
@@ -23,6 +24,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<User | null>(null);
   const [clinicName, setClinicName] = useState("Loading...");
   const [loading, setLoading] = useState(true);
+  const [clinicId, setClinicId] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
 
   const mainNavItems: SidebarItem[] = [
     { name: "Dashboard", href: "/admin/dashboard" },
@@ -55,6 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
         if (userDoc.exists()) {
           const uData = userDoc.data();
+          setClinicId(uData.clinicId);
           // Fetch clinic details
           const clinicDoc = await getDoc(doc(db, "clinics", uData.clinicId));
           if (clinicDoc.exists()) {
@@ -177,11 +181,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {pathname.split("/").pop()?.replace("-", " ") || "Dashboard"}
           </h1>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-neutral-400">Aurwell Engine v1.0</span>
+            <button
+              onClick={() => setShowScanner(true)}
+              className="rounded-md bg-black px-3 py-1.5 text-xs font-semibold text-white hover:bg-neutral-800 transition flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              Scan Member QR
+            </button>
           </div>
         </header>
 
         <div className="flex-1 p-8">{children}</div>
+
+        <QRScannerModal
+          isOpen={showScanner}
+          onClose={() => setShowScanner(false)}
+          clinicId={clinicId}
+        />
       </main>
     </div>
   );

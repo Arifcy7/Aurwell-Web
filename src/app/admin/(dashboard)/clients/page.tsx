@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "@/lib/firebase/client";
+import { ref, get } from "firebase/database";
+import { auth, db, rtdb } from "@/lib/firebase/client";
 
 interface ClientProfile {
   id: string;
@@ -32,9 +33,20 @@ export default function ClientsPage() {
           // Load clients registered for this clinicId from database.
           const q = query(collection(db, "clinics", clinicId, "patients"));
           const snapshot = await getDocs(q);
+          
+          // Fetch loyalty points from Realtime Database
+          const loyaltySnapshot = await get(ref(rtdb, "loyalty_points"));
+          const loyaltyMap = loyaltySnapshot.exists() ? (loyaltySnapshot.val() || {}) : {};
+
           const loadedClients: ClientProfile[] = [];
           snapshot.forEach((d) => {
-            loadedClients.push({ id: d.id, ...d.data() } as ClientProfile);
+            const data = d.data();
+            const rtdbLoyalty = loyaltyMap[d.id] !== undefined ? loyaltyMap[d.id] : 0;
+            loadedClients.push({
+              id: d.id,
+              ...data,
+              loyaltyBalance: rtdbLoyalty,
+            } as ClientProfile);
           });
           setClients(loadedClients);
         }

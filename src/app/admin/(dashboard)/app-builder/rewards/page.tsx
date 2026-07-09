@@ -31,6 +31,7 @@ export default function RewardsPage() {
   // Point Earning Config
   const [spendAmount, setSpendAmount] = useState(10); // e.g. Spend €10
   const [pointsEarned, setPointsEarned] = useState(1); // Get 1 point
+  const [firstVisitPoints, setFirstVisitPoints] = useState(10); // Default to 10 points
 
   // Reward Form State
   const [showForm, setShowForm] = useState(false);
@@ -62,6 +63,7 @@ export default function RewardsPage() {
         const data = ratioDoc.data();
         setSpendAmount(data.spendAmount || 10);
         setPointsEarned(data.pointsEarned || 1);
+        setFirstVisitPoints(data.firstVisitPoints || 0);
       }
 
       // Fetch rewards list
@@ -108,10 +110,11 @@ export default function RewardsPage() {
       await setDoc(doc(db, "clinics", clinicId, "settings", "rewards_ratio"), {
         spendAmount,
         pointsEarned,
+        firstVisitPoints,
       });
-      alert("Loyalty point ratio configuration saved successfully!");
+      alert("Loyalty point configuration saved successfully!");
     } catch (err) {
-      console.error("Error saving point ratio:", err);
+      console.error("Error saving point config:", err);
     }
   };
 
@@ -232,9 +235,30 @@ export default function RewardsPage() {
             />
           </div>
 
-          <div className="bg-neutral-50 border border-neutral-200 rounded p-3 text-xs text-neutral-600">
-            Current Rule: Clients earn <strong className="text-black">{pointsEarned} point(s)</strong> for every{" "}
-            <strong className="text-black">€{spendAmount}</strong> they spend on treatments.
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm font-medium">
+              <span>First Visit Loyalty Points Bonus</span>
+              <span className="font-bold">{firstVisitPoints} pt(s)</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={firstVisitPoints}
+              onChange={(e) => setFirstVisitPoints(Number(e.target.value))}
+              className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-black"
+            />
+          </div>
+
+          <div className="bg-neutral-50 border border-neutral-200 rounded p-3 text-xs text-neutral-600 space-y-1.5">
+            <div>
+              Current Rule: Clients earn <strong className="text-black">{pointsEarned} point(s)</strong> for every{" "}
+              <strong className="text-black">€{spendAmount}</strong> they spend on treatments.
+            </div>
+            <div className="border-t border-neutral-200 pt-1.5">
+              First Visit Bonus: Clients receive <strong className="text-black">{firstVisitPoints} point(s)</strong> on their very first visit.
+            </div>
           </div>
 
           <button

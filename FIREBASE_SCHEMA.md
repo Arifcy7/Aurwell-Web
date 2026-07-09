@@ -211,6 +211,7 @@ Houses single documents containing fixed-ID clinic metadata.
 |---|---|---|
 | `spendAmount` | `number` | Threshold currency spend amount |
 | `pointsEarned` | `number` | Point rewards earned per spend amount |
+| `firstVisitPoints` | `number` | Point rewards earned on very first check-in visit |
 
 ---
 
@@ -227,7 +228,7 @@ Registered client files for the clinic.
 | `phone` | `string` | Phone details |
 | `joinedAt` | `timestamp` | Join date timestamp |
 | `visitsCount` | `number` | Visited session counter |
-| `loyaltyBalance` | `number` | Accumulated loyalty points |
+| `loyaltyBalance` | `number` | [DEPRECATED] Migrated to Firebase Realtime Database at `/loyalty_points/{patientId}` |
 
 ---
 
@@ -278,3 +279,24 @@ Informational and promotional blog articles for patient education.
 | `articleUrl` | `string` | URL to the full article on the clinic's website |
 | `isActive` | `boolean` | Visible/Active switch toggle |
 | `createdAt` | `timestamp` | Creation timestamp |
+
+---
+
+## ⚡ Firebase Realtime Database Schema
+
+In addition to Firestore, Aurwell uses Firebase Realtime Database for high-performance and low-latency synchronization of key metrics (such as client loyalty balances).
+
+### 1. Root Node: `loyalty_points`
+Stores the active balance of loyalty points for each registered patient across the Aurwell engine.
+
+- **Path**: `/loyalty_points/{userId}`
+- **Data Format**: Flat key-value pair of string (User ID) mapped to number (Loyalty Points balance)
+
+```json
+{
+  "loyalty_points": {
+    "CqJSmHls3qPFHx48ncEVo1Kc9GB3": 50,
+    "patient_another_uid": 120
+  }
+}
+```
