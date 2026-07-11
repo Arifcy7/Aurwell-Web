@@ -194,6 +194,9 @@ Registered client files for the clinic.
 | `joinedAt` | `timestamp` | Join date timestamp |
 | `visitsCount` | `number` | Visited session counter |
 | `loyaltyBalance` | `number` | [DEPRECATED] Migrated to Firebase Realtime Database at `/loyalty_points/{patientId}` |
+| `referralCode` | `string` | Unique referral identifier (format: `REF-{clinicId}-{uid}`) |
+| `referredBy` | `string` (optional) | UID of the user who referred this patient |
+| `hasGivenGoogleReview` | `boolean` (optional) | Flag indicating if this patient has submitted a Google review for rewards points |
 
 ---
 
@@ -285,3 +288,38 @@ Announcement banners displayed inside the customer mobile app (Home or Shop scre
 | `targetType` | `string` | Optional navigation destination action: `"SHOP_TREATMENTS"`, `"SHOP_MEMBERSHIPS"`, `"TREATMENT_DETAIL"`, `"MEMBERSHIP_DETAIL"`, `"REWARDS_PAGE"`, `"SCAN_PAGE"`, or `"URL"` |
 | `targetId` | `string` | Optional target reference payload (contains treatment ID, membership ID, or URL string corresponding to the `targetType`) |
 | `createdAt` | `timestamp` | Creation timestamp |
+
+---
+
+### 13. Subcollection: `availed_rewards`
+Stores the coupons that the patient has claimed/unlocked but not yet applied to a cart purchase.
+
+- **Path**: `/clinics/{clinicId}/patients/{patientId}/availed_rewards/{availedRewardId}`
+- **Document ID**: Firestore Auto-Generated
+
+| Field | Type | Description |
+|---|---|---|
+| `rewardId` | `string` | ID of the source reward coupon |
+| `title` | `string` | Title of the reward |
+| `description` | `string` | Description of the reward |
+| `cardInfo` | `string` | Text badge (e.g. `"10% OFF"`) |
+| `discountPercentage` | `number` | Discount percentage amount |
+| `treatmentId` | `string` | Treatment service the discount applies to |
+| `availedDate` | `number` (epoch ms) | Timestamp when reward was unlocked |
+| `expiryDate` | `number` (epoch ms) | Expiration timestamp of the availed reward |
+| `isUsed` | `boolean` | Flag indicating if this coupon has been used in a checkout purchase |
+
+---
+
+### 14. Root Collection: `referrals`
+Stores the mapping of shortened referral codes to their respective clinics and referee patient accounts.
+
+- **Path**: `/referrals/{referralCode}`
+- **Document ID**: The 8-character uppercase referral code (e.g. `REF5A9B8`).
+
+| Field | Type | Description |
+|---|---|---|
+| `clinicId` | `string` | ID of the clinic where the referral was generated |
+| `uid` | `string` | UID of the patient who owns this referral code |
+
+
