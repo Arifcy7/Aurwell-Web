@@ -35,8 +35,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   const appBuilderNavItems: AppBuilderItem[] = [
-    { name: "Custom plans", href: "/admin/app-builder/custom-plans" },
-    { name: "Offers", href: "/admin/app-builder/offers" },
     { name: "Treatments", href: "/admin/app-builder/treatments" },
     { name: "Membership", href: "/admin/app-builder/membership" },
     { name: "Rewards", href: "/admin/app-builder/rewards" },

@@ -13,7 +13,8 @@ interface Reward {
   pointsRequired: number;
   treatmentId: string;
   discountPercentage: number;
-  discountUpTo?: number; // Maximum limit value
+  discountUpTo?: number | null; // Maximum limit value
+  expiryDays?: number | null; // Expiry in days
   isActive?: boolean;
 }
 
@@ -32,6 +33,8 @@ export default function RewardsPage() {
   const [spendAmount, setSpendAmount] = useState(10); // e.g. Spend €10
   const [pointsEarned, setPointsEarned] = useState(1); // Get 1 point
   const [firstVisitPoints, setFirstVisitPoints] = useState(10); // Default to 10 points
+  const [googleReviewPoints, setGoogleReviewPoints] = useState(15); // Default to 15 points
+  const [referralPoints, setReferralPoints] = useState(20); // Default to 20 points
 
   // Reward Form State
   const [showForm, setShowForm] = useState(false);
@@ -43,6 +46,7 @@ export default function RewardsPage() {
   const [selectedTreatmentId, setSelectedTreatmentId] = useState("");
   const [discountPercentage, setDiscountPercentage] = useState(10);
   const [discountUpTo, setDiscountUpTo] = useState(""); // Maximum discount threshold
+  const [expiryDays, setExpiryDays] = useState(""); // Expiry in days
 
   const loadData = async (cId: string) => {
     try {
@@ -64,6 +68,8 @@ export default function RewardsPage() {
         setSpendAmount(data.spendAmount || 10);
         setPointsEarned(data.pointsEarned || 1);
         setFirstVisitPoints(data.firstVisitPoints || 0);
+        setGoogleReviewPoints(data.googleReviewPoints || 0);
+        setReferralPoints(data.referralPoints || 0);
       }
 
       // Fetch rewards list
@@ -111,6 +117,8 @@ export default function RewardsPage() {
         spendAmount,
         pointsEarned,
         firstVisitPoints,
+        googleReviewPoints,
+        referralPoints,
       });
       alert("Loyalty point configuration saved successfully!");
     } catch (err) {
@@ -130,7 +138,8 @@ export default function RewardsPage() {
       pointsRequired: Number(pointsRequired),
       treatmentId: selectedTreatmentId,
       discountPercentage: Number(discountPercentage),
-      discountUpTo: discountUpTo ? Number(discountUpTo) : undefined,
+      discountUpTo: discountUpTo ? Number(discountUpTo) : null,
+      expiryDays: expiryDays ? Number(expiryDays) : null,
     };
 
     try {
@@ -157,6 +166,7 @@ export default function RewardsPage() {
       setPointsRequired(100);
       setDiscountPercentage(10);
       setDiscountUpTo("");
+      setExpiryDays("");
       setEditId(null);
       setShowForm(false);
     } catch (err) {
@@ -175,6 +185,7 @@ export default function RewardsPage() {
     setSelectedTreatmentId(reward.treatmentId);
     setDiscountPercentage(reward.discountPercentage);
     setDiscountUpTo(reward.discountUpTo ? String(reward.discountUpTo) : "");
+    setExpiryDays(reward.expiryDays ? String(reward.expiryDays) : "");
     setShowForm(true);
   };
 
@@ -251,13 +262,47 @@ export default function RewardsPage() {
             />
           </div>
 
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm font-medium">
+              <span>Google Review Points Bonus</span>
+              <span className="font-bold">{googleReviewPoints} pt(s)</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="300"
+              step="5"
+              value={googleReviewPoints}
+              onChange={(e) => setGoogleReviewPoints(Number(e.target.value))}
+              className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-black"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm font-medium">
+              <span>Refer a Friend Points Bonus</span>
+              <span className="font-bold">{referralPoints} pt(s)</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="300"
+              step="5"
+              value={referralPoints}
+              onChange={(e) => setReferralPoints(Number(e.target.value))}
+              className="w-full h-1 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-black"
+            />
+          </div>
+
           <div className="bg-neutral-50 border border-neutral-200 rounded p-3 text-xs text-neutral-600 space-y-1.5">
             <div>
               Current Rule: Clients earn <strong className="text-black">{pointsEarned} point(s)</strong> for every{" "}
               <strong className="text-black">€{spendAmount}</strong> they spend on treatments.
             </div>
-            <div className="border-t border-neutral-200 pt-1.5">
-              First Visit Bonus: Clients receive <strong className="text-black">{firstVisitPoints} point(s)</strong> on their very first visit.
+            <div className="border-t border-neutral-200 pt-1.5 grid grid-cols-2 gap-2">
+              <div>First Visit: <strong className="text-black">+{firstVisitPoints} pt(s)</strong></div>
+              <div>Google Review: <strong className="text-black">+{googleReviewPoints} pt(s)</strong></div>
+              <div>Refer a Friend: <strong className="text-black">+{referralPoints} pt(s)</strong></div>
             </div>
           </div>
 
@@ -285,6 +330,7 @@ export default function RewardsPage() {
             setPointsRequired(100);
             setDiscountPercentage(10);
             setDiscountUpTo("");
+            setExpiryDays("");
             setShowForm(!showForm);
           }}
           className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition"
@@ -361,7 +407,7 @@ export default function RewardsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700">Target Treatment</label>
                 <select
@@ -389,6 +435,19 @@ export default function RewardsPage() {
                   value={discountPercentage}
                   onChange={(e) => setDiscountPercentage(Number(e.target.value))}
                   className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700">
+                  Expiry (Days) <span className="text-xs text-neutral-400">(optional)</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={expiryDays}
+                  onChange={(e) => setExpiryDays(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  placeholder="e.g. 30"
                 />
               </div>
             </div>
@@ -421,11 +480,18 @@ export default function RewardsPage() {
               <div>
                 <h3 className="text-sm font-bold text-neutral-900">{r.title}</h3>
                 <p className="text-xs text-neutral-500 mt-1">{r.description}</p>
-                {r.discountUpTo && (
-                  <p className="text-[10px] font-semibold text-black mt-2">
-                    Up to €{r.discountUpTo} max discount limit
-                  </p>
-                )}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {r.discountUpTo && (
+                    <span className="bg-neutral-100 text-neutral-800 text-[10px] font-semibold px-2 py-0.5 rounded border border-neutral-200">
+                      Up to €{r.discountUpTo} max
+                    </span>
+                  )}
+                  {r.expiryDays && (
+                    <span className="bg-neutral-100 text-neutral-800 text-[10px] font-semibold px-2 py-0.5 rounded border border-neutral-200">
+                      Expires in {r.expiryDays} days
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="border-t border-neutral-100 mt-4 pt-3 text-[10px] text-neutral-400">

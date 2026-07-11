@@ -16,12 +16,8 @@ This document details the complete Firestore database schema, paths, data types,
          │     └── {categoryId}
          ├── /treatments
          │     └── {treatmentId}
-         ├── /custom_plans
-         │     └── {planId}
          ├── /memberships
          │     └── {membershipId}
-         ├── /offers
-         │     └── {offerId}
          ├── /rewards
          │     └── {rewardId}
          ├── /settings
@@ -128,25 +124,7 @@ Stores services, description details, dynamic advantages, and pricing variants.
 
 ---
 
-### 5. Subcollection: `custom_plans`
-Stores customized plans for dynamic patient care.
-
-- **Path**: `/clinics/{clinicId}/custom_plans/{planId}`
-- **Document ID**: Firestore Auto-Generated
-
-| Field | Type | Description |
-|---|---|---|
-| `title` | `string` | Custom plan name |
-| `description` | `string` | Details of cycle deliverables |
-| `price` | `number` | Billing cost value |
-| `billingCycle` | `string` | Cost recurrence intervals (`"weekly"`, `"monthly"`, `"yearly"`) |
-| `features` | `array` of `string` | Detailed list of target plan parameters |
-| `isActive` | `boolean` | Available/Active switch toggle |
-| `createdAt` | `timestamp` | Creation timestamp |
-
----
-
-### 6. Subcollection: `memberships`
+### 5. Subcollection: `memberships`
 Houses bundle plans incorporating multiple treatment services.
 
 - **Path**: `/clinics/{clinicId}/memberships/{membershipId}`
@@ -165,25 +143,7 @@ Houses bundle plans incorporating multiple treatment services.
 
 ---
 
-### 7. Subcollection: `offers`
-Vouchers, coupons, and seasonal discounts.
-
-- **Path**: `/clinics/{clinicId}/offers/{offerId}`
-- **Document ID**: Firestore Auto-Generated
-
-| Field | Type | Description |
-|---|---|---|
-| `title` | `string` | Campaign title (e.g. `"Summer Radiance Special"`) |
-| `description` | `string` | Promotional details and guidelines |
-| `discountValue` | `number` | Numeric discount amount value |
-| `discountType` | `string` | Calculation mode (`"percentage"` or `"fixed"`) |
-| `validUntil` | `timestamp` | Expire deadline timestamp |
-| `isActive` | `boolean` | Active state toggle switch |
-| `createdAt` | `timestamp` | Creation timestamp |
-
----
-
-### 8. Subcollection: `rewards`
+### 6. Subcollection: `rewards`
 Point-redemption coupons.
 
 - **Path**: `/clinics/{clinicId}/rewards/{rewardId}`
@@ -198,12 +158,13 @@ Point-redemption coupons.
 | `treatmentId` | `string` | Target treatment document ID |
 | `discountPercentage` | `number` | Amount off (%) applied to the treatment price |
 | `discountUpTo` | `number` (optional) | Maximum allowed discount cap threshold |
+| `expiryDays` | `number` (optional) | Number of days the redeemed reward remains valid |
 | `isActive` | `boolean` | Active status toggle switch |
 | `createdAt` | `timestamp` | Creation timestamp |
 
 ---
 
-### 9. Subcollection: `settings` (Ratio Document)
+### 7. Subcollection: `settings` (Ratio Document)
 Houses single documents containing fixed-ID clinic metadata.
 
 - **Path**: `/clinics/{clinicId}/settings/rewards_ratio`
@@ -214,10 +175,12 @@ Houses single documents containing fixed-ID clinic metadata.
 | `spendAmount` | `number` | Threshold currency spend amount |
 | `pointsEarned` | `number` | Point rewards earned per spend amount |
 | `firstVisitPoints` | `number` | Point rewards earned on very first check-in visit |
+| `googleReviewPoints` | `number` | Point rewards earned for leaving a Google Review |
+| `referralPoints` | `number` | Point rewards earned for referring a friend |
 
 ---
 
-### 10. Subcollection: `patients`
+### 8. Subcollection: `patients`
 Registered client files for the clinic.
 
 - **Path**: `/clinics/{clinicId}/patients/{patientId}`
@@ -234,7 +197,7 @@ Registered client files for the clinic.
 
 ---
 
-### 11. Subcollection: `transactions`
+### 9. Subcollection: `transactions`
 Payment transaction invoices history.
 
 - **Path**: `/clinics/{clinicId}/transactions/{transactionId}`
@@ -250,7 +213,7 @@ Payment transaction invoices history.
 
 ---
 
-### 12. Subcollection: `active_memberships`
+### 10. Subcollection: `active_memberships`
 Active patient subscription trackers.
 
 - **Path**: `/clinics/{clinicId}/active_memberships/{memberId}`
@@ -267,7 +230,7 @@ Active patient subscription trackers.
 
 ---
 
-### 13. Subcollection: `blogs`
+### 11. Subcollection: `blogs`
 Informational and promotional blog articles for patient education.
 
 - **Path**: `/clinics/{clinicId}/blogs/{blogId}`
@@ -307,7 +270,7 @@ Stores the active balance of loyalty points for each registered patient partitio
 
 ---
 
-### 14. Subcollection: `banners`
+### 12. Subcollection: `banners`
 Announcement banners displayed inside the customer mobile app (Home or Shop screens).
 
 - **Path**: `/clinics/{clinicId}/banners/{bannerId}`
