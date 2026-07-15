@@ -30,6 +30,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const mainNavItems: SidebarItem[] = [
     { name: "Dashboard", href: "/admin/dashboard" },
     { name: "Clients", href: "/admin/clients" },
+    { name: "Notifications", href: "/admin/notifications" },
     { name: "Shop Summary", href: "/admin/shop" },
     { name: "Memberships", href: "/admin/memberships" },
   ];
