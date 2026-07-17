@@ -77,6 +77,8 @@ Houses base branding, settings, and profile details for individual clinics.
 | `postalCode` | `string` | Local address zip/postal code |
 | `phone` | `string` | Formatted contact number containing dial code |
 | `googleMapUrl` | `string` | Optional Google Map URL of the address |
+| `latitude` | `number` | Auto-extracted physical latitude of the clinic map address |
+| `longitude` | `number` | Auto-extracted physical longitude of the clinic map address |
 | `blogSectionTitle` | `string` | Customized title label for the blogs section/tab (default `"Blogs"`) |
 | `createdAt` | `timestamp` | Provisioning timestamp |
 | `ownerUid` | `string` | Owner profile UID |

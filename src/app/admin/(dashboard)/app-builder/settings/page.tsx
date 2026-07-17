@@ -23,6 +23,10 @@ export default function SettingsPage() {
   const [postalCode, setPostalCode] = useState("");
   const [phone, setPhone] = useState("");
   const [googleMapUrl, setGoogleMapUrl] = useState("");
+  const [latitude, setLatitude] = useState<number | "">("");
+  const [longitude, setLongitude] = useState<number | "">("");
+  const [resolvingMap, setResolvingMap] = useState(false);
+  const [mapError, setMapError] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -47,6 +51,8 @@ export default function SettingsPage() {
             setPostalCode(data.postalCode || "");
             setPhone(data.phone || "");
             setGoogleMapUrl(data.googleMapUrl || "");
+            setLatitude(data.latitude ?? "");
+            setLongitude(data.longitude ?? "");
           }
         }
       } catch (err) {
@@ -58,6 +64,66 @@ export default function SettingsPage() {
 
     return () => unsubscribe();
   }, []);
+
+  // Auto-resolve Google Maps link to coordinates
+  useEffect(() => {
+    if (!googleMapUrl) {
+      setLatitude("");
+      setLongitude("");
+      setMapError("");
+      return;
+    }
+
+    const isGoogleMapsLink =
+      googleMapUrl.includes("maps.app.goo.gl") ||
+      googleMapUrl.includes("goo.gl/maps") ||
+      googleMapUrl.includes("google.com/maps") ||
+      googleMapUrl.includes("maps.google.com");
+
+    if (!isGoogleMapsLink) {
+      setMapError("Please enter a valid Google Maps link");
+      return;
+    }
+
+    setMapError("");
+
+    const timer = setTimeout(async () => {
+      setResolvingMap(true);
+      try {
+        const idToken = await auth.currentUser?.getIdToken();
+        if (!idToken) return;
+
+        const res = await fetch("/api/resolve-map-link", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({ url: googleMapUrl }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to resolve URL");
+        }
+
+        const data = await res.json();
+        if (data.success) {
+          setLatitude(data.latitude);
+          setLongitude(data.longitude);
+          setMapError("");
+        } else {
+          setMapError("Could not extract coordinates from link automatically.");
+        }
+      } catch (err) {
+        console.error("Error resolving map link:", err);
+        setMapError("Error parsing coordinates from link.");
+      } finally {
+        setResolvingMap(false);
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [googleMapUrl]);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +144,8 @@ export default function SettingsPage() {
         postalCode,
         phone,
         googleMapUrl,
+        latitude: latitude !== "" ? latitude : null,
+        longitude: longitude !== "" ? longitude : null,
       });
 
       setSuccessMsg("Settings updated successfully!");
@@ -213,6 +281,45 @@ export default function SettingsPage() {
                 placeholder="https://maps.app.goo.gl/..."
                 className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
               />
+              {resolvingMap && (
+                <p className="mt-1.5 text-xs text-neutral-500 flex items-center gap-1.5 animate-pulse">
+                  <span className="inline-block w-3.5 h-3.5 border-2 border-neutral-500 border-t-transparent rounded-full animate-spin" />
+                  Resolving link and extracting coordinates...
+                </p>
+              )}
+              {!resolvingMap && mapError && (
+                <p className="mt-1.5 text-xs text-amber-600 font-medium">⚠️ {mapError}</p>
+              )}
+              {!resolvingMap && !mapError && latitude && longitude && (
+                <p className="mt-1.5 text-xs text-green-600 font-semibold flex items-center gap-1">
+                  ✓ Coordinates extracted: {latitude}, {longitude}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">Latitude</label>
+                <input
+                  type="text"
+                  readOnly
+                  disabled
+                  value={latitude}
+                  placeholder="Auto-calculated"
+                  className="mt-1 block w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-500 sm:text-sm cursor-not-allowed font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">Longitude</label>
+                <input
+                  type="text"
+                  readOnly
+                  disabled
+                  value={longitude}
+                  placeholder="Auto-calculated"
+                  className="mt-1 block w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-500 sm:text-sm cursor-not-allowed font-mono"
+                />
+              </div>
             </div>
 
             <div>
