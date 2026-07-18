@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import { collection, query, getDocs, doc, getDoc, orderBy, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import ImageUploader from "@/components/ImageUploader";
+import { uploadImageFile } from "@/lib/firebase/upload";
 
 interface ClientProfile {
   id: string;
@@ -34,6 +36,7 @@ export default function NotificationsPage() {
   const [title, setTitle] = useState<string>("");
   const [body, setBody] = useState<string>("");
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [targetType, setTargetType] = useState<"all" | "visits">("all");
   const [operator, setOperator] = useState<">=" | "<=" | "==">(">=");
   const [visitsValue, setVisitsValue] = useState<string>("5");
@@ -131,6 +134,11 @@ export default function NotificationsPage() {
         throw new Error("Authentication credentials not found");
       }
 
+      let finalImageUrl = imageUrl;
+      if (imageFile) {
+        finalImageUrl = await uploadImageFile(imageFile, "notifications");
+      }
+
       const response = await fetch("/api/notifications/send", {
         method: "POST",
         headers: {
@@ -140,7 +148,7 @@ export default function NotificationsPage() {
         body: JSON.stringify({
           title,
           body,
-          imageUrl: imageUrl.trim() || undefined,
+          imageUrl: finalImageUrl.trim() || undefined,
           targetType,
           operator,
           visitsValue,
@@ -162,6 +170,7 @@ export default function NotificationsPage() {
       setTitle("");
       setBody("");
       setImageUrl("");
+      setImageFile(null);
     } catch (err: any) {
       console.error(err);
       setStatusMessage({
@@ -223,28 +232,13 @@ export default function NotificationsPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700">Notification Image URL (Optional)</label>
-              <input
-                type="url"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://example.com/promo-image.jpg"
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+              <ImageUploader
+                file={imageFile}
+                onChange={setImageFile}
+                imageUrl={imageUrl}
+                onClearImage={() => setImageUrl("")}
+                label="Notification Image (Optional)"
               />
-              {imageUrl && imageUrl.startsWith("http") && (
-                <div className="mt-2.5 relative w-full max-h-40 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 flex items-center justify-center">
-                  <img
-                    src={imageUrl}
-                    alt="Push media preview"
-                    className="w-full h-full object-cover max-h-40"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
-                  />
-                </div>
-              )}
-            </div>
 
             {/* Targeting controls */}
             <div className="bg-neutral-50 rounded-lg p-4 border border-neutral-200/60 space-y-4">

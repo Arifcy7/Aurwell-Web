@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import ImageUploader from "@/components/ImageUploader";
+import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 
 interface TreatmentType {
   title: string;
@@ -45,6 +47,9 @@ export default function TreatmentsPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [originalBannerUrl, setOriginalBannerUrl] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [featuresHeading, setFeaturesHeading] = useState("Key Benefits");
   const [featuresListInput, setFeaturesListInput] = useState(""); // Comma separated benefits
 
@@ -146,24 +151,34 @@ export default function TreatmentsPage() {
     e.preventDefault();
     if (!title || !selectedCategoryId || !clinicId) return;
 
-    setLoading(true);
-    const treatmentData = {
-      categoryId: selectedCategoryId,
-      title,
-      description,
-      bannerUrl: bannerUrl || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600",
-      featuresHeading,
-      features: featuresListInput.split(",").map((f) => f.trim()).filter(Boolean),
-      types: types
-        .filter((t) => t.title && t.nonMemberPrice)
-        .map((t) => ({
-          title: t.title,
-          nonMemberPrice: Number(t.nonMemberPrice),
-          memberPrice: t.memberPrice ? Number(t.memberPrice) : null,
-        })),
-    };
-
+    setIsSaving(true);
     try {
+      let finalBannerUrl = bannerUrl;
+      let shouldDeleteOriginal = false;
+
+      if (bannerFile) {
+        finalBannerUrl = await uploadImageFile(bannerFile, "treatments");
+        shouldDeleteOriginal = true;
+      } else if (!bannerUrl && originalBannerUrl) {
+        shouldDeleteOriginal = true;
+      }
+
+      const treatmentData = {
+        categoryId: selectedCategoryId,
+        title,
+        description,
+        bannerUrl: finalBannerUrl || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600",
+        featuresHeading,
+        features: featuresListInput.split(",").map((f) => f.trim()).filter(Boolean),
+        types: types
+          .filter((t) => t.title && t.nonMemberPrice)
+          .map((t) => ({
+            title: t.title,
+            nonMemberPrice: Number(t.nonMemberPrice),
+            memberPrice: t.memberPrice ? Number(t.memberPrice) : null,
+          })),
+      };
+
       if (editId) {
         // Update existing treatment
         await updateDoc(doc(db, "clinics", clinicId, "treatments", editId), treatmentData);
@@ -180,10 +195,16 @@ export default function TreatmentsPage() {
         setTreatments((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
       }
 
+      if (shouldDeleteOriginal && originalBannerUrl) {
+        await deleteImageFile(originalBannerUrl);
+      }
+
       // Reset Form
       setTitle("");
       setDescription("");
       setBannerUrl("");
+      setOriginalBannerUrl("");
+      setBannerFile(null);
       setFeaturesHeading("Key Benefits");
       setFeaturesListInput("");
       setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
@@ -192,7 +213,7 @@ export default function TreatmentsPage() {
     } catch (err) {
       console.error("Error saving treatment:", err);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -202,6 +223,8 @@ export default function TreatmentsPage() {
     setTitle(treatment.title);
     setDescription(treatment.description);
     setBannerUrl(treatment.bannerUrl);
+    setOriginalBannerUrl(treatment.bannerUrl);
+    setBannerFile(null);
     setFeaturesHeading(treatment.featuresHeading);
     setFeaturesListInput(treatment.features.join(", "));
     setTypes(
@@ -252,6 +275,8 @@ export default function TreatmentsPage() {
               setTitle("");
               setDescription("");
               setBannerUrl("");
+              setOriginalBannerUrl("");
+              setBannerFile(null);
               setFeaturesHeading("Key Benefits");
               setFeaturesListInput("");
               setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
@@ -341,16 +366,13 @@ export default function TreatmentsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-700">Banner Image URL</label>
-                <input
-                  type="url"
-                  value={bannerUrl}
-                  onChange={(e) => setBannerUrl(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
-                  placeholder="https://example.com/banner.jpg"
-                />
-              </div>
+              <ImageUploader
+                file={bannerFile}
+                onChange={setBannerFile}
+                imageUrl={bannerUrl}
+                onClearImage={() => setBannerUrl("")}
+                label="Banner Image"
+              />
             </div>
 
             <div className="space-y-4">
@@ -421,9 +443,20 @@ export default function TreatmentsPage() {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+            disabled={isSaving}
+            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {editId ? "Update Treatment Product" : "Save Treatment Product"}
+            {isSaving ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                {editId ? "Updating Treatment..." : "Saving Treatment..."}
+              </>
+            ) : (
+              editId ? "Update Treatment Product" : "Save Treatment Product"
+            )}
           </button>
         </form>
       )}

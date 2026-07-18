@@ -15,6 +15,8 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import ImageUploader from "@/components/ImageUploader";
+import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 
 interface Blog {
   id: string;
@@ -41,6 +43,9 @@ export default function BlogsPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [originalImageUrl, setOriginalImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [articleUrl, setArticleUrl] = useState("");
 
   const loadData = async (cId: string) => {
@@ -120,15 +125,25 @@ export default function BlogsPage() {
     e.preventDefault();
     if (!title || !clinicId) return;
 
-    setLoading(true);
-    const blogData = {
-      title,
-      description,
-      imageUrl: imageUrl || "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600",
-      articleUrl,
-    };
-
+    setIsSaving(true);
     try {
+      let finalImageUrl = imageUrl;
+      let shouldDeleteOriginal = false;
+
+      if (imageFile) {
+        finalImageUrl = await uploadImageFile(imageFile, "blogs");
+        shouldDeleteOriginal = true;
+      } else if (!imageUrl && originalImageUrl) {
+        shouldDeleteOriginal = true;
+      }
+
+      const blogData = {
+        title,
+        description,
+        imageUrl: finalImageUrl || "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600",
+        articleUrl,
+      };
+
       if (editId) {
         // Update existing blog
         await updateDoc(doc(db, "clinics", clinicId, "blogs", editId), blogData);
@@ -145,17 +160,23 @@ export default function BlogsPage() {
         setBlogs((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
       }
 
+      if (shouldDeleteOriginal && originalImageUrl) {
+        await deleteImageFile(originalImageUrl);
+      }
+
       // Reset form
       setTitle("");
       setDescription("");
       setImageUrl("");
+      setOriginalImageUrl("");
+      setImageFile(null);
       setArticleUrl("");
       setEditId(null);
       setShowForm(false);
     } catch (err) {
       console.error("Error saving blog article:", err);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -164,6 +185,8 @@ export default function BlogsPage() {
     setTitle(blog.title);
     setDescription(blog.description);
     setImageUrl(blog.imageUrl);
+    setOriginalImageUrl(blog.imageUrl);
+    setImageFile(null);
     setArticleUrl(blog.articleUrl);
     setShowForm(true);
   };
@@ -216,6 +239,8 @@ export default function BlogsPage() {
             setTitle("");
             setDescription("");
             setImageUrl("");
+            setOriginalImageUrl("");
+            setImageFile(null);
             setArticleUrl("");
             setShowForm(!showForm);
           }}
@@ -294,29 +319,13 @@ export default function BlogsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700">Banner Image URL</label>
-                <input
-                  type="url"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
-                  placeholder="https://images.unsplash.com/photo-..."
-                />
-                {imageUrl && (
-                  <div className="mt-2 rounded-lg border border-neutral-200 overflow-hidden h-24 w-full max-w-xs relative bg-neutral-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imageUrl}
-                      alt="Banner Preview"
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600";
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
+              <ImageUploader
+                file={imageFile}
+                onChange={setImageFile}
+                imageUrl={imageUrl}
+                onClearImage={() => setImageUrl("")}
+                label="Banner Image"
+              />
               <div>
                 <label className="block text-sm font-medium text-neutral-700">Full Article Link</label>
                 <input
@@ -333,9 +342,20 @@ export default function BlogsPage() {
           <div className="pt-2 flex gap-3">
             <button
               type="submit"
-              className="flex-1 rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+              disabled={isSaving}
+              className="flex-1 rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {editId ? "Update Article" : "Save Article"}
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  {editId ? "Updating Article..." : "Saving Article..."}
+                </>
+              ) : (
+                editId ? "Update Article" : "Save Article"
+              )}
             </button>
             <button
               type="button"

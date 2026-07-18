@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import ImageUploader from "@/components/ImageUploader";
+import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 
 interface Membership {
   id: string;
@@ -34,6 +36,9 @@ export default function MembershipBuilderPage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [originalBannerUrl, setOriginalBannerUrl] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [terms, setTerms] = useState("");
   const [selectedTreatments, setSelectedTreatments] = useState<string[]>([]);
 
@@ -97,17 +102,27 @@ export default function MembershipBuilderPage() {
     e.preventDefault();
     if (!title || !price || !clinicId) return;
 
-    setLoading(true);
-    const membershipData = {
-      title,
-      description,
-      price: Number(price),
-      bannerUrl: bannerUrl || "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600",
-      terms,
-      bundledTreatments: selectedTreatments,
-    };
-
+    setIsSaving(true);
     try {
+      let finalBannerUrl = bannerUrl;
+      let shouldDeleteOriginal = false;
+
+      if (bannerFile) {
+        finalBannerUrl = await uploadImageFile(bannerFile, "memberships");
+        shouldDeleteOriginal = true;
+      } else if (!bannerUrl && originalBannerUrl) {
+        shouldDeleteOriginal = true;
+      }
+
+      const membershipData = {
+        title,
+        description,
+        price: Number(price),
+        bannerUrl: finalBannerUrl || "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600",
+        terms,
+        bundledTreatments: selectedTreatments,
+      };
+
       if (editId) {
         // Update existing membership
         await updateDoc(doc(db, "clinics", clinicId, "memberships", editId), membershipData);
@@ -124,11 +139,17 @@ export default function MembershipBuilderPage() {
         setMemberships((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
       }
 
+      if (shouldDeleteOriginal && originalBannerUrl) {
+        await deleteImageFile(originalBannerUrl);
+      }
+
       // Reset
       setTitle("");
       setDescription("");
       setPrice("");
       setBannerUrl("");
+      setOriginalBannerUrl("");
+      setBannerFile(null);
       setTerms("");
       setSelectedTreatments([]);
       setEditId(null);
@@ -136,7 +157,7 @@ export default function MembershipBuilderPage() {
     } catch (err) {
       console.error("Error saving membership:", err);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -146,6 +167,8 @@ export default function MembershipBuilderPage() {
     setDescription(membership.description);
     setPrice(String(membership.price));
     setBannerUrl(membership.bannerUrl);
+    setOriginalBannerUrl(membership.bannerUrl);
+    setBannerFile(null);
     setTerms(membership.terms);
     setSelectedTreatments(membership.bundledTreatments);
     setShowForm(true);
@@ -180,6 +203,8 @@ export default function MembershipBuilderPage() {
             setDescription("");
             setPrice("");
             setBannerUrl("");
+            setOriginalBannerUrl("");
+            setBannerFile(null);
             setTerms("");
             setSelectedTreatments([]);
             setShowForm(!showForm);
@@ -221,7 +246,7 @@ export default function MembershipBuilderPage() {
                 placeholder="Overview of the bundle's benefits..."
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700">Price (€/month)</label>
                 <input
@@ -233,16 +258,13 @@ export default function MembershipBuilderPage() {
                   placeholder="e.g. 150"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700">Banner Image URL</label>
-                <input
-                  type="url"
-                  value={bannerUrl}
-                  onChange={(e) => setBannerUrl(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
-                  placeholder="https://example.com/banner.jpg"
-                />
-              </div>
+              <ImageUploader
+                file={bannerFile}
+                onChange={setBannerFile}
+                imageUrl={bannerUrl}
+                onClearImage={() => setBannerUrl("")}
+                label="Banner Image"
+              />
             </div>
 
             {/* Checkboxes to bundle treatments */}
@@ -278,9 +300,20 @@ export default function MembershipBuilderPage() {
           </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+            disabled={isSaving}
+            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {editId ? "Update Bundle" : "Create Bundle"}
+            {isSaving ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                {editId ? "Updating Bundle..." : "Creating Bundle..."}
+              </>
+            ) : (
+              editId ? "Update Bundle" : "Create Bundle"
+            )}
           </button>
         </form>
       )}
