@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile } from "@/lib/firebase/upload";
+import { TableSkeleton } from "@/components/Loader";
 
 interface ClientProfile {
   id: string;
@@ -358,7 +359,9 @@ export default function NotificationsPage() {
           <p className="text-xs text-neutral-500">Track and review delivery logs for previously sent messages</p>
         </div>
 
-        {history.length === 0 ? (
+        {loading ? (
+          <TableSkeleton rows={4} cols={4} />
+        ) : history.length === 0 ? (
           <div className="p-8 text-center text-sm text-neutral-400">No push notifications have been sent yet.</div>
         ) : (
           <div className="overflow-x-auto">

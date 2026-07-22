@@ -79,33 +79,30 @@ Houses base branding, settings, and profile details for individual clinics.
 | `googleMapUrl` | `string` | Optional Google Map URL of the address |
 | `latitude` | `number` | Auto-extracted physical latitude of the clinic map address |
 | `longitude` | `number` | Auto-extracted physical longitude of the clinic map address |
+| `appHeroImageUrl` | `string` | Custom mobile app home screen hero image link |
 | `blogSectionTitle` | `string` | Customized title label for the blogs section/tab (default `"Blogs"`) |
 | `createdAt` | `timestamp` | Provisioning timestamp |
 | `ownerUid` | `string` | Owner profile UID |
 
 ---
 
-### 3. Subcollection: `categories`
-Used to group treatments inside the clinic app builder.
+### 3. System Constants: Treatment Categories
+Treatment categories are fixed system-wide tags (not editable per clinic). A single treatment document can belong to **multiple categories** simultaneously.
 
-- **Path**: `/clinics/{clinicId}/categories/{categoryId}`
-- **Document ID**: Firestore Auto-Generated
-
-| Field | Type | Description |
-|---|---|---|
-| `name` | `string` | Category display title (e.g. `"Dermal Fillers"`) |
+**Predefined Standard Categories**:
+`Acne`, `Arm flaps`, `Arm pits`, `Arms`, `Back`, `Belly`, `Bikini area`, `Bunny lines`, `Buttocks`, `Cheeks`, `Cheekbones`, `Chest`, `Chin`, `Chin cleft`, `Collagen`, `Crow's feet`, `Double chin`, `Elasticity`, `Eyebrows`, `Eyes`, `Face`, `Feet`, `Fine lines`, `Frown lines`, `Hair`, `Hands`, `Hydration`, `Hyperpigmentation`, `Inner thighs`, `Jawline`, `Jowls`, `Legs`, `Lip flip`, `Lip lines`, `Lips`, `Low energy`, `Love handles`, `Marionette lines`, `Mood`, `Nails`, `Neck`, `Neck bands`, `Nose`, `Outer thighs`, `Pore shrinking`, `Redness`, `Rosecea`, `Scarring`, `Skin-tightening`, `Smile lines`, `Smoothness`, `Sun damage`, `Teeth`, `Temples`, `Texture`, `Upper legs`, `Veins`, `Wrinkles`.
 
 ---
 
 ### 4. Subcollection: `treatments`
-Stores services, description details, dynamic advantages, and pricing variants.
+Stores services, description details, dynamic advantages, multi-category tags, and pricing variants.
 
 - **Path**: `/clinics/{clinicId}/treatments/{treatmentId}`
 - **Document ID**: Firestore Auto-Generated
 
 | Field | Type | Description |
 |---|---|---|
-| `categoryId` | `string` | Target category document ID |
+| `categories` | `array` of `string` | List of assigned category tag titles (e.g. `["Face", "Fine lines", "Wrinkles"]`) |
 | `title` | `string` | Treatment item name (e.g. `"Botox Cosmetic"`) |
 | `description` | `string` | Comprehensive details of the service |
 | `bannerUrl` | `string` | Public image illustration link |
@@ -206,15 +203,33 @@ Registered client files for the clinic.
 Payment transaction invoices history.
 
 - **Path**: `/clinics/{clinicId}/transactions/{transactionId}`
-- **Document ID**: Firestore Auto-Generated
+- **Document ID**: Firestore Auto-Generated (format: `tx_{epochMs}_{uidSuffix}`)
 
 | Field | Type | Description |
 |---|---|---|
 | `clientName` | `string` | Payer patient name |
-| `treatmentName` | `string` | Selected service description |
-| `amount` | `number` | Billing total price amount |
-| `date` | `timestamp` | Checkout timestamp |
+| `email` | `string` | Payer patient email address |
+| `userUid` | `string` | Associated Firebase Authentication User ID |
+| `treatmentName` | `string` | Summary title of items or subscribed membership |
+| `items` | `array` of `object` | Line-item breakdown (structure below) |
+| `amount` | `number` | Final charged price amount |
+| `subtotal` | `number` (optional) | Order price before discounts |
+| `discountAmount` | `number` (optional) | Total coupon discount applied |
+| `appliedRewardId` | `string` (optional) | Target availed reward document ID used in checkout |
+| `type` | `string` | Transaction category (`"treatment"` or `"membership"`) |
+| `date` | `number` / `timestamp` | Checkout timestamp (epoch ms) |
 | `status` | `string` | Invoice status (`"Completed"`, `"Pending"`, `"Refunded"`) |
+
+#### `items` Object Schema:
+```json
+{
+  "id": "string (Treatment or Membership ID)",
+  "title": "string (Item display title)",
+  "price": "number (Item unit price)",
+  "typeTitle": "string (Selected variant title e.g. Full Face)",
+  "isMembership": "boolean (Flag indicating if item is a membership)"
+}
+```
 
 ---
 
@@ -222,16 +237,20 @@ Payment transaction invoices history.
 Active patient subscription trackers.
 
 - **Path**: `/clinics/{clinicId}/active_memberships/{memberId}`
-- **Document ID**: Firestore Auto-Generated
+- **Document ID**: Firestore Auto-Generated (format: `sub_{epochMs}_{uidSuffix}`)
 
 | Field | Type | Description |
 |---|---|---|
 | `clientName` | `string` | Patient subscriber name |
 | `email` | `string` | Patient email address |
+| `userUid` | `string` | Associated Firebase Authentication User ID |
+| `membershipId` | `string` | Target membership plan document ID |
 | `membershipName` | `string` | Subscribed membership bundle title |
-| `price` | `number` | Recurring price rate |
-| `nextBilling` | `timestamp` | Renewal billing timestamp |
+| `price` | `number` | Recurring monthly subscription price rate |
+| `startDate` | `number` / `timestamp` | Subscription start timestamp (epoch ms) |
+| `nextBilling` | `number` / `timestamp` | Next renewal billing timestamp (epoch ms) |
 | `status` | `string` | Active state (`"Active"`, `"Failed"`, `"Cancelled"`) |
+| `createdAt` | `number` / `timestamp` | Subscription record creation timestamp (epoch ms) |
 
 ---
 
@@ -268,6 +287,40 @@ Stores the active balance of loyalty points for each registered patient partitio
     "clinic_abc123": {
       "CqJSmHls3qPFHx48ncEVo1Kc9GB3": 50,
       "patient_another_uid": 120
+    }
+  }
+}
+```
+
+---
+
+### 2. Root Node: `activity_events`
+Stores real-time activity event logs (check-ins, reward redemptions, membership subscriptions, treatment purchases) partitioned per clinic.
+
+- **Path**: `/activity_events/{clinicId}/{eventId}`
+- **Retention Policy**: Per clinic, a maximum of 30 most recent events are maintained. When a new event exceeds the 30-item limit, the oldest event is automatically pruned from Realtime Database.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Unique Realtime DB push key (e.g. `evt_1721669800000`) |
+| `message` | `string` | Detailed activity description (e.g., `"Sarah Jenkins opened the app"`, `"Sarah Jenkins signed in"`, `"Sarah Jenkins added Hydrafacial to cart"`, `"Sarah Jenkins viewed treatment Hydrafacial"`, `"Sarah Jenkins viewed membership VIP Gold Tier"`, `"Sarah Jenkins opened Rewards & Loyalty Points"`, `"Sarah Jenkins completed QR Verification check-in"`, `"Markus Thorne redeemed 500 Loyalty Points for Hydrafacial"`, `"Elena Vance renewed Gold VIP Membership Tier"`, `"Sarah Jenkins purchased Hydrafacial"`) |
+| `timestamp` | `number` | Event timestamp (epoch ms) |
+| `type` | `string` | Event category (`"app_opened"`, `"user_signed_in"`, `"item_added_to_cart"`, `"treatment_viewed"`, `"membership_viewed"`, `"rewards_viewed"`, `"qr_checkin"`, `"reward_redeemed"`, `"membership_subscribed"`, `"treatment_purchased"`) |
+| `userName` | `string` | Name of the patient performing the activity |
+| `userUid` | `string` | Associated Firebase Authentication UID |
+
+```json
+{
+  "activity_events": {
+    "clinic_abc123": {
+      "-Nxyz123456": {
+        "id": "-Nxyz123456",
+        "message": "Sarah Jenkins completed QR Verification check-in",
+        "timestamp": 1721669800000,
+        "type": "qr_checkin",
+        "userName": "Sarah Jenkins",
+        "userUid": "CqJSmHls3qPFHx48ncEVo1Kc9GB3"
+      }
     }
   }
 }

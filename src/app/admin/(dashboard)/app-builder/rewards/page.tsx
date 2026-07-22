@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { CardGridSkeleton } from "@/components/Loader";
 
 interface Reward {
   id: string;
@@ -462,7 +463,10 @@ export default function RewardsPage() {
       )}
 
       {/* Rewards Listing */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {loading ? (
+        <CardGridSkeleton count={3} />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-3">
         {rewards.map((r) => (
           <div
             key={r.id}
@@ -528,6 +532,7 @@ export default function RewardsPage() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

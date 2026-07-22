@@ -17,6 +17,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
+import { CardGridSkeleton } from "@/components/Loader";
 
 interface Blog {
   id: string;
@@ -222,7 +223,7 @@ export default function BlogsPage() {
   };
 
   if (loading && blogs.length === 0) {
-    return <div className="text-sm text-neutral-500">Loading blogs configurations...</div>;
+    return <CardGridSkeleton count={3} />;
   }
 
   return (

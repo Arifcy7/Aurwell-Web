@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
+import { CardGridSkeleton } from "@/components/Loader";
 
 interface Membership {
   id: string;
@@ -319,7 +320,10 @@ export default function MembershipBuilderPage() {
       )}
 
       {/* Memberships Listing */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {loading ? (
+        <CardGridSkeleton count={3} />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {memberships.map((m) => (
           <div
             key={m.id}
@@ -327,13 +331,13 @@ export default function MembershipBuilderPage() {
               }`}
           >
             <div
-              className="h-40 bg-cover bg-center"
+              className="h-36 bg-cover bg-center"
               style={{ backgroundImage: `url(${m.bannerUrl})` }}
             />
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-baseline">
-                <h3 className="text-lg font-bold text-neutral-900">{m.title}</h3>
-                <span className="text-xl font-bold tracking-tight text-neutral-950">
+            <div className="p-5 space-y-3">
+              <div className="flex justify-between items-baseline gap-2">
+                <h3 className="text-base font-bold text-neutral-900">{m.title}</h3>
+                <span className="text-base font-bold tracking-tight text-neutral-950 whitespace-nowrap">
                   €{m.price}
                   <span className="text-xs font-normal text-neutral-500">/mo</span>
                 </span>
@@ -399,6 +403,7 @@ export default function MembershipBuilderPage() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

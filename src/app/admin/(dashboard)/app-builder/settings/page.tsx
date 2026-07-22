@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { COUNTRIES, TIMEZONES } from "@/lib/constants";
+import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
+import ImageUploader from "@/components/ImageUploader";
+import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -17,6 +19,7 @@ export default function SettingsPage() {
   const [brandColor, setBrandColor] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [currency, setCurrency] = useState("EUR");
   const [timezone, setTimezone] = useState("");
   const [country, setCountry] = useState("");
   const [address, setAddress] = useState("");
@@ -25,8 +28,11 @@ export default function SettingsPage() {
   const [googleMapUrl, setGoogleMapUrl] = useState("");
   const [latitude, setLatitude] = useState<number | "">("");
   const [longitude, setLongitude] = useState<number | "">("");
-  const [resolvingMap, setResolvingMap] = useState(false);
-  const [mapError, setMapError] = useState("");
+
+  // App Hero Image State
+  const [appHeroImageUrl, setAppHeroImageUrl] = useState("");
+  const [originalHeroImageUrl, setOriginalHeroImageUrl] = useState("");
+  const [heroImageFile, setHeroImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -45,6 +51,7 @@ export default function SettingsPage() {
             setBrandColor(data.brandColor || "#000000");
             setWebsiteUrl(data.websiteUrl || "");
             setDescription(data.description || "");
+            setCurrency(data.currency || "EUR");
             setTimezone(data.timezone || "");
             setCountry(data.country || "");
             setAddress(data.address || "");
@@ -53,6 +60,10 @@ export default function SettingsPage() {
             setGoogleMapUrl(data.googleMapUrl || "");
             setLatitude(data.latitude ?? "");
             setLongitude(data.longitude ?? "");
+
+            const heroUrl = data.appHeroImageUrl || data.heroImageUrl || "";
+            setAppHeroImageUrl(heroUrl);
+            setOriginalHeroImageUrl(heroUrl);
           }
         }
       } catch (err) {
@@ -65,12 +76,11 @@ export default function SettingsPage() {
     return () => unsubscribe();
   }, []);
 
-  // Auto-resolve Google Maps link to coordinates
+  // Auto-resolve Google Maps link to coordinates silently in the background
   useEffect(() => {
     if (!googleMapUrl) {
       setLatitude("");
       setLongitude("");
-      setMapError("");
       return;
     }
 
@@ -80,15 +90,9 @@ export default function SettingsPage() {
       googleMapUrl.includes("google.com/maps") ||
       googleMapUrl.includes("maps.google.com");
 
-    if (!isGoogleMapsLink) {
-      setMapError("Please enter a valid Google Maps link");
-      return;
-    }
-
-    setMapError("");
+    if (!isGoogleMapsLink) return;
 
     const timer = setTimeout(async () => {
-      setResolvingMap(true);
       try {
         const idToken = await auth.currentUser?.getIdToken();
         if (!idToken) return;
@@ -102,23 +106,15 @@ export default function SettingsPage() {
           body: JSON.stringify({ url: googleMapUrl }),
         });
 
-        if (!res.ok) {
-          throw new Error("Failed to resolve URL");
-        }
-
-        const data = await res.json();
-        if (data.success) {
-          setLatitude(data.latitude);
-          setLongitude(data.longitude);
-          setMapError("");
-        } else {
-          setMapError("Could not extract coordinates from link automatically.");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setLatitude(data.latitude);
+            setLongitude(data.longitude);
+          }
         }
       } catch (err) {
-        console.error("Error resolving map link:", err);
-        setMapError("Error parsing coordinates from link.");
-      } finally {
-        setResolvingMap(false);
+        console.error("Error silently resolving map link:", err);
       }
     }, 800);
 
@@ -133,11 +129,22 @@ export default function SettingsPage() {
     setSuccessMsg("");
 
     try {
+      let finalHeroUrl = appHeroImageUrl;
+      let shouldDeleteOriginal = false;
+
+      if (heroImageFile) {
+        finalHeroUrl = await uploadImageFile(heroImageFile, "hero");
+        shouldDeleteOriginal = true;
+      } else if (!appHeroImageUrl && originalHeroImageUrl) {
+        shouldDeleteOriginal = true;
+      }
+
       await updateDoc(doc(db, "clinics", clinicId), {
         merchantName,
         brandColor,
         websiteUrl,
         description,
+        currency,
         timezone,
         country,
         address,
@@ -146,7 +153,16 @@ export default function SettingsPage() {
         googleMapUrl,
         latitude: latitude !== "" ? latitude : null,
         longitude: longitude !== "" ? longitude : null,
+        appHeroImageUrl: finalHeroUrl,
       });
+
+      if (shouldDeleteOriginal && originalHeroImageUrl) {
+        await deleteImageFile(originalHeroImageUrl);
+      }
+
+      setAppHeroImageUrl(finalHeroUrl);
+      setOriginalHeroImageUrl(finalHeroUrl);
+      setHeroImageFile(null);
 
       setSuccessMsg("Settings updated successfully!");
       // Auto clear alert
@@ -176,8 +192,8 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Brand Name & Color */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Brand Name, Color & App Hero */}
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Merchant Name</label>
@@ -209,6 +225,23 @@ export default function SettingsPage() {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">App Hero Banner Image</label>
+              <ImageUploader
+                file={heroImageFile}
+                onChange={(f: File | null) => {
+                  setHeroImageFile(f);
+                  if (!f) setAppHeroImageUrl("");
+                }}
+                imageUrl={appHeroImageUrl}
+                onClearImage={() => {
+                  setHeroImageFile(null);
+                  setAppHeroImageUrl("");
+                }}
+                label="Upload App Hero Image"
+              />
+            </div>
+
+            <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Website URL</label>
               <input
                 type="url"
@@ -229,8 +262,23 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Location & Metadata */}
+          {/* Location & Currency Settings */}
           <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Base Clinic Currency</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="select-modern"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Timezone</label>
               <select
@@ -281,45 +329,6 @@ export default function SettingsPage() {
                 placeholder="https://maps.app.goo.gl/..."
                 className="input-modern"
               />
-              {resolvingMap && (
-                <p className="mt-1.5 text-xs text-neutral-500 flex items-center gap-1.5 animate-pulse">
-                  <span className="inline-block w-3.5 h-3.5 border-2 border-neutral-500 border-t-transparent rounded-full animate-spin" />
-                  Resolving link and extracting coordinates...
-                </p>
-              )}
-              {!resolvingMap && mapError && (
-                <p className="mt-1.5 text-xs text-amber-600 font-medium">⚠️ {mapError}</p>
-              )}
-              {!resolvingMap && !mapError && latitude && longitude && (
-                <p className="mt-1.5 text-xs text-green-600 font-semibold flex items-center gap-1">
-                  ✓ Coordinates extracted: {latitude}, {longitude}
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Latitude</label>
-                <input
-                  type="text"
-                  readOnly
-                  disabled
-                  value={latitude}
-                  placeholder="Auto-calculated"
-                  className="input-modern bg-neutral-100/60 text-neutral-500 cursor-not-allowed font-mono text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Longitude</label>
-                <input
-                  type="text"
-                  readOnly
-                  disabled
-                  value={longitude}
-                  placeholder="Auto-calculated"
-                  className="input-modern bg-neutral-100/60 text-neutral-500 cursor-not-allowed font-mono text-xs"
-                />
-              </div>
             </div>
 
             <div>

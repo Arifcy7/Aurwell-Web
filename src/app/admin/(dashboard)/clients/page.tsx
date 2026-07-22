@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, db, rtdb } from "@/lib/firebase/client";
 import { Search, Users, Phone, Mail, Award, Calendar } from "lucide-react";
+import { TableSkeleton } from "@/components/Loader";
 
 interface ClientProfile {
   id: string;
@@ -88,13 +89,14 @@ export default function ClientsPage() {
       </div>
 
       {/* Clients directory table */}
-      <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 overflow-hidden transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
-        {loading ? (
-          <div className="py-8 text-center text-sm text-neutral-400">Loading client directory...</div>
-        ) : filteredClients.length === 0 ? (
-          <div className="py-12 text-center rounded-2xl bg-neutral-50 border border-neutral-100 text-sm font-medium text-neutral-400">
-            No client records found matching your query.
-          </div>
+      {loading ? (
+        <TableSkeleton rows={6} cols={5} />
+      ) : (
+        <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 overflow-hidden transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+          {filteredClients.length === 0 ? (
+            <div className="py-12 text-center rounded-2xl bg-neutral-50 border border-neutral-100 text-sm font-medium text-neutral-400">
+              No client records found matching your query.
+            </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-100">
@@ -140,6 +142,7 @@ export default function ClientsPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

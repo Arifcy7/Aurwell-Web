@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { CardGridSkeleton } from "@/components/Loader";
 
 interface Banner {
   id: string;
@@ -364,7 +365,9 @@ export default function BannersPage() {
       )}
 
       {/* Banners Listing */}
-      {banners.length === 0 ? (
+      {loading ? (
+        <CardGridSkeleton count={2} />
+      ) : banners.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No banners configured yet</p>
           <p className="text-xs text-neutral-400">Click "Create New Banner" to add your first banner notification.</p>

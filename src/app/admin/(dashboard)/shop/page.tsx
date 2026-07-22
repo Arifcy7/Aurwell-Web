@@ -5,6 +5,8 @@ import { doc, getDoc, collection, query, getDocs } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import StatCard from "@/components/StatCard";
+import { StatCardSkeleton, TableSkeleton } from "@/components/Loader";
+import { formatCurrency } from "@/lib/utils/currency";
 import { ShoppingBag, TrendingUp, Gift, Award, Receipt } from "lucide-react";
 
 interface Transaction {
@@ -14,46 +16,97 @@ interface Transaction {
   amount: number;
   date: any;
   status: "Completed" | "Pending" | "Refunded";
+  appliedRewardId?: string;
 }
 
 export default function ShopSummaryPage() {
+  const [currency, setCurrency] = useState("EUR");
   const [stats, setStats] = useState({
-    totalSales: "€18,450.00",
-    aov: "€125.00",
-    rewardsUnlocked: "142",
-    rewardsRedeemed: "98",
+    totalSales: "€0.00",
+    aov: "€0.00",
+    rewardsUnlocked: 0,
+    rewardsRedeemed: 0,
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const clinicId = userDoc.data().clinicId;
 
-          const q = query(collection(db, "clinics", clinicId, "transactions"));
-          const snapshot = await getDocs(q);
+          // 1. Fetch Clinic details for Currency
+          let clinicCurr = "EUR";
+          const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
+          if (clinicDoc.exists()) {
+            clinicCurr = clinicDoc.data().currency || "EUR";
+            setCurrency(clinicCurr);
+          }
+
+          // 2. Fetch Rewards collection to count unlocked/available rewards
+          const rewardsSnapshot = await getDocs(
+            collection(db, "clinics", clinicId, "rewards")
+          );
+          const totalRewardsUnlocked = rewardsSnapshot.size;
+
+          // 3. Fetch Transactions collection
+          const txQuery = query(collection(db, "clinics", clinicId, "transactions"));
+          const txSnapshot = await getDocs(txQuery);
+
           const loadedTransactions: Transaction[] = [];
-          snapshot.forEach((d) => {
-            loadedTransactions.push({ id: d.id, ...d.data() } as Transaction);
+          let totalSalesVal = 0;
+          let redeemedCount = 0;
+
+          txSnapshot.forEach((d) => {
+            const data = d.data();
+            const tx: Transaction = {
+              id: d.id,
+              clientName: data.clientName || data.userName || "Client",
+              treatmentName: data.treatmentName || "Treatment Service",
+              amount: Number(data.amount || 0),
+              date: data.date || data.createdAt,
+              status: data.status || "Completed",
+              appliedRewardId: data.appliedRewardId,
+            };
+
+            loadedTransactions.push(tx);
+
+            if (tx.status !== "Refunded") {
+              totalSalesVal += tx.amount;
+            }
+
+            if (data.appliedRewardId || data.type === "reward_redeemed") {
+              redeemedCount++;
+            }
           });
+
+          // Sort transactions by date descending (newest first)
+          loadedTransactions.sort((a, b) => {
+            const timeA = typeof a.date === "number" ? a.date : a.date?.toDate ? a.date.toDate().getTime() : 0;
+            const timeB = typeof b.date === "number" ? b.date : b.date?.toDate ? b.date.toDate().getTime() : 0;
+            return timeB - timeA;
+          });
+
           setTransactions(loadedTransactions);
 
-          if (loadedTransactions.length > 0) {
-            const total = loadedTransactions.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
-            const average = loadedTransactions.length > 0 ? total / loadedTransactions.length : 0;
+          const avgOrderValue =
+            loadedTransactions.length > 0
+              ? totalSalesVal / loadedTransactions.length
+              : 0;
 
-            setStats({
-              totalSales: `€${total.toFixed(2)}`,
-              aov: `€${average.toFixed(2)}`,
-              rewardsUnlocked: "142",
-              rewardsRedeemed: "98",
-            });
-          }
+          setStats({
+            totalSales: formatCurrency(totalSalesVal, clinicCurr),
+            aov: formatCurrency(avgOrderValue, clinicCurr),
+            rewardsUnlocked: totalRewardsUnlocked,
+            rewardsRedeemed: redeemedCount,
+          });
         }
       } catch (err) {
         console.error("Error loading shop summary:", err);
@@ -65,46 +118,60 @@ export default function ShopSummaryPage() {
     return () => unsubscribe();
   }, []);
 
-  const redemptionRate = Math.round(
-    (parseInt(stats.rewardsRedeemed) / (parseInt(stats.rewardsUnlocked) || 1)) * 100
-  );
+  const redemptionRate =
+    stats.rewardsUnlocked > 0
+      ? Math.min(100, Math.round((stats.rewardsRedeemed / stats.rewardsUnlocked) * 100))
+      : stats.rewardsRedeemed > 0
+      ? 100
+      : 0;
 
   return (
     <div className="space-y-4">
-      {/* Shop Stat Grid */}
+      {/* Shop Stat Grid Dynamic with Clinic Currency */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Total Sales"
-          value={stats.totalSales}
-          change="24.2%"
-          changeType="increase"
-          period="vs last month"
-          icon={<ShoppingBag className="w-5 h-5 stroke-[1.75]" />}
-        />
-        <StatCard
-          title="Avg Order Value"
-          value={stats.aov}
-          change="6.8%"
-          changeType="increase"
-          period="vs last month"
-          icon={<TrendingUp className="w-5 h-5 stroke-[1.75]" />}
-        />
-        <StatCard
-          title="Rewards Unlocked"
-          value={stats.rewardsUnlocked}
-          change="15%"
-          changeType="increase"
-          period="vs last month"
-          icon={<Award className="w-5 h-5 stroke-[1.75]" />}
-        />
-        <StatCard
-          title="Rewards Redeemed"
-          value={stats.rewardsRedeemed}
-          change="9%"
-          changeType="increase"
-          period="vs last month"
-          icon={<Gift className="w-5 h-5 stroke-[1.75]" />}
-        />
+        {loading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Total Sales"
+              value={stats.totalSales}
+              change="Completed"
+              changeType="increase"
+              period="all sales transactions"
+              icon={<ShoppingBag className="w-5 h-5 stroke-[1.75]" />}
+            />
+            <StatCard
+              title="Avg Order Value"
+              value={stats.aov}
+              change="Per Order"
+              changeType="increase"
+              period="average ticket size"
+              icon={<TrendingUp className="w-5 h-5 stroke-[1.75]" />}
+            />
+            <StatCard
+              title="Rewards Available"
+              value={String(stats.rewardsUnlocked)}
+              change="Active"
+              changeType="increase"
+              period="unlocked reward tiers"
+              icon={<Award className="w-5 h-5 stroke-[1.75]" />}
+            />
+            <StatCard
+              title="Rewards Redeemed"
+              value={String(stats.rewardsRedeemed)}
+              change="Claimed"
+              changeType="increase"
+              period="redeemed vouchers"
+              icon={<Gift className="w-5 h-5 stroke-[1.75]" />}
+            />
+          </>
+        )}
       </div>
 
       {/* Rewards Redemption Progress Card */}
@@ -118,7 +185,9 @@ export default function ShopSummaryPage() {
               <h3 className="text-sm font-bold text-neutral-900 tracking-tight">
                 Reward Redemption Conversion Rate
               </h3>
-              <p className="text-xs text-neutral-400 font-medium">Percentage of earned rewards redeemed by clients</p>
+              <p className="text-xs text-neutral-400 font-medium">
+                Percentage of unlocked reward vouchers redeemed by clients
+              </p>
             </div>
           </div>
           <span className="text-xl font-extrabold text-neutral-900">{redemptionRate}%</span>
@@ -167,7 +236,7 @@ export default function ShopSummaryPage() {
                 {transactions.map((tx) => (
                   <tr key={tx.id} className="hover:bg-neutral-50/60 transition-colors">
                     <td className="py-4 px-4 font-mono font-medium text-xs text-neutral-700">
-                      {tx.id}
+                      {tx.id.substring(0, 16)}...
                     </td>
                     <td className="py-4 px-4 font-semibold text-neutral-900">
                       {tx.clientName}
@@ -178,13 +247,21 @@ export default function ShopSummaryPage() {
                     <td className="py-4 px-4 text-neutral-400 text-xs">
                       {tx.date && typeof tx.date.toDate === "function"
                         ? tx.date.toDate().toLocaleString()
-                        : String(tx.date)}
+                        : typeof tx.date === "number"
+                        ? new Date(tx.date).toLocaleString()
+                        : String(tx.date || "N/A")}
                     </td>
                     <td className="py-4 px-4 text-right font-bold text-neutral-900">
-                      €{Number(tx.amount || 0).toFixed(2)}
+                      {formatCurrency(tx.amount, currency)}
                     </td>
                     <td className="py-4 px-4 text-right">
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border ${
+                        tx.status === "Completed"
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                          : tx.status === "Pending"
+                          ? "bg-amber-50 text-amber-700 border-amber-100"
+                          : "bg-rose-50 text-rose-600 border-rose-100"
+                      }`}>
                         {tx.status}
                       </span>
                     </td>

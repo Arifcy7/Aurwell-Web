@@ -6,6 +6,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
+import { CardGridSkeleton } from "@/components/Loader";
+import { TREATMENT_CATEGORIES } from "@/lib/constants";
+import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal } from "lucide-react";
 
 interface TreatmentType {
   title: string;
@@ -15,7 +18,7 @@ interface TreatmentType {
 
 interface Treatment {
   id: string;
-  categoryId: string;
+  categories: string[];
   title: string;
   description: string;
   bannerUrl: string;
@@ -25,25 +28,22 @@ interface Treatment {
   isActive?: boolean;
 }
 
-interface Category {
-  id: string;
-  name: string;
-}
-
 export default function TreatmentsPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
   const [clinicId, setClinicId] = useState("");
 
-  // Category Creation Form State
-  const [showCategoryForm, setShowCategoryForm] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
+  // Directory View Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilterCategories, setSelectedFilterCategories] = useState<string[]>([]);
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [filterCategorySearch, setFilterCategorySearch] = useState("");
 
-  // Treatment Creation Form State
+  // Treatment Creation / Edit Form State
   const [showTreatmentForm, setShowTreatmentForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [categorySearch, setCategorySearch] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
@@ -60,20 +60,10 @@ export default function TreatmentsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch categories
-      const catSnapshot = await getDocs(collection(db, "clinics", cId, "categories"));
-      const loadedCategories: Category[] = [];
-      catSnapshot.forEach((d) => {
-        loadedCategories.push({ id: d.id, ...d.data() } as Category);
-      });
-      setCategories(loadedCategories);
-      if (loadedCategories.length > 0) {
-        setSelectedCategoryId(loadedCategories[0].id);
-      }
-
-      // Fetch treatments
+      // Fetch treatments from Firestore
       const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: Treatment[] = [];
+
       treatSnapshot.forEach((d) => {
         const data = d.data();
         const typesMapped = (data.types || []).map((t: any) => ({
@@ -81,13 +71,23 @@ export default function TreatmentsPage() {
           nonMemberPrice: t.nonMemberPrice !== undefined ? t.nonMemberPrice : (t.originalPrice || 0),
           memberPrice: t.memberPrice !== undefined ? t.memberPrice : (t.discountedPrice !== undefined ? t.discountedPrice : null),
         }));
+
+        // Backwards compatibility: Map legacy categoryId or categories array
+        const catsMapped: string[] = Array.isArray(data.categories) && data.categories.length > 0
+          ? data.categories
+          : data.categoryId
+          ? [data.categoryId]
+          : ["Face"];
+
         loadedTreatments.push({
           id: d.id,
           isActive: data.isActive !== false,
           ...data,
+          categories: catsMapped,
           types: typesMapped,
         } as Treatment);
       });
+
       setTreatments(loadedTreatments);
     } catch (err) {
       console.error("Error loading treatments data:", err);
@@ -115,28 +115,6 @@ export default function TreatmentsPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategoryName || !clinicId) return;
-
-    setLoading(true);
-    try {
-      const docRef = await addDoc(collection(db, "clinics", clinicId, "categories"), {
-        name: newCategoryName,
-      });
-
-      const newCat = { id: docRef.id, name: newCategoryName };
-      setCategories((prev) => [...prev, newCat]);
-      setSelectedCategoryId(docRef.id);
-      setNewCategoryName("");
-      setShowCategoryForm(false);
-    } catch (err) {
-      console.error("Error creating category:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddTypeRow = () => {
     setTypes((prev) => [...prev, { title: "", nonMemberPrice: "", memberPrice: "" }]);
   };
@@ -147,9 +125,21 @@ export default function TreatmentsPage() {
     );
   };
 
+  const toggleCategorySelection = (cat: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const toggleFilterCategory = (cat: string) => {
+    setSelectedFilterCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  };
+
   const handleSaveTreatment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !selectedCategoryId || !clinicId) return;
+    if (!title || selectedCategories.length === 0 || !clinicId) return;
 
     setIsSaving(true);
     try {
@@ -164,7 +154,7 @@ export default function TreatmentsPage() {
       }
 
       const treatmentData = {
-        categoryId: selectedCategoryId,
+        categories: selectedCategories,
         title,
         description,
         bannerUrl: finalBannerUrl || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600",
@@ -208,6 +198,7 @@ export default function TreatmentsPage() {
       setFeaturesHeading("Key Benefits");
       setFeaturesListInput("");
       setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
+      setSelectedCategories([]);
       setEditId(null);
       setShowTreatmentForm(false);
     } catch (err) {
@@ -219,7 +210,7 @@ export default function TreatmentsPage() {
 
   const handleEditClick = (treatment: Treatment) => {
     setEditId(treatment.id);
-    setSelectedCategoryId(treatment.categoryId);
+    setSelectedCategories(treatment.categories || []);
     setTitle(treatment.title);
     setDescription(treatment.description);
     setBannerUrl(treatment.bannerUrl);
@@ -230,10 +221,10 @@ export default function TreatmentsPage() {
     setTypes(
       treatment.types.length > 0
         ? treatment.types.map((t) => ({
-          title: t.title,
-          nonMemberPrice: String(t.nonMemberPrice),
-          memberPrice: t.memberPrice ? String(t.memberPrice) : "",
-        }))
+            title: t.title,
+            nonMemberPrice: String(t.nonMemberPrice),
+            memberPrice: t.memberPrice ? String(t.memberPrice) : "",
+          }))
         : [{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]
     );
     setShowTreatmentForm(true);
@@ -254,132 +245,345 @@ export default function TreatmentsPage() {
     }
   };
 
+  // Filtered Treatment List according to Selected Funnel Categories & Search term
+  const filteredTreatments = treatments.filter((t) => {
+    const matchesSearch =
+      !searchTerm.trim() ||
+      t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.categories.some((c) => c.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesCategory =
+      selectedFilterCategories.length === 0 ||
+      t.categories.some((c) => selectedFilterCategories.includes(c));
+
+    return matchesSearch && matchesCategory;
+  });
+
+  // Category search inside form modal
+  const filteredCategoryOptions = TREATMENT_CATEGORIES.filter((c) =>
+    c.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+
+  // Category search inside filter funnel popover
+  const filteredFunnelCategories = TREATMENT_CATEGORIES.filter((c) =>
+    c.toLowerCase().includes(filterCategorySearch.toLowerCase())
+  );
+
   return (
-    <div className="space-y-8">
-      {/* Categories & Actions Controls */}
+    <div className="space-y-6">
+      {/* Header & Main Actions */}
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
           <h2 className="text-lg font-bold tracking-tight">Treatments Directory</h2>
-          <p className="text-sm text-neutral-500">Configure catalog categories and services</p>
+          <p className="text-sm text-neutral-500">
+            Configure clinic service products and assign standard treatment categories
+          </p>
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setShowCategoryForm(!showCategoryForm)}
-            className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition cursor-pointer"
-          >
-            {showCategoryForm ? "Close Category" : "Add Category"}
-          </button>
-          <button
             onClick={() => {
-              setEditId(null);
-              setTitle("");
-              setDescription("");
-              setBannerUrl("");
-              setOriginalBannerUrl("");
-              setBannerFile(null);
-              setFeaturesHeading("Key Benefits");
-              setFeaturesListInput("");
-              setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
-              setShowTreatmentForm(!showTreatmentForm);
+              if (showTreatmentForm) {
+                setShowTreatmentForm(false);
+                setEditId(null);
+              } else {
+                setEditId(null);
+                setTitle("");
+                setDescription("");
+                setBannerUrl("");
+                setOriginalBannerUrl("");
+                setBannerFile(null);
+                setFeaturesHeading("Key Benefits");
+                setFeaturesListInput("");
+                setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
+                setSelectedCategories([]);
+                setShowTreatmentForm(true);
+              }
             }}
-            className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition cursor-pointer"
+            className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition flex items-center gap-2 cursor-pointer"
           >
-            {showTreatmentForm ? "Cancel" : "Add Treatment"}
+            {showTreatmentForm ? (
+              <>
+                <X className="w-4 h-4" /> Close Form
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" /> Add Treatment Product
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Category Creation Form */}
-      {showCategoryForm && (
-        <form
-          onSubmit={handleCreateCategory}
-          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
-        >
-          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">New Category</h3>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Category Name</label>
+      {/* Directory Filter & Search Controls */}
+      <div className="rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 space-y-3 relative">
+        <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
               type="text"
-              required
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              className="input-modern"
-              placeholder="e.g. Skin Peels"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search treatments by title or tag..."
+              className="input-modern pl-10 text-xs py-2"
             />
           </div>
-          <button
-            type="submit"
-            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
-          >
-            Save Category
-          </button>
-        </form>
-      )}
 
-      {/* Treatment Creation Form */}
+          {/* Category Funnel Filter Button */}
+          <div className="relative w-full sm:w-auto">
+            <button
+              onClick={() => setShowFilterPopover(!showFilterPopover)}
+              className={`w-full sm:w-auto px-4 py-2 rounded-full text-xs font-bold flex items-center justify-between sm:justify-start gap-2 border transition cursor-pointer shadow-sm ${
+                selectedFilterCategories.length > 0
+                  ? "bg-neutral-900 text-white border-neutral-900"
+                  : "bg-neutral-50 text-neutral-800 border-neutral-200 hover:bg-neutral-100"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Filter className="w-3.5 h-3.5 text-emerald-500" />
+                <span>
+                  {selectedFilterCategories.length === 0
+                    ? "Category Filter"
+                    : `Category Filter (${selectedFilterCategories.length})`}
+                </span>
+              </div>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${showFilterPopover ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {/* Category Funnel Popover Modal */}
+            {showFilterPopover && (
+              <div className="absolute right-0 top-12 z-30 w-80 sm:w-96 rounded-3xl bg-white p-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-neutral-100 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-neutral-700" />
+                    <h4 className="text-xs font-bold text-neutral-900 tracking-tight">
+                      Filter by Categories
+                    </h4>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowFilterPopover(false)}
+                    className="text-neutral-400 hover:text-neutral-700 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Popover Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={filterCategorySearch}
+                    onChange={(e) => setFilterCategorySearch(e.target.value)}
+                    placeholder="Search 58 categories..."
+                    className="input-modern pl-9 text-xs py-1.5"
+                  />
+                </div>
+
+                {/* Popover Category Options Grid */}
+                <div className="max-h-60 overflow-y-auto p-2 rounded-2xl bg-neutral-50 border border-neutral-100 grid grid-cols-2 gap-1.5 custom-scrollbar">
+                  {filteredFunnelCategories.map((cat) => {
+                    const isSelected = selectedFilterCategories.includes(cat);
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => toggleFilterCategory(cat)}
+                        className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer text-left ${
+                          isSelected
+                            ? "bg-neutral-900 text-white font-semibold shadow-sm"
+                            : "bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200/60"
+                        }`}
+                      >
+                        <span className="truncate">{cat}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0 ml-1" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Popover Footer Actions */}
+                <div className="flex items-center justify-between border-t border-neutral-100 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFilterCategories([]);
+                      setFilterCategorySearch("");
+                    }}
+                    className="text-xs font-semibold text-neutral-500 hover:text-rose-600 transition"
+                  >
+                    Clear All Filters
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowFilterPopover(false)}
+                    className="rounded-full bg-neutral-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Selected Category Filter Chips Bar */}
+        {selectedFilterCategories.length > 0 && (
+          <div className="flex items-center flex-wrap gap-1.5 pt-2 border-t border-neutral-100">
+            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mr-1">
+              Active Category Filters:
+            </span>
+            {selectedFilterCategories.map((cat) => (
+              <span
+                key={cat}
+                className="inline-flex items-center gap-1 bg-neutral-900 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm"
+              >
+                {cat}
+                <button
+                  type="button"
+                  onClick={() => toggleFilterCategory(cat)}
+                  className="hover:text-rose-300 transition"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            ))}
+            <button
+              onClick={() => setSelectedFilterCategories([])}
+              className="text-xs font-bold text-neutral-500 hover:text-neutral-900 underline ml-2 cursor-pointer"
+            >
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Add / Edit Treatment Form Modal */}
       {showTreatmentForm && (
         <form
           onSubmit={handleSaveTreatment}
-          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6 w-full"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5"
         >
-          <h3 className="text-md font-bold tracking-tight">
-            {editId ? "Edit Treatment Details" : "New Treatment Details"}
-          </h3>
+          <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+            <h3 className="text-base font-bold text-neutral-900">
+              {editId ? "Edit Treatment Product" : "Create New Treatment Product"}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowTreatmentForm(false)}
+              className="text-xs font-semibold text-neutral-400 hover:text-neutral-700"
+            >
+              Cancel
+            </button>
+          </div>
+
+          {/* Multi-Category Selector Section */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="block text-xs font-semibold text-neutral-700">
+                Select Standard Categories <span className="text-rose-500">*</span>
+              </label>
+              <span className="text-[11px] font-medium text-neutral-400">
+                {selectedCategories.length} selected (Can belong to multiple categories)
+              </span>
+            </div>
+
+            {/* Selected Categories Chips */}
+            {selectedCategories.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 p-2 rounded-2xl bg-neutral-50 border border-neutral-200/80 mb-2">
+                {selectedCategories.map((cat) => (
+                  <span
+                    key={cat}
+                    className="inline-flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
+                  >
+                    {cat}
+                    <button
+                      type="button"
+                      onClick={() => toggleCategorySelection(cat)}
+                      className="hover:text-rose-300 transition"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Category Search Filter Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-400" />
+              <input
+                type="text"
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                placeholder="Search standard categories (e.g. Face, Lips, Wrinkles)..."
+                className="input-modern pl-9 text-xs py-2"
+              />
+            </div>
+
+            {/* Category Selector Grid */}
+            <div className="max-h-48 overflow-y-auto p-3 rounded-2xl bg-neutral-50/70 border border-neutral-100 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 custom-scrollbar">
+              {filteredCategoryOptions.map((cat) => {
+                const isSelected = selectedCategories.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCategorySelection(cat)}
+                    className={`flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer text-left border ${
+                      isSelected
+                        ? "bg-neutral-900 text-white border-neutral-900"
+                        : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-400"
+                    }`}
+                  >
+                    <span className="truncate">{cat}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0 ml-1" />}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedCategories.length === 0 && (
+              <p className="text-xs text-amber-600 font-medium mt-1">
+                ⚠️ Please select at least one treatment category.
+              </p>
+            )}
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Category</label>
-                <select
-                  value={selectedCategoryId}
-                  onChange={(e) => setSelectedCategoryId(e.target.value)}
-                  className="select-modern"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Treatment Title</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Treatment Title <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="text"
                   required
+                  placeholder="e.g. Botox Cosmetic Full Face"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="input-modern"
-                  placeholder="e.g. Microneedling Therapy"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
                 <textarea
-                  required
                   rows={3}
+                  placeholder="Brief description of the service..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="textarea-modern"
-                  placeholder="Provide treatment info..."
                 />
               </div>
 
-              <ImageUploader
-                file={bannerFile}
-                onChange={setBannerFile}
-                imageUrl={bannerUrl}
-                onClearImage={() => setBannerUrl("")}
-                label="Banner Image"
-              />
-            </div>
-
-            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Features Heading</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Features Header</label>
                 <input
                   type="text"
+                  placeholder="e.g. Key Benefits"
                   value={featuresHeading}
                   onChange={(e) => setFeaturesHeading(e.target.value)}
                   className="input-modern"
@@ -388,27 +592,45 @@ export default function TreatmentsPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                  Features List <span className="text-[10px] text-neutral-400 font-normal">(comma-separated)</span>
+                  Features List (Comma separated)
                 </label>
                 <input
                   type="text"
+                  placeholder="Reduces wrinkles, Smooths skin, Fast recovery"
                   value={featuresListInput}
                   onChange={(e) => setFeaturesListInput(e.target.value)}
                   className="input-modern"
-                  placeholder="e.g. Deep cleansing, collagen booster"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Product Banner Image</label>
+                <ImageUploader
+                  file={bannerFile}
+                  onChange={(f: File | null) => {
+                    setBannerFile(f);
+                    if (!f) setBannerUrl("");
+                  }}
+                  imageUrl={bannerUrl}
+                  onClearImage={() => {
+                    setBannerFile(null);
+                    setBannerUrl("");
+                  }}
                 />
               </div>
 
-              {/* Treatment Types list */}
+              {/* Treatment Pricing Types */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold text-neutral-700">Treatment Pricing Types</span>
+                  <span className="text-xs font-semibold text-neutral-700">Pricing Tier Variants</span>
                   <button
                     type="button"
                     onClick={handleAddTypeRow}
                     className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
                   >
-                    + Add Type
+                    + Add Pricing Type
                   </button>
                 </div>
 
@@ -416,7 +638,7 @@ export default function TreatmentsPage() {
                   <div key={idx} className="grid grid-cols-3 gap-2 border-b border-neutral-100 pb-2">
                     <input
                       type="text"
-                      placeholder="Type (e.g. Full Face)"
+                      placeholder="Variant Title (e.g. Full Face)"
                       value={type.title}
                       onChange={(e) => handleTypeRowChange(idx, "title", e.target.value)}
                       className="input-modern text-xs px-3 py-1.5"
@@ -443,135 +665,158 @@ export default function TreatmentsPage() {
 
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || selectedCategories.length === 0}
             className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSaving ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                {editId ? "Updating Treatment..." : "Saving Treatment..."}
+                <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                {editId ? "Updating Product..." : "Saving Product..."}
               </>
+            ) : editId ? (
+              "Update Treatment Product"
             ) : (
-              editId ? "Update Treatment Product" : "Save Treatment Product"
+              "Save Treatment Product"
             )}
           </button>
         </form>
       )}
 
-      {/* Treatments Display grouped by Category */}
-      <div className="space-y-6">
-        {categories.map((cat) => {
-          const catTreatments = treatments.filter((t) => t.categoryId === cat.id);
-          return (
-            <div key={cat.id} className="space-y-4">
-              <h3 className="text-md font-bold tracking-tight border-b border-neutral-200 pb-2 text-neutral-900">
-                {cat.name}
-              </h3>
-              {catTreatments.length === 0 ? (
-                <p className="text-sm text-neutral-400">No treatments added to this category yet.</p>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {catTreatments.map((t) => (
-                    <div
-                      key={t.id}
-                      className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
-                        }`}
+      {/* Treatments Display Grid */}
+      {loading ? (
+        <CardGridSkeleton count={3} />
+      ) : filteredTreatments.length === 0 ? (
+        <div className="p-12 text-center rounded-3xl bg-white border border-neutral-100 text-sm font-medium text-neutral-400">
+          No treatment products found matching your filter criteria.
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredTreatments.map((t) => (
+            <div
+              key={t.id}
+              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${
+                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              }`}
+            >
+              {/* Treatment Banner */}
+              <div
+                className="h-36 bg-cover bg-center relative"
+                style={{ backgroundImage: `url(${t.bannerUrl})` }}
+              >
+                <div className="absolute top-3 right-3 flex flex-wrap gap-1 max-w-[80%] justify-end">
+                  {t.categories.slice(0, 2).map((cat) => (
+                    <span
+                      key={cat}
+                      className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"
                     >
-                      {/* Treatment Banner */}
-                      <div
-                        className="h-48 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${t.bannerUrl})` }}
-                      />
-
-                      <div className="p-6 flex-1 flex flex-col justify-between">
-                        <div>
-                          <h4 className="text-lg font-bold tracking-tight mb-2">{t.title}</h4>
-                          <p className="text-sm text-neutral-500 mb-4">{t.description}</p>
-
-                          <div className="space-y-2 mb-4">
-                            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block">
-                              {t.featuresHeading}
-                            </span>
-                            <ul className="space-y-1 text-xs text-neutral-600">
-                              {t.features.map((f, i) => (
-                                <li key={i} className="flex items-center gap-2">
-                                  <span className="h-1 w-1 bg-black rounded-full" />
-                                  {f}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Types & Pricing Display */}
-                        <div className="border-t border-neutral-100 pt-4 space-y-4">
-                          <div>
-                            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">
-                              Pricing Tiers
-                            </span>
-                            <div className="space-y-1">
-                              {t.types.map((type, idx) => (
-                                <div key={idx} className="flex justify-between text-xs text-neutral-700">
-                                  <span>{type.title}</span>
-                                  <div className="space-x-1.5">
-                                    {type.memberPrice ? (
-                                      <>
-                                        <span className="line-through text-neutral-400">
-                                          €{type.nonMemberPrice}
-                                        </span>
-                                        <span className="font-bold text-neutral-950">
-                                          Member: €{type.memberPrice}
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <span className="font-bold text-neutral-950">
-                                        €{type.nonMemberPrice}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="border-t border-neutral-100 pt-4 flex items-center justify-between">
-                            {/* Toggle switch */}
-                            <div className="flex items-center gap-2">
-                              <label className="relative inline-flex items-center cursor-pointer select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={t.isActive !== false}
-                                  onChange={() => handleToggleActive(t)}
-                                  className="sr-only peer"
-                                />
-                                <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
-                                <span className="ml-2 text-xs font-medium text-neutral-500">
-                                  {t.isActive !== false ? "Active" : "Inactive"}
-                                </span>
-                              </label>
-                            </div>
-
-                            {/* Edit button */}
-                            <button
-                              onClick={() => handleEditClick(t)}
-                              className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      {cat}
+                    </span>
                   ))}
+                  {t.categories.length > 2 && (
+                    <span className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                      +{t.categories.length - 2}
+                    </span>
+                  )}
                 </div>
-              )}
+              </div>
+
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                <div>
+                  <h4 className="text-base font-bold tracking-tight mb-1 text-neutral-900">{t.title}</h4>
+
+                  {/* Multi-category Pills */}
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {t.categories.map((cat) => (
+                      <span
+                        key={cat}
+                        className="bg-neutral-100 border border-neutral-200 text-neutral-700 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+
+                  <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{t.description}</p>
+
+                  {t.features && t.features.length > 0 && (
+                    <div className="space-y-1 mb-3">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
+                        {t.featuresHeading}
+                      </span>
+                      <ul className="space-y-0.5 text-xs text-neutral-600">
+                        {t.features.slice(0, 3).map((f, i) => (
+                          <li key={i} className="flex items-center gap-1.5">
+                            <span className="h-1 w-1 bg-black rounded-full" />
+                            <span className="truncate">{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Types & Pricing Display */}
+                <div className="border-t border-neutral-100 pt-3 space-y-3">
+                  <div>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">
+                      Pricing Tiers
+                    </span>
+                    <div className="space-y-1">
+                      {t.types.map((type, idx) => (
+                        <div key={idx} className="flex justify-between text-xs text-neutral-700">
+                          <span className="font-medium text-neutral-800">{type.title}</span>
+                          <div className="space-x-1.5">
+                            {type.memberPrice ? (
+                              <>
+                                <span className="line-through text-neutral-400">
+                                  €{type.nonMemberPrice}
+                                </span>
+                                <span className="font-bold text-neutral-950">
+                                  Member: €{type.memberPrice}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-bold text-neutral-950">
+                                €{type.nonMemberPrice}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-neutral-100 pt-3 flex items-center justify-between">
+                    {/* Toggle switch */}
+                    <div className="flex items-center gap-2">
+                      <label className="relative inline-flex items-center cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={t.isActive !== false}
+                          onChange={() => handleToggleActive(t)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                        <span className="ml-2 text-xs font-medium text-neutral-500">
+                          {t.isActive !== false ? "Active" : "Inactive"}
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Edit button */}
+                    <button
+                      onClick={() => handleEditClick(t)}
+                      className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

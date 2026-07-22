@@ -5,6 +5,8 @@ import { doc, getDoc, collection, query, getDocs } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import StatCard from "@/components/StatCard";
+import { StatCardSkeleton, TableSkeleton } from "@/components/Loader";
+import { formatCurrency } from "@/lib/utils/currency";
 import { Users, DollarSign, AlertCircle, ShieldCheck } from "lucide-react";
 
 interface ActiveMembership {
@@ -18,42 +20,71 @@ interface ActiveMembership {
 }
 
 export default function MembershipsPage() {
+  const [currency, setCurrency] = useState("EUR");
   const [memberships, setMemberships] = useState<ActiveMembership[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
-    activeMembers: "48",
+    activeMembers: "0",
     failedBilling: "0",
-    mrrContribution: "€4,800.00",
+    mrrContribution: "€0.00",
   });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const clinicId = userDoc.data().clinicId;
 
+          // 1. Fetch Clinic profile for Currency
+          let clinicCurr = "EUR";
+          const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
+          if (clinicDoc.exists()) {
+            clinicCurr = clinicDoc.data().currency || "EUR";
+            setCurrency(clinicCurr);
+          }
+
+          // 2. Fetch Active Memberships subcollection
           const q = query(collection(db, "clinics", clinicId, "active_memberships"));
           const snapshot = await getDocs(q);
           const loadedMemberships: ActiveMembership[] = [];
+
           snapshot.forEach((d) => {
-            loadedMemberships.push({ id: d.id, ...d.data() } as ActiveMembership);
+            const data = d.data();
+            loadedMemberships.push({
+              id: d.id,
+              clientName: data.clientName || data.userName || "Subscriber",
+              email: data.email || "N/A",
+              membershipName: data.membershipName || data.title || "VIP Membership Tier",
+              price: Number(data.price || 0),
+              nextBilling: data.nextBilling || data.createdAt,
+              status: data.status || "Active",
+            } as ActiveMembership);
           });
+
+          // Sort memberships by status (Active first) then by name
+          loadedMemberships.sort((a, b) => {
+            if (a.status === "Active" && b.status !== "Active") return -1;
+            if (a.status !== "Active" && b.status === "Active") return 1;
+            return a.clientName.localeCompare(b.clientName);
+          });
+
           setMemberships(loadedMemberships);
 
-          if (loadedMemberships.length > 0) {
-            const active = loadedMemberships.filter((m) => m.status === "Active");
-            const failed = loadedMemberships.filter((m) => m.status === "Failed");
-            const mrr = active.reduce((acc, curr) => acc + Number(curr.price || 0), 0);
+          const activeList = loadedMemberships.filter((m) => m.status === "Active");
+          const failedList = loadedMemberships.filter((m) => m.status === "Failed");
+          const mrrSum = activeList.reduce((acc, curr) => acc + Number(curr.price || 0), 0);
 
-            setStats({
-              activeMembers: String(active.length),
-              failedBilling: String(failed.length),
-              mrrContribution: `€${mrr.toFixed(2)}`,
-            });
-          }
+          setStats({
+            activeMembers: String(activeList.length),
+            failedBilling: String(failedList.length),
+            mrrContribution: formatCurrency(mrrSum, clinicCurr),
+          });
         }
       } catch (err) {
         console.error("Error loading memberships:", err);
@@ -67,32 +98,42 @@ export default function MembershipsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Overview Stat Grid */}
+      {/* Overview Stat Grid Dynamic with Clinic Currency */}
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          title="Active Subscribers"
-          value={stats.activeMembers}
-          change="8.2%"
-          changeType="increase"
-          period="vs last month"
-          icon={<Users className="w-5 h-5 stroke-[1.75]" />}
-        />
-        <StatCard
-          title="MRR Contribution"
-          value={stats.mrrContribution}
-          change="14.6%"
-          changeType="increase"
-          period="vs last month"
-          icon={<DollarSign className="w-5 h-5 stroke-[1.75]" />}
-        />
-        <StatCard
-          title="Failed Dunning Queue"
-          value={stats.failedBilling}
-          change="0.0%"
-          changeType="neutral"
-          period="all resolve"
-          icon={<AlertCircle className="w-5 h-5 stroke-[1.75]" />}
-        />
+        {loading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Active Subscribers"
+              value={stats.activeMembers}
+              change="Subscribed"
+              changeType="increase"
+              period="active plan members"
+              icon={<Users className="w-5 h-5 stroke-[1.75]" />}
+            />
+            <StatCard
+              title="MRR Contribution"
+              value={stats.mrrContribution}
+              change="Monthly"
+              changeType="increase"
+              period="recurring revenue"
+              icon={<DollarSign className="w-5 h-5 stroke-[1.75]" />}
+            />
+            <StatCard
+              title="Failed Dunning Queue"
+              value={stats.failedBilling}
+              change={Number(stats.failedBilling) > 0 ? "Requires Attention" : "All Clear"}
+              changeType={Number(stats.failedBilling) > 0 ? "decrease" : "neutral"}
+              period="billing issues"
+              icon={<AlertCircle className="w-5 h-5 stroke-[1.75]" />}
+            />
+          </>
+        )}
       </div>
 
       {/* Active membership list card */}
@@ -138,15 +179,23 @@ export default function MembershipsPage() {
                       {memb.membershipName}
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap font-semibold text-neutral-900">
-                      €{Number(memb.price || 0).toFixed(2)}/mo
+                      {formatCurrency(memb.price, currency)}/mo
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap text-neutral-500 text-xs">
                       {memb.nextBilling && typeof memb.nextBilling.toDate === "function"
                         ? memb.nextBilling.toDate().toLocaleDateString()
-                        : String(memb.nextBilling)}
+                        : typeof memb.nextBilling === "number"
+                        ? new Date(memb.nextBilling).toLocaleDateString()
+                        : String(memb.nextBilling || "N/A")}
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap text-right">
-                      <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
+                      <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border ${
+                        memb.status === "Active"
+                          ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                          : memb.status === "Failed"
+                          ? "bg-rose-50 text-rose-600 border-rose-100"
+                          : "bg-neutral-100 text-neutral-600 border-neutral-200"
+                      }`}>
                         {memb.status}
                       </span>
                     </td>
