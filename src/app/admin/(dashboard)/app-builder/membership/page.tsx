@@ -1,31 +1,48 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  query,
+  getDocs,
+  doc,
+  getDoc,
+  addDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
-
-interface Membership {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  bannerUrl: string;
-  terms: string;
-  bundledTreatments: string[]; // Treatment IDs
-  isActive?: boolean;
-}
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Treatment {
   id: string;
   title: string;
 }
 
-export default function MembershipBuilderPage() {
-  const [memberships, setMemberships] = useState<Membership[]>([]);
+interface IncludedTreatment {
+  treatmentId: string;
+  sessionsCount: number;
+}
+
+interface MembershipTier {
+  id: string;
+  title: string;
+  description: string;
+  monthlyPrice: number;
+  annualPrice?: number | null;
+  benefits: string[];
+  includedTreatments: IncludedTreatment[];
+  imageUrl?: string;
+  terms?: string;
+  isActive?: boolean;
+}
+
+export default function MembershipPage() {
+  const [tiers, setTiers] = useState<MembershipTier[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
   const [clinicId, setClinicId] = useState("");
@@ -35,17 +52,21 @@ export default function MembershipBuilderPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [bannerUrl, setBannerUrl] = useState("");
-  const [originalBannerUrl, setOriginalBannerUrl] = useState("");
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [monthlyPrice, setMonthlyPrice] = useState("");
+  const [annualPrice, setAnnualPrice] = useState("");
+  const [benefitsInput, setBenefitsInput] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [originalImageUrl, setOriginalImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [terms, setTerms] = useState("");
-  const [selectedTreatments, setSelectedTreatments] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Selected included treatments in tier form
+  const [includedItems, setIncludedItems] = useState<{ treatmentId: string; sessionsCount: number }[]>([]);
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch treatments to bundle
+      // 1. Fetch available treatments
       const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: Treatment[] = [];
       treatSnapshot.forEach((d) => {
@@ -53,20 +74,20 @@ export default function MembershipBuilderPage() {
       });
       setTreatments(loadedTreatments);
 
-      // Fetch memberships
-      const membSnapshot = await getDocs(collection(db, "clinics", cId, "memberships"));
-      const loadedMemberships: Membership[] = [];
-      membSnapshot.forEach((d) => {
+      // 2. Fetch membership tiers
+      const tierSnapshot = await getDocs(collection(db, "clinics", cId, "membership_tiers"));
+      const loadedTiers: MembershipTier[] = [];
+      tierSnapshot.forEach((d) => {
         const data = d.data();
-        loadedMemberships.push({
+        loadedTiers.push({
           id: d.id,
           isActive: data.isActive !== false,
           ...data,
-        } as Membership);
+        } as MembershipTier);
       });
-      setMemberships(loadedMemberships);
+      setTiers(loadedTiers);
     } catch (err) {
-      console.error("Error loading membership builder data:", err);
+      console.error("Error loading membership page data:", err);
     }
   };
 
@@ -82,7 +103,7 @@ export default function MembershipBuilderPage() {
           await loadData(cId);
         }
       } catch (err) {
-        console.error("Error loading profile:", err);
+        console.error("Error loading user profile:", err);
       } finally {
         setLoading(false);
       }
@@ -91,99 +112,111 @@ export default function MembershipBuilderPage() {
     return () => unsubscribe();
   }, []);
 
-  const handleToggleTreatment = (treatmentId: string) => {
-    setSelectedTreatments((prev) =>
-      prev.includes(treatmentId)
-        ? prev.filter((id) => id !== treatmentId)
-        : [...prev, treatmentId]
-    );
+  const handleAddTreatmentRow = () => {
+    if (treatments.length === 0) return;
+    setIncludedItems((prev) => [...prev, { treatmentId: treatments[0].id, sessionsCount: 1 }]);
   };
 
-  const handleSaveMembership = async (e: React.FormEvent) => {
+  const handleRemoveTreatmentRow = (index: number) => {
+    setIncludedItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveTier = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !price || !clinicId) return;
+    if (!title || !monthlyPrice || !clinicId) return;
 
     setIsSaving(true);
     try {
-      let finalBannerUrl = bannerUrl;
+      let finalImageUrl = imageUrl;
       let shouldDeleteOriginal = false;
 
-      if (bannerFile) {
-        finalBannerUrl = await uploadImageFile(bannerFile, "memberships");
+      if (imageFile) {
+        finalImageUrl = await uploadImageFile(imageFile, "memberships");
         shouldDeleteOriginal = true;
-      } else if (!bannerUrl && originalBannerUrl) {
+      } else if (!imageUrl && originalImageUrl) {
         shouldDeleteOriginal = true;
       }
 
-      const membershipData = {
+      const benefitsList = benefitsInput
+        .split("\n")
+        .map((b) => b.trim())
+        .filter(Boolean);
+
+      const tierData = {
         title,
         description,
-        price: Number(price),
-        bannerUrl: finalBannerUrl || "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600",
+        monthlyPrice: Number(monthlyPrice),
+        annualPrice: annualPrice ? Number(annualPrice) : null,
+        benefits: benefitsList,
+        includedTreatments: includedItems,
+        imageUrl: finalImageUrl || "",
         terms,
-        bundledTreatments: selectedTreatments,
       };
 
       if (editId) {
-        // Update existing membership
-        await updateDoc(doc(db, "clinics", clinicId, "memberships", editId), membershipData);
-        setMemberships((prev) =>
-          prev.map((m) => (m.id === editId ? { ...m, ...membershipData } : m))
+        // Update existing tier
+        await updateDoc(doc(db, "clinics", clinicId, "membership_tiers", editId), tierData);
+        setTiers((prev) =>
+          prev.map((t) => (t.id === editId ? { ...t, ...tierData } : t))
         );
       } else {
-        // Create new membership
-        const fullData = { ...membershipData, isActive: true, createdAt: serverTimestamp() };
+        // Create new tier
+        const fullData = { ...tierData, isActive: true, createdAt: serverTimestamp() };
         const docRef = await addDoc(
-          collection(db, "clinics", clinicId, "memberships"),
+          collection(db, "clinics", clinicId, "membership_tiers"),
           fullData
         );
-        setMemberships((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
+        setTiers((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
       }
 
-      if (shouldDeleteOriginal && originalBannerUrl) {
-        await deleteImageFile(originalBannerUrl);
+      if (shouldDeleteOriginal && originalImageUrl) {
+        await deleteImageFile(originalImageUrl);
       }
 
-      // Reset
+      // Reset form
       setTitle("");
       setDescription("");
-      setPrice("");
-      setBannerUrl("");
-      setOriginalBannerUrl("");
-      setBannerFile(null);
+      setMonthlyPrice("");
+      setAnnualPrice("");
+      setBenefitsInput("");
+      setIncludedItems([]);
+      setImageUrl("");
+      setOriginalImageUrl("");
+      setImageFile(null);
       setTerms("");
-      setSelectedTreatments([]);
       setEditId(null);
       setShowForm(false);
     } catch (err) {
-      console.error("Error saving membership:", err);
+      console.error("Error saving membership tier:", err);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleEditClick = (membership: Membership) => {
-    setEditId(membership.id);
-    setTitle(membership.title);
-    setDescription(membership.description);
-    setPrice(String(membership.price));
-    setBannerUrl(membership.bannerUrl);
-    setOriginalBannerUrl(membership.bannerUrl);
-    setBannerFile(null);
-    setTerms(membership.terms);
-    setSelectedTreatments(membership.bundledTreatments);
+  const handleEditClick = (tier: MembershipTier) => {
+    setEditId(tier.id);
+    setTitle(tier.title);
+    setDescription(tier.description || "");
+    setMonthlyPrice(String(tier.monthlyPrice || ""));
+    setAnnualPrice(tier.annualPrice ? String(tier.annualPrice) : "");
+    setBenefitsInput((tier.benefits || []).join("\n"));
+    setIncludedItems(tier.includedTreatments || []);
+    setImageUrl(tier.imageUrl || "");
+    setOriginalImageUrl(tier.imageUrl || "");
+    setImageFile(null);
+    setTerms(tier.terms || "");
     setShowForm(true);
   };
 
-  const handleToggleActive = async (membership: Membership) => {
+  const handleToggleActive = async (tier: MembershipTier) => {
     if (!clinicId) return;
-    const newStatus = membership.isActive === false ? true : false;
+    const newStatus = tier.isActive === false ? true : false;
     try {
-      await updateDoc(doc(db, "clinics", clinicId, "memberships", membership.id), {
+      await updateDoc(doc(db, "clinics", clinicId, "membership_tiers", tier.id), {
         isActive: newStatus,
       });
-      setMemberships((prev) =>
-        prev.map((m) => (m.id === membership.id ? { ...m, isActive: newStatus } : m))
+      setTiers((prev) =>
+        prev.map((t) => (t.id === tier.id ? { ...t, isActive: newStatus } : t))
       );
     } catch (err) {
       console.error("Error toggling active state:", err);
@@ -191,218 +224,339 @@ export default function MembershipBuilderPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8 w-full">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">Membership Bundles</h2>
-          <p className="text-sm text-neutral-500">Configure recurring patient packages and rules</p>
+          <h2 className="text-lg font-bold tracking-tight">Membership Tier Configuration</h2>
+          <p className="text-sm text-neutral-500">Design recurring subscription plans and bundled session perks for your clinic patients</p>
         </div>
         <button
           onClick={() => {
             setEditId(null);
             setTitle("");
             setDescription("");
-            setPrice("");
-            setBannerUrl("");
-            setOriginalBannerUrl("");
-            setBannerFile(null);
+            setMonthlyPrice("");
+            setAnnualPrice("");
+            setBenefitsInput("");
+            setIncludedItems([]);
+            setImageUrl("");
+            setOriginalImageUrl("");
+            setImageFile(null);
             setTerms("");
-            setSelectedTreatments([]);
             setShowForm(!showForm);
           }}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition cursor-pointer"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start cursor-pointer"
         >
-          {showForm ? "Cancel" : "Create Membership"}
+          {showForm ? "Cancel" : "Create Membership Tier"}
         </button>
       </div>
 
-      {showForm && (
-        <form
-          onSubmit={handleSaveMembership}
-          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
-        >
-          <h3 className="text-md font-bold tracking-tight">
-            {editId ? "Edit Membership Bundle" : "New Membership Bundle"}
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Membership Title</label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="input-modern"
-                placeholder="e.g. Skin Health Platinum"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
-              <textarea
-                required
-                rows={2}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="textarea-modern"
-                placeholder="Overview of the bundle's benefits..."
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Price (€/month)</label>
-                <input
-                  type="number"
-                  required
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="input-modern"
-                  placeholder="e.g. 150"
-                />
+      {/* New / Edit Tier Form */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.form
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            onSubmit={handleSaveTier}
+            className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full overflow-hidden"
+          >
+            <h3 className="text-md font-bold tracking-tight">
+              {editId ? "Edit Membership Tier" : "New Membership Tier"}
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tier Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="input-modern"
+                    placeholder="e.g. VIP Glow Membership"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Monthly Price (€)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={monthlyPrice}
+                    onChange={(e) => setMonthlyPrice(e.target.value)}
+                    className="input-modern"
+                    placeholder="e.g. 99"
+                  />
+                </div>
               </div>
-              <ImageUploader
-                file={bannerFile}
-                onChange={setBannerFile}
-                imageUrl={bannerUrl}
-                onClearImage={() => setBannerUrl("")}
-                label="Banner Image"
-              />
-            </div>
 
-            {/* Checkboxes to bundle treatments */}
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                Bundle Treatments
-              </label>
-              <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto border border-neutral-200/80 rounded-2xl p-3 bg-neutral-50/70">
-                {treatments.map((t) => (
-                  <label key={t.id} className="flex items-center gap-2 text-xs cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={selectedTreatments.includes(t.id)}
-                      onChange={() => handleToggleTreatment(t.id)}
-                      className="rounded border-neutral-300 text-black focus:ring-black h-4 w-4 bg-white"
-                    />
-                    {t.title}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Annual Price (€) <span className="text-neutral-400 font-normal">(Optional)</span>
                   </label>
-                ))}
+                  <input
+                    type="number"
+                    min="0"
+                    value={annualPrice}
+                    onChange={(e) => setAnnualPrice(e.target.value)}
+                    className="input-modern"
+                    placeholder="e.g. 999"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Short Tagline Description</label>
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="input-modern"
+                    placeholder="e.g. Unlimited monthly hydrafacials & VIP perks"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Terms & Conditions</label>
-              <textarea
-                rows={2}
-                value={terms}
-                onChange={(e) => setTerms(e.target.value)}
-                className="textarea-modern"
-                placeholder="Refund policies, commitment period, etc..."
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-          >
-            {isSaving ? (
-              <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                {editId ? "Updating Bundle..." : "Creating Bundle..."}
-              </>
-            ) : (
-              editId ? "Update Bundle" : "Create Bundle"
-            )}
-          </button>
-        </form>
-      )}
+              {/* Included Treatment Bundles Setup */}
+              <div className="border border-neutral-200/80 rounded-2xl p-4 bg-neutral-50/50 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider">
+                    Bundled Treatment Sessions
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleAddTreatmentRow}
+                    className="text-xs text-black font-semibold hover:underline cursor-pointer"
+                  >
+                    + Add Treatment Session
+                  </button>
+                </div>
 
-      {/* Memberships Listing */}
-      {loading ? (
-        <CardGridSkeleton count={3} />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {memberships.map((m) => (
-          <div
-            key={m.id}
-            className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${m.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
-              }`}
-          >
-            <div
-              className="h-36 bg-cover bg-center"
-              style={{ backgroundImage: `url(${m.bannerUrl})` }}
-            />
-            <div className="p-5 space-y-3">
-              <div className="flex justify-between items-baseline gap-2">
-                <h3 className="text-base font-bold text-neutral-900">{m.title}</h3>
-                <span className="text-base font-bold tracking-tight text-neutral-950 whitespace-nowrap">
-                  €{m.price}
-                  <span className="text-xs font-normal text-neutral-500">/mo</span>
-                </span>
-              </div>
-              <p className="text-sm text-neutral-500">{m.description}</p>
-
-              {/* Bundled items list */}
-              <div>
-                <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">
-                  Bundled Treatments
-                </span>
-                {m.bundledTreatments && m.bundledTreatments.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {m.bundledTreatments.map((tid) => {
-                      const found = treatments.find((t) => t.id === tid);
-                      return (
-                        <span key={tid} className="bg-neutral-100 border border-neutral-200 text-neutral-800 text-[10px] px-2.5 py-0.5 rounded-full font-medium">
-                          {found ? found.title : `Treatment #${tid}`}
-                        </span>
-                      );
-                    })}
-                  </div>
+                {includedItems.length === 0 ? (
+                  <p className="text-xs text-neutral-400 italic">No bundled treatments added to this tier yet.</p>
                 ) : (
-                  <p className="text-xs text-neutral-400">No treatments bundled.</p>
+                  <div className="space-y-2">
+                    {includedItems.map((item, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <select
+                          value={item.treatmentId}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setIncludedItems((prev) =>
+                              prev.map((it, i) => (i === idx ? { ...it, treatmentId: val } : it))
+                            );
+                          }}
+                          className="select-modern flex-1 text-xs"
+                        >
+                          {treatments.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.title}
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.sessionsCount}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setIncludedItems((prev) =>
+                                prev.map((it, i) => (i === idx ? { ...it, sessionsCount: val } : it))
+                              );
+                            }}
+                            className="input-modern w-20 text-xs text-center"
+                          />
+                          <span className="text-xs text-neutral-500 font-medium">sessions</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTreatmentRow(idx)}
+                          className="text-xs text-red-500 hover:text-red-700 px-2 py-1 cursor-pointer font-bold"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              {m.terms && (
-                <div className="border-t border-neutral-100 pt-3">
-                  <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
-                    Terms & Conditions
-                  </span>
-                  <p className="text-[11px] text-neutral-500 leading-normal">{m.terms}</p>
-                </div>
-              )}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Included Benefits (One per line)
+                </label>
+                <textarea
+                  rows={3}
+                  value={benefitsInput}
+                  onChange={(e) => setBenefitsInput(e.target.value)}
+                  className="textarea-modern"
+                  placeholder="10% Off all skincare products&#10;Priority booking window&#10;Free quarterly skin analysis"
+                />
+              </div>
 
-              <div className="border-t border-neutral-100 pt-4 flex items-center justify-between">
-                {/* Toggle switch */}
-                <div className="flex items-center gap-2">
-                  <label className="relative inline-flex items-center cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={m.isActive !== false}
-                      onChange={() => handleToggleActive(m)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
-                    <span className="ml-2 text-xs font-medium text-neutral-500">
-                      {m.isActive !== false ? "Active" : "Inactive"}
+              <ImageUploader
+                file={imageFile}
+                onChange={setImageFile}
+                imageUrl={imageUrl}
+                onClearImage={() => setImageUrl("")}
+                label="Tier Cover Image (Optional)"
+              />
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Membership Terms & Conditions <span className="text-neutral-400 font-normal">(Optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={terms}
+                  onChange={(e) => setTerms(e.target.value)}
+                  className="textarea-modern"
+                  placeholder="Refund policies, commitment period, etc..."
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-3 border-t border-neutral-100 mt-4">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {editId ? "Updating Bundle..." : "Creating Bundle..."}
+                  </>
+                ) : (
+                  editId ? "Update Bundle" : "Create Bundle"
+                )}
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      {/* Tiers Listing Cards with Simple Fade Animation */}
+      {loading ? (
+        <CardGridSkeleton count={2} />
+      ) : tiers.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
+          <p className="text-sm text-neutral-500 font-medium mb-1">No membership tiers established yet</p>
+          <p className="text-xs text-neutral-400">Click "Create Membership Tier" to offer recurring patient subscriptions.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {tiers.map((t, idx) => (
+            <motion.div
+              key={t.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: idx * 0.04 }}
+              className={`rounded-3xl border bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between space-y-6 transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
+                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              }`}
+            >
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-bold text-neutral-900">{t.title}</h3>
+                    <p className="text-xs text-neutral-500 mt-0.5">{t.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl font-black text-neutral-900">€{t.monthlyPrice}</span>
+                    <span className="text-xs text-neutral-400 font-medium">/mo</span>
+                    {t.annualPrice && (
+                      <div className="text-[10px] text-neutral-400">€{t.annualPrice}/yr</div>
+                    )}
+                  </div>
+                </div>
+
+                {t.imageUrl && (
+                  <div
+                    className="h-36 rounded-2xl bg-cover bg-center border border-neutral-100"
+                    style={{ backgroundImage: `url(${t.imageUrl})` }}
+                  />
+                )}
+
+                {/* Included Treatments Badge List */}
+                {t.includedTreatments && t.includedTreatments.length > 0 && (
+                  <div className="space-y-1.5 pt-2 border-t border-neutral-100">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Bundled Monthly Treatments
                     </span>
-                  </label>
-                </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {t.includedTreatments.map((inc, i) => {
+                        const tr = treatments.find((item) => item.id === inc.treatmentId);
+                        return (
+                          <span
+                            key={i}
+                            className="bg-neutral-100 text-neutral-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-neutral-200"
+                          >
+                            {inc.sessionsCount}x {tr ? tr.title : "Treatment"}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-                {/* Edit button */}
+                {/* Additional Perks */}
+                {t.benefits && t.benefits.length > 0 && (
+                  <div className="space-y-1.5 pt-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      Member Perks
+                    </span>
+                    <ul className="text-xs text-neutral-600 space-y-1">
+                      {t.benefits.map((b, i) => (
+                        <li key={i} className="flex items-center gap-1.5">
+                          <span className="text-emerald-500 font-bold">✓</span> {b}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Status Toggle & Edit */}
+              <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={t.isActive !== false}
+                    onChange={() => handleToggleActive(t)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                  <span className="ml-2 text-xs font-medium text-neutral-500">
+                    {t.isActive !== false ? "Active Tier" : "Inactive"}
+                  </span>
+                </label>
+
                 <button
-                  onClick={() => handleEditClick(m)}
+                  onClick={() => handleEditClick(t)}
                   className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                 >
                   Edit
                 </button>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            </motion.div>
+          ))}
+        </div>
       )}
     </div>
   );

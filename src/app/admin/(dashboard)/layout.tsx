@@ -7,6 +7,7 @@ import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import QRScannerModal from "@/components/QRScannerModal";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Users,
@@ -37,17 +38,6 @@ interface SubNavItem {
     text: string;
     variant: "orange" | "green" | "gray";
   };
-}
-
-interface NavGroup {
-  name: string;
-  icon: React.ReactNode;
-  href?: string;
-  badge?: {
-    text: string;
-    variant: "orange" | "green" | "gray";
-  };
-  subItems?: SubNavItem[];
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -146,14 +136,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // Sidebar Component for reuse in Desktop and Mobile drawer
+  // Sidebar Component for reuse in Desktop and Mobile drawer (Static, zero re-animating on route changes)
   const SidebarContent = () => (
     <div className="flex flex-col h-full justify-between py-6 px-4">
       <div className="space-y-6">
-        {/* Brand Emblem / Top Logo */}
+        {/* Brand Emblem / Top Logo (Static) */}
         <div className="flex items-center gap-3 px-3">
-          <div className="relative w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-md overflow-hidden">
-            {/* Shaded quad emblem matching reference image */}
+          <div className="relative w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-md overflow-hidden shrink-0">
+            {/* Shaded quad emblem */}
             <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-800 to-neutral-700"></div>
             <div className="relative grid grid-cols-2 gap-0.5 p-2">
               <div className="w-2.5 h-2.5 rounded-tl-full bg-neutral-200/90"></div>
@@ -172,171 +162,205 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items (Static, hover nudge only) */}
         <nav className="space-y-1 pt-2">
           {/* Dashboard */}
-          <Link
-            href="/admin/dashboard"
-            className={`group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${pathname === "/admin/dashboard"
-              ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100"
-              : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+            <Link
+              href="/admin/dashboard"
+              className={`group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === "/admin/dashboard"
+                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
               }`}
-          >
-            <LayoutDashboard
-              className={`w-5 h-5 transition-colors ${pathname === "/admin/dashboard" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+            >
+              <LayoutDashboard
+                className={`w-5 h-5 transition-colors ${
+                  pathname === "/admin/dashboard" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
                 }`}
-            />
-            <span>Dashboard</span>
-          </Link>
+              />
+              <span>Dashboard</span>
+            </Link>
+          </motion.div>
 
-          {/* App Builder Collapsible Section (Tree Navigation matching Reference Image 1) */}
+          {/* App Builder Collapsible Section */}
           <div>
-            <button
+            <motion.button
+              whileHover={{ x: 3 }}
+              transition={{ duration: 0.15 }}
               onClick={() => toggleSection("appBuilder")}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${pathname.startsWith("/admin/app-builder")
-                ? "text-neutral-900"
-                : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
+                pathname.startsWith("/admin/app-builder")
+                  ? "text-neutral-900"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+              }`}
             >
               <div className="flex items-center gap-3.5">
                 <Sparkles
-                  className={`w-5 h-5 transition-colors ${pathname.startsWith("/admin/app-builder")
-                    ? "text-neutral-900"
-                    : "text-neutral-500"
-                    }`}
+                  className={`w-5 h-5 transition-colors ${
+                    pathname.startsWith("/admin/app-builder") ? "text-neutral-900" : "text-neutral-500"
+                  }`}
                 />
                 <span>App Builder</span>
               </div>
-              {expandedSections.appBuilder ? (
-                <ChevronUp className="w-4 h-4 text-neutral-400" />
-              ) : (
+              <motion.div animate={{ rotate: expandedSections.appBuilder ? 180 : 0 }} transition={{ duration: 0.2 }}>
                 <ChevronDown className="w-4 h-4 text-neutral-400" />
-              )}
-            </button>
+              </motion.div>
+            </motion.button>
 
-            {/* Tree Branch Sub-Items (Seamlessly Connected Vertical Line & Curved Branch Connectors) */}
-            {expandedSections.appBuilder && (
-              <div className="relative pl-7 mt-1 space-y-1.5">
-                {/* Continuous Tree Trunk Line starting from under parent icon */}
-                <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-neutral-200/90" />
+            {/* Accordion Sub-Items */}
+            <AnimatePresence initial={false}>
+              {expandedSections.appBuilder && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="relative pl-7 mt-1 space-y-1.5 overflow-hidden"
+                >
+                  {/* Continuous Tree Trunk Line starting from under parent icon */}
+                  <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-neutral-200/90 z-0" />
 
-                {appBuilderSubItems.map((subItem, idx) => {
-                  const isSubActive = pathname === subItem.href;
-                  return (
-                    <div key={subItem.href} className="relative flex items-center">
-                      {/* Curved tree branch connector SVG originating from vertical line */}
-                      <svg
-                        className="absolute left-[-5px] top-[-10px] w-5 h-[34px] text-neutral-200/90 pointer-events-none"
-                        viewBox="0 0 20 34"
-                        fill="none"
+                  {appBuilderSubItems.map((subItem) => {
+                    const isSubActive = pathname === subItem.href;
+                    return (
+                      <motion.div
+                        key={subItem.href}
+                        whileHover={{ x: 3 }}
+                        transition={{ duration: 0.15 }}
+                        className="relative flex items-center"
                       >
-                        <path
-                          d="M 1 0 V 16 Q 1 24 12 24 H 19"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
+                        {/* Curved tree branch connector SVG originating from vertical line */}
+                        <svg
+                          className="absolute left-[-5px] top-[-10px] w-5 h-[34px] text-neutral-200/90 pointer-events-none z-0"
+                          viewBox="0 0 20 34"
                           fill="none"
-                        />
-                      </svg>
+                        >
+                          <path
+                            d="M 1 0 V 16 Q 1 22 8 22 H 12"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            fill="none"
+                          />
+                        </svg>
 
-                      <Link
-                        href={subItem.href}
-                        className={`w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-2xl text-xs font-semibold transition-all ${isSubActive
-                          ? "bg-white text-neutral-900 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
-                          : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
+                        <Link
+                          href={subItem.href}
+                          className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                            isSubActive
+                              ? "bg-white text-neutral-900 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                              : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
                           }`}
-                      >
-                        <div className="flex items-center gap-2.5 truncate">
-                          {subItem.name}
-                        </div>
+                        >
+                          <div className="flex items-center gap-2.5 truncate">
+                            {subItem.name}
+                          </div>
 
-                        {subItem.badge && (
-                          <span
-                            className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${getBadgeStyle(
-                              subItem.badge.variant
-                            )}`}
-                          >
-                            {subItem.badge.text}
-                          </span>
-                        )}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                          {subItem.badge && (
+                            <span
+                              className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${getBadgeStyle(
+                                subItem.badge.variant
+                              )}`}
+                            >
+                              {subItem.badge.text}
+                            </span>
+                          )}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Clients */}
-          <Link
-            href="/admin/clients"
-            className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${pathname === "/admin/clients"
-              ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100"
-              : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+            <Link
+              href="/admin/clients"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === "/admin/clients"
+                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
               }`}
-          >
-            <div className="flex items-center gap-3.5">
-              <Users
-                className={`w-5 h-5 transition-colors ${pathname === "/admin/clients" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+            >
+              <div className="flex items-center gap-3.5">
+                <Users
+                  className={`w-5 h-5 transition-colors ${
+                    pathname === "/admin/clients" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
                   }`}
-              />
-              <span>Clients</span>
-            </div>
-          </Link>
+                />
+                <span>Clients</span>
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Shop Summary */}
-          <Link
-            href="/admin/shop"
-            className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${pathname === "/admin/shop"
-              ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100"
-              : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+            <Link
+              href="/admin/shop"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === "/admin/shop"
+                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
               }`}
-          >
-            <div className="flex items-center gap-3.5">
-              <ShoppingBag
-                className={`w-5 h-5 transition-colors ${pathname === "/admin/shop" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+            >
+              <div className="flex items-center gap-3.5">
+                <ShoppingBag
+                  className={`w-5 h-5 transition-colors ${
+                    pathname === "/admin/shop" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
                   }`}
-              />
-              <span>Shop</span>
-            </div>
-          </Link>
+                />
+                <span>Shop</span>
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Memberships */}
-          <Link
-            href="/admin/memberships"
-            className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${pathname === "/admin/memberships"
-              ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100"
-              : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+            <Link
+              href="/admin/memberships"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === "/admin/memberships"
+                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
               }`}
-          >
-            <div className="flex items-center gap-3.5">
-              <CreditCard
-                className={`w-5 h-5 transition-colors ${pathname === "/admin/memberships" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+            >
+              <div className="flex items-center gap-3.5">
+                <CreditCard
+                  className={`w-5 h-5 transition-colors ${
+                    pathname === "/admin/memberships" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
                   }`}
-              />
-              <span>Memberships</span>
-            </div>
-          </Link>
+                />
+                <span>Memberships</span>
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Notifications */}
-          <Link
-            href="/admin/notifications"
-            className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${pathname === "/admin/notifications"
-              ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100"
-              : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+            <Link
+              href="/admin/notifications"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === "/admin/notifications"
+                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
               }`}
-          >
-            <div className="flex items-center gap-3.5">
-              <Bell
-                className={`w-5 h-5 transition-colors ${pathname === "/admin/notifications" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+            >
+              <div className="flex items-center gap-3.5">
+                <Bell
+                  className={`w-5 h-5 transition-colors ${
+                    pathname === "/admin/notifications" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
                   }`}
-              />
-              <span>Notifications</span>
-            </div>
-          </Link>
+                />
+                <span>Notifications</span>
+              </div>
+            </Link>
+          </motion.div>
         </nav>
       </div>
 
-      {/* Footer Info & Sign Out Button */}
+      {/* Footer Info & Sign Out Button (Static) */}
       <div className="pt-4 border-t border-neutral-200/80 space-y-3">
         <div className="flex items-center gap-3 px-2">
           <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-700 uppercase">
@@ -377,7 +401,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-neutral-900 font-sans flex flex-col md:flex-row">
-      {/* Desktop Sidebar (Left side) */}
+      {/* Desktop Sidebar (Left side) - Stays static across route changes */}
       <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-[#f4f5f7] border-r border-neutral-200/60 sticky top-0 h-screen overflow-y-auto">
         <SidebarContent />
       </aside>
@@ -411,17 +435,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Mobile Drawer Overlay */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <div className="relative flex-1 w-full max-w-xs bg-[#f4f5f7] h-full shadow-2xl flex flex-col z-10">
-            <SidebarContent />
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 flex">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="relative flex-1 w-full max-w-xs bg-[#f4f5f7] h-full shadow-2xl flex flex-col z-10"
+            >
+              <SidebarContent />
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Main Workspace Area */}
       <main className="flex-1 flex flex-col min-w-0 bg-[#f3f4f6] min-h-screen">
@@ -444,8 +479,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* Page Content Container */}
-        <div className="flex-1 px-4 sm:px-10 pb-12 overflow-x-hidden">{children}</div>
+        {/* Page Content Container with Smooth Fade Route Transition */}
+        <div className="flex-1 px-4 sm:px-10 pb-12 overflow-x-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         <QRScannerModal
           isOpen={showScanner}

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 
@@ -12,27 +11,26 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [clinicId, setClinicId] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  // Clinic State
+  // Form State
   const [merchantName, setMerchantName] = useState("");
-  const [brandColor, setBrandColor] = useState("");
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [description, setDescription] = useState("");
-  const [currency, setCurrency] = useState("EUR");
-  const [timezone, setTimezone] = useState("");
-  const [country, setCountry] = useState("");
-  const [address, setAddress] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [originalLogoUrl, setOriginalLogoUrl] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+
+  const [heroBannerUrl, setHeroBannerUrl] = useState("");
+  const [originalHeroBannerUrl, setOriginalHeroBannerUrl] = useState("");
+  const [heroBannerFile, setHeroBannerFile] = useState<File | null>(null);
+
+  const [primaryColor, setPrimaryColor] = useState("#111827");
+  const [currencySymbol, setCurrencySymbol] = useState("€");
+  
+  // Address
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [phone, setPhone] = useState("");
-  const [googleMapUrl, setGoogleMapUrl] = useState("");
-  const [latitude, setLatitude] = useState<number | "">("");
-  const [longitude, setLongitude] = useState<number | "">("");
-
-  // App Hero Image State
-  const [appHeroImageUrl, setAppHeroImageUrl] = useState("");
-  const [originalHeroImageUrl, setOriginalHeroImageUrl] = useState("");
-  const [heroImageFile, setHeroImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -48,26 +46,23 @@ export default function SettingsPage() {
           if (clinicDoc.exists()) {
             const data = clinicDoc.data();
             setMerchantName(data.merchantName || "");
-            setBrandColor(data.brandColor || "#000000");
-            setWebsiteUrl(data.websiteUrl || "");
-            setDescription(data.description || "");
-            setCurrency(data.currency || "EUR");
-            setTimezone(data.timezone || "");
-            setCountry(data.country || "");
-            setAddress(data.address || "");
-            setPostalCode(data.postalCode || "");
-            setPhone(data.phone || "");
-            setGoogleMapUrl(data.googleMapUrl || "");
-            setLatitude(data.latitude ?? "");
-            setLongitude(data.longitude ?? "");
-
-            const heroUrl = data.appHeroImageUrl || data.heroImageUrl || "";
-            setAppHeroImageUrl(heroUrl);
-            setOriginalHeroImageUrl(heroUrl);
+            setLogoUrl(data.logoUrl || "");
+            setOriginalLogoUrl(data.logoUrl || "");
+            setHeroBannerUrl(data.heroBannerUrl || "");
+            setOriginalHeroBannerUrl(data.heroBannerUrl || "");
+            setPrimaryColor(data.primaryColor || "#111827");
+            setCurrencySymbol(data.currencySymbol || "€");
+            
+            if (data.address) {
+              setStreet(data.address.street || "");
+              setCity(data.address.city || "");
+              setPostalCode(data.address.postalCode || "");
+              setPhone(data.address.phone || "");
+            }
           }
         }
       } catch (err) {
-        console.error("Error loading settings:", err);
+        console.error("Error fetching clinic settings:", err);
       } finally {
         setLoading(false);
       }
@@ -76,261 +71,205 @@ export default function SettingsPage() {
     return () => unsubscribe();
   }, []);
 
-  // Auto-resolve Google Maps link to coordinates silently in the background
-  useEffect(() => {
-    if (!googleMapUrl) {
-      setLatitude("");
-      setLongitude("");
-      return;
-    }
-
-    const isGoogleMapsLink =
-      googleMapUrl.includes("maps.app.goo.gl") ||
-      googleMapUrl.includes("goo.gl/maps") ||
-      googleMapUrl.includes("google.com/maps") ||
-      googleMapUrl.includes("maps.google.com");
-
-    if (!isGoogleMapsLink) return;
-
-    const timer = setTimeout(async () => {
-      try {
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) return;
-
-        const res = await fetch("/api/resolve-map-link", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${idToken}`,
-          },
-          body: JSON.stringify({ url: googleMapUrl }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success) {
-            setLatitude(data.latitude);
-            setLongitude(data.longitude);
-          }
-        }
-      } catch (err) {
-        console.error("Error silently resolving map link:", err);
-      }
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [googleMapUrl]);
-
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clinicId) return;
 
     setSaving(true);
-    setSuccessMsg("");
+    setSuccessMessage("");
 
     try {
-      let finalHeroUrl = appHeroImageUrl;
-      let shouldDeleteOriginal = false;
+      let finalLogoUrl = logoUrl;
+      let shouldDeleteLogo = false;
 
-      if (heroImageFile) {
-        finalHeroUrl = await uploadImageFile(heroImageFile, "hero");
-        shouldDeleteOriginal = true;
-      } else if (!appHeroImageUrl && originalHeroImageUrl) {
-        shouldDeleteOriginal = true;
+      if (logoFile) {
+        finalLogoUrl = await uploadImageFile(logoFile, "settings");
+        shouldDeleteLogo = true;
+      } else if (!logoUrl && originalLogoUrl) {
+        shouldDeleteLogo = true;
       }
 
-      await updateDoc(doc(db, "clinics", clinicId), {
+      let finalHeroBannerUrl = heroBannerUrl;
+      let shouldDeleteHero = false;
+
+      if (heroBannerFile) {
+        finalHeroBannerUrl = await uploadImageFile(heroBannerFile, "settings");
+        shouldDeleteHero = true;
+      } else if (!heroBannerUrl && originalHeroBannerUrl) {
+        shouldDeleteHero = true;
+      }
+
+      const updateData = {
         merchantName,
-        brandColor,
-        websiteUrl,
-        description,
-        currency,
-        timezone,
-        country,
-        address,
-        postalCode,
-        phone,
-        googleMapUrl,
-        latitude: latitude !== "" ? latitude : null,
-        longitude: longitude !== "" ? longitude : null,
-        appHeroImageUrl: finalHeroUrl,
-      });
+        logoUrl: finalLogoUrl || "",
+        heroBannerUrl: finalHeroBannerUrl || "",
+        primaryColor,
+        currencySymbol,
+        address: {
+          street,
+          city,
+          postalCode,
+          phone,
+        },
+      };
 
-      if (shouldDeleteOriginal && originalHeroImageUrl) {
-        await deleteImageFile(originalHeroImageUrl);
+      await updateDoc(doc(db, "clinics", clinicId), updateData);
+
+      if (shouldDeleteLogo && originalLogoUrl) {
+        await deleteImageFile(originalLogoUrl);
+      }
+      if (shouldDeleteHero && originalHeroBannerUrl) {
+        await deleteImageFile(originalHeroBannerUrl);
       }
 
-      setAppHeroImageUrl(finalHeroUrl);
-      setOriginalHeroImageUrl(finalHeroUrl);
-      setHeroImageFile(null);
+      setOriginalLogoUrl(finalLogoUrl);
+      setOriginalHeroBannerUrl(finalHeroBannerUrl);
+      setLogoFile(null);
+      setHeroBannerFile(null);
 
-      setSuccessMsg("Settings updated successfully!");
-      // Auto clear alert
-      setTimeout(() => setSuccessMsg(""), 3000);
+      setSuccessMessage("Clinic configuration & branding updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err) {
-      console.error("Error saving settings:", err);
+      console.error("Error updating settings:", err);
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <div className="text-sm text-neutral-500">Loading settings...</div>;
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-black"></div>
+          <p className="text-sm font-medium text-neutral-500">Loading settings...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6 max-w-4xl mx-auto">
       <div>
-        <h2 className="text-lg font-bold tracking-tight">App Configuration & Branding</h2>
-        <p className="text-sm text-neutral-500">Update clinic branding, contact, and profile settings</p>
+        <h2 className="text-lg font-bold tracking-tight">App Settings & Branding</h2>
+        <p className="text-sm text-neutral-500">Configure clinic profile, custom branding colors, and contact info</p>
       </div>
 
+      {successMessage && (
+        <div className="rounded-full bg-green-50 border border-green-200 px-5 py-3 text-xs font-semibold text-green-800 shadow-sm animate-fadeIn">
+          {successMessage}
+        </div>
+      )}
+
       <form onSubmit={handleSaveSettings} className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
-        {successMsg && (
-          <div className="rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-semibold text-green-800">
-            {successMsg}
+        {/* Brand Details */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-2">
+            General Branding Profile
+          </h3>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Clinic Merchant Name</label>
+            <input
+              type="text"
+              required
+              value={merchantName}
+              onChange={(e) => setMerchantName(e.target.value)}
+              className="input-modern"
+              placeholder="e.g. Aurwell Aesthetic Clinic"
+            />
           </div>
-        )}
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Brand Name, Color & App Hero */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Merchant Name</label>
-              <input
-                type="text"
-                required
-                value={merchantName}
-                onChange={(e) => setMerchantName(e.target.value)}
-                className="input-modern"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImageUploader
+              file={logoFile}
+              onChange={setLogoFile}
+              imageUrl={logoUrl}
+              onClearImage={() => setLogoUrl("")}
+              label="Clinic App Logo"
+            />
 
+            <ImageUploader
+              file={heroBannerFile}
+              onChange={setHeroBannerFile}
+              imageUrl={heroBannerUrl}
+              onClearImage={() => setHeroBannerUrl("")}
+              label="App Home Hero Header Banner"
+            />
+          </div>
+        </div>
+
+        {/* Color Theme & Currency */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-sm font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-2">
+            Theme Customization & Currency
+          </h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brand Primary Color</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Primary Accent Color</label>
               <div className="flex items-center gap-3">
                 <input
                   type="color"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="h-10 w-12 cursor-pointer rounded-full border border-neutral-200 p-0 overflow-hidden bg-transparent"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="h-10 w-12 rounded-xl border border-neutral-200 cursor-pointer p-1 bg-white"
                 />
                 <input
                   type="text"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="input-modern"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="input-modern flex-1 font-mono text-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">App Hero Banner Image</label>
-              <ImageUploader
-                file={heroImageFile}
-                onChange={(f: File | null) => {
-                  setHeroImageFile(f);
-                  if (!f) setAppHeroImageUrl("");
-                }}
-                imageUrl={appHeroImageUrl}
-                onClearImage={() => {
-                  setHeroImageFile(null);
-                  setAppHeroImageUrl("");
-                }}
-                label="Upload App Hero Image"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Website URL</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Default Currency Symbol</label>
               <input
-                type="url"
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
+                type="text"
+                required
+                value={currencySymbol}
+                onChange={(e) => setCurrencySymbol(e.target.value)}
                 className="input-modern"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
-              <textarea
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="textarea-modern"
+                placeholder="e.g. € or $"
               />
             </div>
           </div>
+        </div>
 
-          {/* Location & Currency Settings */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Base Clinic Currency</label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="select-modern"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name} ({c.symbol})
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Contact Info */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-sm font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-2">
+            Clinic Contact & Location Info
+          </h3>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Timezone</label>
-              <select
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                className="select-modern"
-              >
-                {TIMEZONES.map((tz) => (
-                  <option key={tz.value} value={tz.value}>
-                    {tz.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Country</label>
-              <select
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                className="select-modern"
-              >
-                {COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Street Address</label>
               <input
                 type="text"
                 required
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
                 className="input-modern"
+                placeholder="e.g. 104 Harley Street"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Google Map Link of Address</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">City</label>
               <input
-                type="url"
-                value={googleMapUrl}
-                onChange={(e) => setGoogleMapUrl(e.target.value)}
-                placeholder="https://maps.app.goo.gl/..."
+                type="text"
+                required
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
                 className="input-modern"
+                placeholder="e.g. London"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Postal Code</label>
               <input
@@ -355,13 +294,15 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
-        >
-          {saving ? "Saving Changes..." : "Save Configuration"}
-        </button>
+        <div className="pt-2 flex justify-end border-t border-neutral-100">
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+          >
+            {saving ? "Saving Changes..." : "Save Configuration"}
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -303,20 +303,22 @@ export default function NotificationsPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={isSending || matchedClients.length === 0}
-              className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isSending ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-                  Dispatching Broadcast...
-                </>
-              ) : (
-                `Send Push Broadcast (${matchedClients.length} Recipients)`
-              )}
-            </button>
+            <div className="pt-2 flex justify-end">
+              <button
+                type="submit"
+                disabled={isSending || matchedClients.length === 0}
+                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSending ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                    Dispatching Broadcast...
+                  </>
+                ) : (
+                  `Send Push Broadcast (${matchedClients.length} Recipients)`
+                )}
+              </button>
+            </div>
           </form>
         </div>
 

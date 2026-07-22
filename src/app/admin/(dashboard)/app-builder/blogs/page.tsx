@@ -18,6 +18,7 @@ import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Blog {
   id: string;
@@ -252,7 +253,12 @@ export default function BlogsPage() {
       </div>
 
       {/* App Section Label Customizer */}
-      <div className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4"
+      >
         <div>
           <h3 className="text-sm font-bold tracking-tight text-neutral-900">Custom Mobile App Tab Label</h3>
           <p className="text-xs text-neutral-500">Configure how the blog page displays in your patients' Android app (e.g. "Read Blogs", "Educate Yourself").</p>
@@ -284,104 +290,114 @@ export default function BlogsPage() {
             {titleSuccessMsg}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* New / Edit Blog Form */}
-      {showForm && (
-        <form
-          onSubmit={handleSaveBlog}
-          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
-        >
-          <h3 className="text-md font-bold tracking-tight">
-            {editId ? "Edit Blog Article" : "New Blog Article"}
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Article Title</label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="input-modern"
-                placeholder="e.g. The Science of Hydrafacials"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brief Description</label>
-              <textarea
-                required
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="textarea-modern"
-                placeholder="Write a short summary to hook patients..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ImageUploader
-                file={imageFile}
-                onChange={setImageFile}
-                imageUrl={imageUrl}
-                onClearImage={() => setImageUrl("")}
-                label="Banner Image"
-              />
+      <AnimatePresence>
+        {showForm && (
+          <motion.form
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25 }}
+            onSubmit={handleSaveBlog}
+            className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full overflow-hidden"
+          >
+            <h3 className="text-md font-bold tracking-tight">
+              {editId ? "Edit Blog Article" : "New Blog Article"}
+            </h3>
+            <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Full Article Link</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Article Title</label>
                 <input
-                  type="url"
+                  type="text"
                   required
-                  value={articleUrl}
-                  onChange={(e) => setArticleUrl(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   className="input-modern"
-                  placeholder="https://yourwebsite.com/blog/article-name"
+                  placeholder="e.g. The Science of Hydrafacials"
                 />
               </div>
-            </div>
-          </div>
-          <div className="pt-2 flex gap-3">
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isSaving ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  {editId ? "Updating Article..." : "Saving Article..."}
-                </>
-              ) : (
-                editId ? "Update Article" : "Save Article"
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brief Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="textarea-modern"
+                  placeholder="Write a short summary to hook patients..."
+                />
+              </div>
 
-      {/* Blogs Listing */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ImageUploader
+                  file={imageFile}
+                  onChange={setImageFile}
+                  imageUrl={imageUrl}
+                  onClearImage={() => setImageUrl("")}
+                  label="Banner Image"
+                />
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Full Article Link</label>
+                  <input
+                    type="url"
+                    required
+                    value={articleUrl}
+                    onChange={(e) => setArticleUrl(e.target.value)}
+                    className="input-modern"
+                    placeholder="https://yourwebsite.com/blog/article-name"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="pt-2 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSaving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    {editId ? "Updating Article..." : "Saving Article..."}
+                  </>
+                ) : (
+                  editId ? "Update Article" : "Save Article"
+                )}
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
+
+      {/* Blogs Listing Cards with Simple Fade Animation */}
       {blogs.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No articles created yet</p>
           <p className="text-xs text-neutral-400">Click "Create Blog Article" to add your first post.</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {blogs.map((b) => (
-            <div
+        <div className="grid gap-5 md:grid-cols-2">
+          {blogs.map((b, idx) => (
+            <motion.div
               key={b.id}
-              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
-                }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: idx * 0.04 }}
+              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
+                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              }`}
             >
               <div
                 className="h-44 bg-cover bg-center"
@@ -443,7 +459,7 @@ export default function BlogsPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
