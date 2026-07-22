@@ -205,9 +205,9 @@ export default function RewardsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Spend / Earn Loyalty Point Slider Config */}
-      <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4 w-full">
+      <div className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full">
         <h3 className="text-md font-bold tracking-tight">Point Earning Configuration</h3>
         <p className="text-sm text-neutral-500">
           Configure how many loyalty points clients earn for their treatments spending.
@@ -294,12 +294,12 @@ export default function RewardsPage() {
             />
           </div>
 
-          <div className="bg-neutral-50 border border-neutral-200 rounded p-3 text-xs text-neutral-600 space-y-1.5">
+          <div className="bg-neutral-50/70 border border-neutral-200/80 rounded-2xl p-4 text-xs text-neutral-600 space-y-1.5">
             <div>
               Current Rule: Clients earn <strong className="text-black">{pointsEarned} point(s)</strong> for every{" "}
               <strong className="text-black">€{spendAmount}</strong> they spend on treatments.
             </div>
-            <div className="border-t border-neutral-200 pt-1.5 grid grid-cols-2 gap-2">
+            <div className="border-t border-neutral-200/60 pt-1.5 grid grid-cols-2 gap-2">
               <div>First Visit: <strong className="text-black">+{firstVisitPoints} pt(s)</strong></div>
               <div>Google Review: <strong className="text-black">+{googleReviewPoints} pt(s)</strong></div>
               <div>Refer a Friend: <strong className="text-black">+{referralPoints} pt(s)</strong></div>
@@ -308,7 +308,7 @@ export default function RewardsPage() {
 
           <button
             onClick={handleSaveRatio}
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
           >
             Save Earning Rules
           </button>
@@ -333,7 +333,7 @@ export default function RewardsPage() {
             setExpiryDays("");
             setShowForm(!showForm);
           }}
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition cursor-pointer"
         >
           {showForm ? "Cancel" : "Add Reward Option"}
         </button>
@@ -343,65 +343,65 @@ export default function RewardsPage() {
       {showForm && (
         <form
           onSubmit={handleSaveReward}
-          className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4 w-full"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
         >
           <h3 className="text-md font-bold tracking-tight">
             {editId ? "Edit Point Reward Option" : "New Point Reward Option"}
           </h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Reward Title</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Reward Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
                 placeholder="e.g. Botox 10% Off"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Description</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
               <textarea
                 required
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="textarea-modern"
                 placeholder="Details of the reward option..."
               />
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Card Badge Info</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Card Badge Info</label>
                 <input
                   type="text"
                   required
                   value={cardInfo}
                   onChange={(e) => setCardInfo(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="e.g. 10% OFF"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Points Required</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Points Required</label>
                 <input
                   type="number"
                   required
                   value={pointsRequired}
                   onChange={(e) => setPointsRequired(Number(e.target.value))}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">
-                  Discount Up To (€) <span className="text-xs text-neutral-400">(optional)</span>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Discount Up To (€) <span className="text-[10px] text-neutral-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="number"
                   value={discountUpTo}
                   onChange={(e) => setDiscountUpTo(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="Max Cap Limit"
                 />
               </div>
@@ -409,11 +409,11 @@ export default function RewardsPage() {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Target Treatment</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Target Treatment</label>
                 <select
                   value={selectedTreatmentId}
                   onChange={(e) => setSelectedTreatmentId(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="select-modern"
                 >
                   {treatments.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -426,7 +426,7 @@ export default function RewardsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Discount Percentage (%)</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Discount Percentage (%)</label>
                 <input
                   type="number"
                   min="1"
@@ -434,19 +434,19 @@ export default function RewardsPage() {
                   required
                   value={discountPercentage}
                   onChange={(e) => setDiscountPercentage(Number(e.target.value))}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">
-                  Expiry (Days) <span className="text-xs text-neutral-400">(optional)</span>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Expiry (Days) <span className="text-[10px] text-neutral-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="number"
                   min="1"
                   value={expiryDays}
                   onChange={(e) => setExpiryDays(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="e.g. 30"
                 />
               </div>
@@ -454,7 +454,7 @@ export default function RewardsPage() {
           </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
           >
             {editId ? "Update Reward" : "Create Reward"}
           </button>
@@ -462,17 +462,16 @@ export default function RewardsPage() {
       )}
 
       {/* Rewards Listing */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3">
         {rewards.map((r) => (
           <div
             key={r.id}
-            className={`rounded-xl border p-6 bg-white shadow-sm flex flex-col justify-between transition ${
-              r.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200"
-            }`}
+            className={`rounded-3xl border p-6 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${r.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              }`}
           >
             <div className="space-y-3">
               <div className="flex justify-between items-start">
-                <span className="bg-black text-white text-[10px] font-bold px-2 py-1 rounded">
+                <span className="bg-black text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
                   {r.cardInfo}
                 </span>
                 <span className="text-xs text-neutral-500 font-medium">{r.pointsRequired} pts required</span>
@@ -482,12 +481,12 @@ export default function RewardsPage() {
                 <p className="text-xs text-neutral-500 mt-1">{r.description}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {r.discountUpTo && (
-                    <span className="bg-neutral-100 text-neutral-800 text-[10px] font-semibold px-2 py-0.5 rounded border border-neutral-200">
+                    <span className="bg-neutral-100 text-neutral-800 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-neutral-200">
                       Up to €{r.discountUpTo} max
                     </span>
                   )}
                   {r.expiryDays && (
-                    <span className="bg-neutral-100 text-neutral-800 text-[10px] font-semibold px-2 py-0.5 rounded border border-neutral-200">
+                    <span className="bg-neutral-100 text-neutral-800 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-neutral-200">
                       Expires in {r.expiryDays} days
                     </span>
                   )}
@@ -521,7 +520,7 @@ export default function RewardsPage() {
               {/* Edit button */}
               <button
                 onClick={() => handleEditClick(r)}
-                className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+                className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
               >
                 Edit
               </button>

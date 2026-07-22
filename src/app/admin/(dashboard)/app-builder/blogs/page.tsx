@@ -244,14 +244,14 @@ export default function BlogsPage() {
             setArticleUrl("");
             setShowForm(!showForm);
           }}
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start cursor-pointer"
         >
           {showForm ? "Cancel" : "Create Blog Article"}
         </button>
       </div>
 
       {/* App Section Label Customizer */}
-      <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4">
         <div>
           <h3 className="text-sm font-bold tracking-tight text-neutral-900">Custom Mobile App Tab Label</h3>
           <p className="text-xs text-neutral-500">Configure how the blog page displays in your patients' Android app (e.g. "Read Blogs", "Educate Yourself").</p>
@@ -259,27 +259,27 @@ export default function BlogsPage() {
 
         <form onSubmit={handleSaveSectionTitle} className="flex flex-col sm:flex-row gap-3 items-end max-w-lg">
           <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-neutral-600 mb-1">Mobile Tab Display Title</label>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Mobile Tab Display Title</label>
             <input
               type="text"
               required
               value={blogSectionTitle}
               onChange={(e) => setBlogSectionTitle(e.target.value)}
-              className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black text-sm"
+              className="input-modern"
               placeholder="e.g. Educate Yourself"
             />
           </div>
           <button
             type="submit"
             disabled={savingTitle}
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition shadow-sm h-9 flex items-center justify-center min-w-[120px]"
+            className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 transition shadow-sm h-10 flex items-center justify-center min-w-[120px] cursor-pointer"
           >
             {savingTitle ? "Saving..." : "Save Label"}
           </button>
         </form>
 
         {titleSuccessMsg && (
-          <div className="max-w-lg rounded-md border border-green-200 bg-green-50 p-2.5 text-xs text-green-800">
+          <div className="max-w-lg rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs text-green-800 font-medium">
             {titleSuccessMsg}
           </div>
         )}
@@ -289,31 +289,31 @@ export default function BlogsPage() {
       {showForm && (
         <form
           onSubmit={handleSaveBlog}
-          className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4 w-full"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
         >
           <h3 className="text-md font-bold tracking-tight">
             {editId ? "Edit Blog Article" : "New Blog Article"}
           </h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Article Title</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Article Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
                 placeholder="e.g. The Science of Hydrafacials"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Brief Description</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brief Description</label>
               <textarea
                 required
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="textarea-modern"
                 placeholder="Write a short summary to hook patients..."
               />
             </div>
@@ -327,13 +327,13 @@ export default function BlogsPage() {
                 label="Banner Image"
               />
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Full Article Link</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Full Article Link</label>
                 <input
                   type="url"
                   required
                   value={articleUrl}
                   onChange={(e) => setArticleUrl(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="https://yourwebsite.com/blog/article-name"
                 />
               </div>
@@ -343,7 +343,7 @@ export default function BlogsPage() {
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSaving ? (
                 <>
@@ -360,7 +360,7 @@ export default function BlogsPage() {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+              className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -370,18 +370,17 @@ export default function BlogsPage() {
 
       {/* Blogs Listing */}
       {blogs.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 p-12 text-center">
+        <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No articles created yet</p>
           <p className="text-xs text-neutral-400">Click "Create Blog Article" to add your first post.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {blogs.map((b) => (
             <div
               key={b.id}
-              className={`overflow-hidden rounded-xl border bg-white shadow-sm flex flex-col justify-between transition ${
-                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200"
-              }`}
+              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+                }`}
             >
               <div
                 className="h-44 bg-cover bg-center"
@@ -395,14 +394,14 @@ export default function BlogsPage() {
 
                 <div className="pt-3 border-t border-neutral-100 space-y-4">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-neutral-400 uppercase tracking-wider">
+                    <span className="font-semibold text-neutral-400 uppercase tracking-wider text-[10px]">
                       Article Reference
                     </span>
                     <a
                       href={b.articleUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-black font-semibold hover:underline flex items-center gap-0.5"
+                      className="text-black font-semibold hover:underline flex items-center gap-0.5 text-xs"
                     >
                       Read full article ↗
                     </a>
@@ -429,13 +428,13 @@ export default function BlogsPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditClick(b)}
-                        className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+                        className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteBlog(b.id)}
-                        className="rounded border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
+                        className="rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer"
                       >
                         Delete
                       </button>

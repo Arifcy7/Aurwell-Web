@@ -230,10 +230,10 @@ export default function TreatmentsPage() {
     setTypes(
       treatment.types.length > 0
         ? treatment.types.map((t) => ({
-            title: t.title,
-            nonMemberPrice: String(t.nonMemberPrice),
-            memberPrice: t.memberPrice ? String(t.memberPrice) : "",
-          }))
+          title: t.title,
+          nonMemberPrice: String(t.nonMemberPrice),
+          memberPrice: t.memberPrice ? String(t.memberPrice) : "",
+        }))
         : [{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]
     );
     setShowTreatmentForm(true);
@@ -265,7 +265,7 @@ export default function TreatmentsPage() {
         <div className="flex gap-3">
           <button
             onClick={() => setShowCategoryForm(!showCategoryForm)}
-            className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition"
+            className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition cursor-pointer"
           >
             {showCategoryForm ? "Close Category" : "Add Category"}
           </button>
@@ -282,7 +282,7 @@ export default function TreatmentsPage() {
               setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
               setShowTreatmentForm(!showTreatmentForm);
             }}
-            className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition"
+            className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition cursor-pointer"
           >
             {showTreatmentForm ? "Cancel" : "Add Treatment"}
           </button>
@@ -293,23 +293,23 @@ export default function TreatmentsPage() {
       {showCategoryForm && (
         <form
           onSubmit={handleCreateCategory}
-          className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4 w-full"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
         >
-          <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-500">New Category</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">New Category</h3>
           <div>
-            <label className="block text-sm font-medium text-neutral-700">Category Name</label>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Category Name</label>
             <input
               type="text"
               required
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+              className="input-modern"
               placeholder="e.g. Skin Peels"
             />
           </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
           >
             Save Category
           </button>
@@ -320,19 +320,19 @@ export default function TreatmentsPage() {
       {showTreatmentForm && (
         <form
           onSubmit={handleSaveTreatment}
-          className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-6 w-full"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6 w-full"
         >
           <h3 className="text-md font-bold tracking-tight">
             {editId ? "Edit Treatment Details" : "New Treatment Details"}
           </h3>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Category</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Category</label>
                 <select
                   value={selectedCategoryId}
                   onChange={(e) => setSelectedCategoryId(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="select-modern"
                 >
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
@@ -343,25 +343,25 @@ export default function TreatmentsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Treatment Title</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Treatment Title</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="e.g. Microneedling Therapy"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Description</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
                 <textarea
                   required
                   rows={3}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="textarea-modern"
                   placeholder="Provide treatment info..."
                 />
               </div>
@@ -377,24 +377,24 @@ export default function TreatmentsPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Features Heading</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Features Heading</label>
                 <input
                   type="text"
                   value={featuresHeading}
                   onChange={(e) => setFeaturesHeading(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-neutral-700">
-                  Features List <span className="text-xs text-neutral-400">(comma-separated)</span>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Features List <span className="text-[10px] text-neutral-400 font-normal">(comma-separated)</span>
                 </label>
                 <input
                   type="text"
                   value={featuresListInput}
                   onChange={(e) => setFeaturesListInput(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="e.g. Deep cleansing, collagen booster"
                 />
               </div>
@@ -402,11 +402,11 @@ export default function TreatmentsPage() {
               {/* Treatment Types list */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-700">Treatment Pricing Types</span>
+                  <span className="text-xs font-semibold text-neutral-700">Treatment Pricing Types</span>
                   <button
                     type="button"
                     onClick={handleAddTypeRow}
-                    className="text-xs font-semibold text-black hover:underline"
+                    className="text-xs font-bold text-neutral-900 hover:underline cursor-pointer"
                   >
                     + Add Type
                   </button>
@@ -419,21 +419,21 @@ export default function TreatmentsPage() {
                       placeholder="Type (e.g. Full Face)"
                       value={type.title}
                       onChange={(e) => handleTypeRowChange(idx, "title", e.target.value)}
-                      className="rounded border border-neutral-300 px-2 py-1 text-xs bg-white text-black"
+                      className="input-modern text-xs px-3 py-1.5"
                     />
                     <input
                       type="number"
                       placeholder="Non-Member Price"
                       value={type.nonMemberPrice}
                       onChange={(e) => handleTypeRowChange(idx, "nonMemberPrice", e.target.value)}
-                      className="rounded border border-neutral-300 px-2 py-1 text-xs bg-white text-black"
+                      className="input-modern text-xs px-3 py-1.5"
                     />
                     <input
                       type="number"
                       placeholder="Member-Only Price"
                       value={type.memberPrice}
                       onChange={(e) => handleTypeRowChange(idx, "memberPrice", e.target.value)}
-                      className="rounded border border-neutral-300 px-2 py-1 text-xs bg-white text-black"
+                      className="input-modern text-xs px-3 py-1.5"
                     />
                   </div>
                 ))}
@@ -444,7 +444,7 @@ export default function TreatmentsPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSaving ? (
               <>
@@ -462,7 +462,7 @@ export default function TreatmentsPage() {
       )}
 
       {/* Treatments Display grouped by Category */}
-      <div className="space-y-8">
+      <div className="space-y-6">
         {categories.map((cat) => {
           const catTreatments = treatments.filter((t) => t.categoryId === cat.id);
           return (
@@ -473,13 +473,12 @@ export default function TreatmentsPage() {
               {catTreatments.length === 0 ? (
                 <p className="text-sm text-neutral-400">No treatments added to this category yet.</p>
               ) : (
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2">
                   {catTreatments.map((t) => (
                     <div
                       key={t.id}
-                      className={`overflow-hidden rounded-xl border bg-white shadow-sm flex flex-col justify-between transition ${
-                        t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200"
-                      }`}
+                      className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+                        }`}
                     >
                       {/* Treatment Banner */}
                       <div
@@ -558,7 +557,7 @@ export default function TreatmentsPage() {
                             {/* Edit button */}
                             <button
                               onClick={() => handleEditClick(t)}
-                              className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+                              className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                             >
                               Edit
                             </button>

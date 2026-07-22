@@ -209,7 +209,7 @@ export default function MembershipBuilderPage() {
             setSelectedTreatments([]);
             setShowForm(!showForm);
           }}
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition cursor-pointer"
         >
           {showForm ? "Cancel" : "Create Membership"}
         </button>
@@ -218,43 +218,43 @@ export default function MembershipBuilderPage() {
       {showForm && (
         <form
           onSubmit={handleSaveMembership}
-          className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4 w-full"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full"
         >
           <h3 className="text-md font-bold tracking-tight">
             {editId ? "Edit Membership Bundle" : "New Membership Bundle"}
           </h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Membership Title</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Membership Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
                 placeholder="e.g. Skin Health Platinum"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Description</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
               <textarea
                 required
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="textarea-modern"
                 placeholder="Overview of the bundle's benefits..."
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Price (€/month)</label>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Price (€/month)</label>
                 <input
                   type="number"
                   required
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                   placeholder="e.g. 150"
                 />
               </div>
@@ -269,10 +269,10 @@ export default function MembershipBuilderPage() {
 
             {/* Checkboxes to bundle treatments */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-xs font-semibold text-neutral-700 mb-1">
                 Bundle Treatments
               </label>
-              <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto border border-neutral-200 rounded p-2.5 bg-neutral-50/50">
+              <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto border border-neutral-200/80 rounded-2xl p-3 bg-neutral-50/70">
                 {treatments.map((t) => (
                   <label key={t.id} className="flex items-center gap-2 text-xs cursor-pointer select-none">
                     <input
@@ -288,12 +288,12 @@ export default function MembershipBuilderPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Terms & Conditions</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Terms & Conditions</label>
               <textarea
                 rows={2}
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="textarea-modern"
                 placeholder="Refund policies, commitment period, etc..."
               />
             </div>
@@ -301,7 +301,7 @@ export default function MembershipBuilderPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSaving ? (
               <>
@@ -319,13 +319,12 @@ export default function MembershipBuilderPage() {
       )}
 
       {/* Memberships Listing */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {memberships.map((m) => (
           <div
             key={m.id}
-            className={`overflow-hidden rounded-xl border bg-white shadow-sm flex flex-col justify-between transition ${
-              m.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200"
-            }`}
+            className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition ${m.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              }`}
           >
             <div
               className="h-40 bg-cover bg-center"
@@ -351,7 +350,7 @@ export default function MembershipBuilderPage() {
                     {m.bundledTreatments.map((tid) => {
                       const found = treatments.find((t) => t.id === tid);
                       return (
-                        <span key={tid} className="bg-neutral-100 border border-neutral-200 text-neutral-800 text-[10px] px-2 py-0.5 rounded font-medium">
+                        <span key={tid} className="bg-neutral-100 border border-neutral-200 text-neutral-800 text-[10px] px-2.5 py-0.5 rounded-full font-medium">
                           {found ? found.title : `Treatment #${tid}`}
                         </span>
                       );
@@ -391,7 +390,7 @@ export default function MembershipBuilderPage() {
                 {/* Edit button */}
                 <button
                   onClick={() => handleEditClick(m)}
-                  className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+                  className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                 >
                   Edit
                 </button>

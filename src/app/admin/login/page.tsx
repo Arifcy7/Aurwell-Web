@@ -30,19 +30,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-4 text-black">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Clinic Admin Sign In</h2>
-          <p className="mt-2 text-sm text-neutral-500">
+    <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] px-4 text-black">
+      <div className="w-full max-w-md space-y-8 rounded-3xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
+            A
+          </div>
+          <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Clinic Admin Sign In</h2>
+          <p className="text-xs text-neutral-500 font-medium">
             Sign in to manage your clinic and application settings
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
+              <label htmlFor="email" className="block text-xs font-semibold text-neutral-700 mb-1.5">
                 Email Address
               </label>
               <input
@@ -52,19 +55,19 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={status === "loading"}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
                 placeholder="name@example.com"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-xs font-semibold text-neutral-700">
                   Password
                 </label>
                 <Link
                   href="/admin/forgot-password"
-                  className="text-xs text-neutral-500 hover:text-black hover:underline"
+                  className="text-xs text-neutral-500 hover:text-black hover:underline font-medium"
                 >
                   Forgot password?
                 </Link>
@@ -76,14 +79,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={status === "loading"}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
           {error && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+            <div className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
               {error}
             </div>
           )}
@@ -92,16 +95,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="flex w-full justify-center rounded-md bg-black px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:opacity-50"
+              className="flex w-full justify-center rounded-full bg-neutral-900 px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-neutral-800 transition disabled:opacity-50 cursor-pointer"
             >
               {status === "loading" ? "Signing In..." : "Sign In"}
             </button>
           </div>
         </form>
 
-        <div className="text-center text-sm text-neutral-500">
+        <div className="text-center text-xs text-neutral-500">
           Not registered?{" "}
-          <Link href="/admin/signup" className="font-semibold text-black hover:underline">
+          <Link href="/admin/signup" className="font-bold text-neutral-900 hover:underline">
             Create an Account
           </Link>
         </div>

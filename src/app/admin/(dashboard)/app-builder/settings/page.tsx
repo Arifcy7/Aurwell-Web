@@ -169,62 +169,62 @@ export default function SettingsPage() {
         <p className="text-sm text-neutral-500">Update clinic branding, contact, and profile settings</p>
       </div>
 
-      <form onSubmit={handleSaveSettings} className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-6">
+      <form onSubmit={handleSaveSettings} className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
         {successMsg && (
-          <div className="rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+          <div className="rounded-full border border-green-200 bg-green-50 px-4 py-2 text-xs font-semibold text-green-800">
             {successMsg}
           </div>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {/* Brand Name & Color */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Merchant Name</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Merchant Name</label>
               <input
                 type="text"
                 required
                 value={merchantName}
                 onChange={(e) => setMerchantName(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Brand Primary Color</label>
-              <div className="mt-1 flex items-center gap-3">
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brand Primary Color</label>
+              <div className="flex items-center gap-3">
                 <input
                   type="color"
                   value={brandColor}
                   onChange={(e) => setBrandColor(e.target.value)}
-                  className="h-10 w-10 cursor-pointer rounded-md border border-neutral-300 p-0"
+                  className="h-10 w-12 cursor-pointer rounded-full border border-neutral-200 p-0 overflow-hidden bg-transparent"
                 />
                 <input
                   type="text"
                   value={brandColor}
                   onChange={(e) => setBrandColor(e.target.value)}
-                  className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                  className="input-modern"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Website URL</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Website URL</label>
               <input
                 type="url"
                 value={websiteUrl}
                 onChange={(e) => setWebsiteUrl(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Description</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Description</label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="textarea-modern"
               />
             </div>
           </div>
@@ -232,11 +232,11 @@ export default function SettingsPage() {
           {/* Location & Metadata */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Timezone</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Timezone</label>
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="select-modern"
               >
                 {TIMEZONES.map((tz) => (
                   <option key={tz.value} value={tz.value}>
@@ -247,11 +247,11 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Country</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Country</label>
               <select
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="select-modern"
               >
                 {COUNTRIES.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -262,24 +262,24 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Street Address</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Street Address</label>
               <input
                 type="text"
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Google Map Link of Address</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Google Map Link of Address</label>
               <input
                 type="url"
                 value={googleMapUrl}
                 onChange={(e) => setGoogleMapUrl(e.target.value)}
                 placeholder="https://maps.app.goo.gl/..."
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
               {resolvingMap && (
                 <p className="mt-1.5 text-xs text-neutral-500 flex items-center gap-1.5 animate-pulse">
@@ -299,48 +299,48 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">Latitude</label>
+                <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Latitude</label>
                 <input
                   type="text"
                   readOnly
                   disabled
                   value={latitude}
                   placeholder="Auto-calculated"
-                  className="mt-1 block w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-500 sm:text-sm cursor-not-allowed font-mono"
+                  className="input-modern bg-neutral-100/60 text-neutral-500 cursor-not-allowed font-mono text-xs"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">Longitude</label>
+                <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-1">Longitude</label>
                 <input
                   type="text"
                   readOnly
                   disabled
                   value={longitude}
                   placeholder="Auto-calculated"
-                  className="mt-1 block w-full rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-500 sm:text-sm cursor-not-allowed font-mono"
+                  className="input-modern bg-neutral-100/60 text-neutral-500 cursor-not-allowed font-mono text-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Postal Code</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Postal Code</label>
               <input
                 type="text"
                 required
                 value={postalCode}
                 onChange={(e) => setPostalCode(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Phone</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Phone</label>
               <input
                 type="tel"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
             </div>
           </div>
@@ -349,7 +349,7 @@ export default function SettingsPage() {
         <button
           type="submit"
           disabled={saving}
-          className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+          className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
         >
           {saving ? "Saving Changes..." : "Save Configuration"}
         </button>

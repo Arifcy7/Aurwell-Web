@@ -148,11 +148,10 @@ export default function ImageUploader({
           onDragLeave={handleDrag}
           onDrop={handleDrop}
           onClick={onButtonClick}
-          className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-5 cursor-pointer transition-all duration-200 ${
-            dragActive
+          className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-5 cursor-pointer transition-all duration-200 ${dragActive
               ? "border-black bg-neutral-50 scale-[1.01]"
               : "border-neutral-300 hover:border-neutral-400 bg-white hover:bg-neutral-50"
-          }`}
+            }`}
         >
           <input
             ref={fileInputRef}

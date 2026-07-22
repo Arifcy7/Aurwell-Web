@@ -223,7 +223,7 @@ export default function BannersPage() {
             setTargetId("");
             setShowForm(!showForm);
           }}
-          className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start cursor-pointer"
         >
           {showForm ? "Cancel" : "Create New Banner"}
         </button>
@@ -233,50 +233,50 @@ export default function BannersPage() {
       {showForm && (
         <form
           onSubmit={handleSaveBanner}
-          className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm space-y-4 w-full animate-fade-in"
+          className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full animate-fade-in"
         >
           <h3 className="text-md font-bold tracking-tight">
             {editId ? "Edit Banner Details" : "New Banner Details"}
           </h3>
-          
+
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Banner Announcement Text</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Banner Announcement Text</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
                 placeholder="e.g. Get 20% off on all Dermal Fillers this summer!"
               />
             </div>
 
             {/* Optional Call to Action Button & Navigation Link */}
             <div className="border-t border-neutral-100 pt-4 space-y-4">
-              <h4 className="text-sm font-semibold text-neutral-800">Action Button & Navigation (Optional)</h4>
-              
+              <h4 className="text-xs font-bold text-neutral-800 uppercase tracking-wider">Action Button & Navigation (Optional)</h4>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700">Button Text</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Button Text</label>
                   <input
                     type="text"
                     value={buttonText}
                     onChange={(e) => setButtonText(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                    className="input-modern"
                     placeholder="e.g. Learn More (leave empty for no button)"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700">App Navigation Behavior (targetType)</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">App Navigation Behavior (targetType)</label>
                   <select
                     value={targetType}
                     onChange={(e) => {
                       setTargetType(e.target.value);
                       setTargetId(""); // Reset targetId when type changes
                     }}
-                    className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                    className="select-modern"
                   >
                     <option value="">No action / Non-clickable</option>
                     <option value="SHOP_TREATMENTS">Go to Treatments Tab</option>
@@ -293,12 +293,12 @@ export default function BannersPage() {
               {/* Conditional inputs for targetId */}
               {targetType === "TREATMENT_DETAIL" && (
                 <div className="animate-fade-in">
-                  <label className="block text-sm font-medium text-neutral-700">Select Target Treatment</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Select Target Treatment</label>
                   <select
                     required
                     value={targetId}
                     onChange={(e) => setTargetId(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                    className="select-modern"
                   >
                     <option value="">-- Choose Treatment --</option>
                     {treatments.map((t) => (
@@ -312,12 +312,12 @@ export default function BannersPage() {
 
               {targetType === "MEMBERSHIP_DETAIL" && (
                 <div className="animate-fade-in">
-                  <label className="block text-sm font-medium text-neutral-700">Select Target Membership</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Select Target Membership</label>
                   <select
                     required
                     value={targetId}
                     onChange={(e) => setTargetId(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                    className="select-modern"
                   >
                     <option value="">-- Choose Membership --</option>
                     {memberships.map((m) => (
@@ -331,13 +331,13 @@ export default function BannersPage() {
 
               {targetType === "URL" && (
                 <div className="animate-fade-in">
-                  <label className="block text-sm font-medium text-neutral-700">External Web URL</label>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">External Web URL</label>
                   <input
                     type="url"
                     required
                     value={targetId}
                     onChange={(e) => setTargetId(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                    className="input-modern"
                     placeholder="https://example.com/promo-link"
                   />
                 </div>
@@ -348,14 +348,14 @@ export default function BannersPage() {
           <div className="pt-2 flex gap-3 border-t border-neutral-100 mt-4">
             <button
               type="submit"
-              className="flex-1 rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+              className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
             >
               {editId ? "Update Banner" : "Save Banner"}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+              className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -365,36 +365,35 @@ export default function BannersPage() {
 
       {/* Banners Listing */}
       {banners.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 p-12 text-center">
+        <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No banners configured yet</p>
           <p className="text-xs text-neutral-400">Click "Create New Banner" to add your first banner notification.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {banners.map((b) => (
             <div
               key={b.id}
-              className={`overflow-hidden rounded-xl border bg-white shadow-sm flex flex-col justify-between p-6 transition ${
-                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200"
-              }`}
+              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between p-6 transition ${b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+                }`}
             >
               <div className="space-y-4">
                 <div className="flex justify-between items-start gap-4">
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded border bg-blue-50 border-blue-200 text-blue-800">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border bg-blue-50 border-blue-200 text-blue-800">
                     Home Screen
                   </span>
                 </div>
-                
+
                 <h3 className="text-sm font-semibold text-neutral-900 leading-snug">
                   "{b.title}"
                 </h3>
 
                 {/* Button & Deep Link Target preview details */}
                 {b.buttonText && (
-                  <div className="rounded-lg bg-neutral-50 border border-neutral-200/60 p-3 text-[11px] text-neutral-500 space-y-1 animate-fade-in">
+                  <div className="rounded-2xl bg-neutral-50/70 border border-neutral-200/60 p-3 text-[11px] text-neutral-500 space-y-1 animate-fade-in">
                     <div className="flex justify-between items-baseline">
                       <span>Button Label:</span>
-                      <span className="font-bold text-neutral-900 select-all font-mono uppercase bg-neutral-200/50 px-1.5 py-0.5 rounded text-[9px]">{b.buttonText}</span>
+                      <span className="font-bold text-neutral-900 select-all font-mono uppercase bg-neutral-200/50 px-2 py-0.5 rounded-full text-[9px]">{b.buttonText}</span>
                     </div>
                     <div className="flex justify-between items-baseline">
                       <span>Action Type (targetType):</span>
@@ -407,8 +406,8 @@ export default function BannersPage() {
                           {b.targetType === "TREATMENT_DETAIL"
                             ? (treatments.find((t) => t.id === b.targetId)?.title || b.targetId)
                             : b.targetType === "MEMBERSHIP_DETAIL"
-                            ? (memberships.find((m) => m.id === b.targetId)?.title || b.targetId)
-                            : b.targetId}
+                              ? (memberships.find((m) => m.id === b.targetId)?.title || b.targetId)
+                              : b.targetId}
                         </span>
                       </div>
                     )}
@@ -437,13 +436,13 @@ export default function BannersPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEditClick(b)}
-                    className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition"
+                    className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDeleteBanner(b.id)}
-                    className="rounded border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
+                    className="rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer"
                   >
                     Delete
                   </button>

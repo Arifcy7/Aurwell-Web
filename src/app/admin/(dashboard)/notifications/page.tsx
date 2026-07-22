@@ -72,7 +72,7 @@ export default function NotificationsPage() {
             collection(db, "clinics", cId, "notifications"),
             orderBy("sentAt", "desc")
           );
-          
+
           const unsubHistory = onSnapshot(histQuery, (snapshot) => {
             const loadedHistory: NotificationHistory[] = [];
             snapshot.forEach((d) => {
@@ -194,60 +194,60 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <div className="space-y-4 max-w-6xl mx-auto">
       <div>
         <h2 className="text-lg font-bold tracking-tight">Push Notifications</h2>
         <p className="text-sm text-neutral-500">Broadcast updates or targeted loyalty reminders directly to client devices</p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         {/* Send Notification Form */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-neutral-200 p-6 shadow-sm space-y-5">
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-neutral-100 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5">
           <h3 className="text-md font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-3">
             Compose Broadcast
           </h3>
 
           <form onSubmit={handleSendNotification} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Notification Title</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Notification Title</label>
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Exclusive Weekend Offer! 🌟"
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="input-modern"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700">Body Message</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Body Message</label>
               <textarea
                 required
                 rows={3}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Write your push notification message here..."
-                className="mt-1 block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-black shadow-sm placeholder:text-neutral-400 focus:border-black focus:outline-none focus:ring-1 focus:ring-black sm:text-sm"
+                className="textarea-modern"
               />
             </div>
 
-              <ImageUploader
-                file={imageFile}
-                onChange={setImageFile}
-                imageUrl={imageUrl}
-                onClearImage={() => setImageUrl("")}
-                label="Notification Image (Optional)"
-              />
+            <ImageUploader
+              file={imageFile}
+              onChange={setImageFile}
+              imageUrl={imageUrl}
+              onClearImage={() => setImageUrl("")}
+              label="Notification Image (Optional)"
+            />
 
             {/* Targeting controls */}
-            <div className="bg-neutral-50 rounded-lg p-4 border border-neutral-200/60 space-y-4">
-              <span className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <div className="bg-neutral-50/80 rounded-2xl p-4 border border-neutral-200/60 space-y-4">
+              <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                 Target Audience Configuration
               </span>
-              
+
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
                   <input
                     type="radio"
                     checked={targetType === "all"}
@@ -256,7 +256,7 @@ export default function NotificationsPage() {
                   />
                   All Clients
                 </label>
-                <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
                   <input
                     type="radio"
                     checked={targetType === "visits"}
@@ -269,14 +269,14 @@ export default function NotificationsPage() {
 
               {targetType === "visits" && (
                 <div className="flex items-center gap-3 animate-fadeIn flex-wrap">
-                  <span className="text-sm text-neutral-600">Clients with visits</span>
+                  <span className="text-xs text-neutral-600">Clients with visits</span>
                   <select
                     value={operator}
                     onChange={(e) => setOperator(e.target.value as any)}
-                    className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-sm text-black focus:border-black focus:ring-black focus:outline-none"
+                    className="select-modern text-xs px-3 py-1.5 w-auto"
                   >
-                    <option value=">=">At least (≥</option>
-                    <option value="<=">At most (≤</option>
+                    <option value=">=">At least (≥)</option>
+                    <option value="<=">At most (≤)</option>
                     <option value="==">Exactly (=)</option>
                   </select>
                   <input
@@ -284,20 +284,19 @@ export default function NotificationsPage() {
                     min="0"
                     value={visitsValue}
                     onChange={(e) => setVisitsValue(e.target.value)}
-                    className="w-20 rounded-md border border-neutral-300 bg-white px-2.5 py-1 text-sm text-black focus:border-black focus:ring-black focus:outline-none"
+                    className="input-modern text-xs px-3 py-1.5 w-24"
                   />
-                  <span className="text-sm text-neutral-600">session(s)</span>
+                  <span className="text-xs text-neutral-600">session(s)</span>
                 </div>
               )}
             </div>
 
             {statusMessage && (
               <div
-                className={`rounded-lg p-3 text-sm font-medium ${
-                  statusMessage.type === "success"
-                    ? "bg-green-50 text-green-800 border border-green-200"
-                    : "bg-red-50 text-red-800 border border-red-200"
-                }`}
+                className={`rounded-full px-4 py-2 text-xs font-semibold ${statusMessage.type === "success"
+                  ? "bg-green-50 text-green-800 border border-green-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+                  }`}
               >
                 {statusMessage.text}
               </div>
@@ -306,7 +305,7 @@ export default function NotificationsPage() {
             <button
               type="submit"
               disabled={isSending || matchedClients.length === 0}
-              className="w-full rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSending ? (
                 <>
@@ -321,11 +320,11 @@ export default function NotificationsPage() {
         </div>
 
         {/* Live Estimator Sidebar Card */}
-        <div className="bg-neutral-900 text-white rounded-xl p-6 flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div className="bg-neutral-900 text-white rounded-3xl p-6 flex flex-col justify-between shadow-[0_8px_30px_rgb(0,0,0,0.08)] relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-8 -translate-y-8"></div>
-          
+
           <div className="space-y-4 z-10">
-            <span className="bg-white/10 text-white text-[10px] font-semibold px-2 py-0.5 rounded border border-white/20 uppercase tracking-wider inline-block">
+            <span className="bg-white/10 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-white/20 uppercase tracking-wider inline-block">
               Audience Estimate
             </span>
             <div className="space-y-1">
@@ -353,7 +352,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* Dispatch History log */}
-      <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-neutral-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         <div className="p-6 border-b border-neutral-200">
           <h3 className="text-md font-bold tracking-tight text-neutral-900">Broadcast Dispatch History</h3>
           <p className="text-xs text-neutral-500">Track and review delivery logs for previously sent messages</p>
