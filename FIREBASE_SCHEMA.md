@@ -66,6 +66,7 @@ Houses base branding, settings, and profile details for individual clinics.
 |---|---|---|
 | `clinicId` | `string` | Tenant Identifier |
 | `merchantName` | `string` | Public display name of the clinic |
+| `logoUrl` | `string` | Custom clinic logo image link |
 | `brandColor` | `string` | Hex value for white-label app customization |
 | `websiteUrl` | `string` | Optional external clinic site |
 | `treatmentList` | `array` of `string` | List of treatments tags |
