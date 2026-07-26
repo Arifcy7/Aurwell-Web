@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} font-sans h-full antialiased`}
+      className={`${inter.variable} font-sans h-full antialiased scroll-smooth`}
     >
       <body className={`${inter.className} min-h-full flex flex-col font-sans`}>
         {children}

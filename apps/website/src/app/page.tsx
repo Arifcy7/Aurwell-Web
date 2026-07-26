@@ -26,110 +26,90 @@ export default function Home() {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
   const [activeTab, setActiveTab] = useState("Membership");
   const [showSplash, setShowSplash] = useState(true);
-  const [loadProgress, setLoadProgress] = useState(15);
+  const [loadProgress, setLoadProgress] = useState(30);
+  const [sliderOffset, setSliderOffset] = useState({ x: 0, y: 0 });
+
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const trackEl = document.getElementById("outer-glass-track");
+    if (!trackEl) return;
+
+    const trackRect = trackEl.getBoundingClientRect();
+
+    // Stop slider floating when mouse is directly hovering over or near the track
+    if (
+      e.clientX >= trackRect.left - 6 &&
+      e.clientX <= trackRect.right + 6 &&
+      e.clientY >= trackRect.top - 6 &&
+      e.clientY <= trackRect.bottom + 6
+    ) {
+      setSliderOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    const trackCenterX = trackRect.left + trackRect.width / 2;
+    const trackCenterY = trackRect.top + trackRect.height / 2;
+
+    const dx = e.clientX - trackCenterX;
+    const dy = e.clientY - trackCenterY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const maxRadius = 500;
+
+    if (distance < maxRadius && distance > 0) {
+      const pull = Math.pow(1 - distance / maxRadius, 1.2) * 22;
+      setSliderOffset({
+        x: (dx / distance) * pull,
+        y: (dy / distance) * pull,
+      });
+    } else {
+      setSliderOffset({ x: 0, y: 0 });
+    }
+  };
+
+  const handleHeroMouseLeave = () => {
+    setSliderOffset({ x: 0, y: 0 });
+  };
 
   useEffect(() => {
-    let outerInstance: any = null;
-    let innerInstance: any = null;
     let isMounted = true;
 
-    const preloadAsset = (src: string) =>
-      new Promise<void>((resolve) => {
-        const img = new window.Image();
-        img.src = src;
-        if (img.complete) {
-          resolve();
-        } else {
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        }
-      });
+    // Fast 600ms progress reveal
+    const progressTimer1 = setTimeout(() => {
+      if (isMounted) setLoadProgress(75);
+    }, 200);
 
-    const minSplashDuration = new Promise((resolve) => setTimeout(resolve, 1800));
+    const progressTimer2 = setTimeout(() => {
+      if (isMounted) setLoadProgress(100);
+    }, 450);
 
-    const loadAppResources = async () => {
-      // Step 1: Preload high-res page imagery
-      setLoadProgress(30);
-      await Promise.all(["/hero-image.png", "/logo-black.png", "/typo.png", "/typo-full.png"].map(preloadAsset));
-      if (!isMounted) return;
-      setLoadProgress(65);
-
-      // Step 2: Pre-initialize WebGL shaders and LiquidGlass background canvases
-      try {
-        const { LiquidGlass } = await import("@ybouane/liquidglass");
-        const rootEl = document.getElementById("hero-glass-root");
-        const outerEl = document.getElementById("outer-glass-track");
-        const innerEl = document.getElementById("inner-glass-slider");
-
-        if (rootEl && outerEl && isMounted) {
-          outerInstance = await LiquidGlass.init({
-            root: rootEl,
-            glassElements: [outerEl],
-          });
-        }
-
-        if (outerEl && innerEl && isMounted) {
-          innerInstance = await LiquidGlass.init({
-            root: outerEl,
-            glassElements: [innerEl],
-          });
-        }
-      } catch (err) {
-        console.error("LiquidGlass pre-init error:", err);
-      }
-      if (!isMounted) return;
-      setLoadProgress(88);
-
-      // Step 3: Ensure custom typography & web fonts are ready
-      if (typeof document !== "undefined" && document.fonts) {
-        await document.fonts.ready;
-      }
-      if (!isMounted) return;
-      setLoadProgress(100);
-
-      // Step 4: Complete splash reveal after minimum smooth animation duration
-      await minSplashDuration;
-      if (!isMounted) return;
-
-      setShowSplash(false);
-
-      // Refresh WebGL canvases once landing page layout unveils
-      setTimeout(() => {
-        if (outerInstance && typeof outerInstance.markChanged === "function") outerInstance.markChanged();
-        if (innerInstance && typeof innerInstance.markChanged === "function") innerInstance.markChanged();
-      }, 400);
-    };
-
-    loadAppResources();
+    const hideSplashTimer = setTimeout(() => {
+      if (isMounted) setShowSplash(false);
+    }, 600);
 
     return () => {
       isMounted = false;
-      if (innerInstance && typeof innerInstance.destroy === "function") {
-        innerInstance.destroy();
-      }
-      if (outerInstance && typeof outerInstance.destroy === "function") {
-        outerInstance.destroy();
-      }
+      clearTimeout(progressTimer1);
+      clearTimeout(progressTimer2);
+      clearTimeout(hideSplashTimer);
     };
   }, []);
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white">
-      {/* Full-Screen Animated Flash / Splash Screen */}
+      {/* Full-Screen Fast & Elegant Splash Screen */}
       <AnimatePresence>
         {showSplash && (
           <motion.div
             key="splash"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.04, filter: "blur(16px)" }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, scale: 1.03, filter: "blur(12px)" }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-50 bg-[#F3F4F6] flex flex-col items-center justify-center overflow-hidden select-none"
           >
             {/* Ambient Background Glow Aura */}
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 0.7, scale: 1.2 }}
-              transition={{ duration: 1.8, ease: "easeOut" }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
               className="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-blue-200/40 via-purple-200/30 to-amber-200/30 blur-3xl pointer-events-none"
             />
 
@@ -139,7 +119,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.75, filter: "blur(16px)", y: 12 }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)", y: 0 }}
-                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="relative"
               >
                 <Image
@@ -148,6 +128,7 @@ export default function Home() {
                   width={160}
                   height={44}
                   className="h-12 sm:h-16 w-auto object-contain drop-shadow-sm"
+                  style={{ width: "auto" }}
                   priority
                 />
               </motion.div>
@@ -156,7 +137,7 @@ export default function Home() {
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "40px", opacity: 0.3 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
                 className="w-[1.5px] bg-neutral-900 rounded-full"
               />
 
@@ -164,7 +145,7 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, x: -18, filter: "blur(12px)" }}
                 animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Image
                   src="/typo.png"
@@ -172,23 +153,24 @@ export default function Home() {
                   width={180}
                   height={48}
                   className="h-9 sm:h-12 w-auto object-contain transform translate-y-[2px]"
+                  style={{ width: "auto" }}
                   priority
                 />
               </motion.div>
             </div>
 
-            {/* Dynamic Asset Loading Progress Bar */}
+            {/* Fast Progress Bar */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
               className="absolute bottom-16 flex flex-col items-center"
             >
               <div className="w-40 sm:w-48 h-[3px] bg-neutral-200/80 rounded-full overflow-hidden p-[0.5px]">
                 <motion.div
-                  initial={{ width: "15%" }}
+                  initial={{ width: "30%" }}
                   animate={{ width: `${loadProgress}%` }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
                   className="h-full bg-neutral-900 rounded-full shadow-sm"
                 />
               </div>
@@ -196,13 +178,12 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Header Container (Centered in middle) */}
       <div className="max-w-6xl mx-auto px-6 sm:px-10">
         {/* Header / Navbar */}
         <motion.header
           initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-          animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: -20, filter: "blur(10px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="py-5 flex items-center justify-between gap-4"
         >
@@ -278,13 +259,13 @@ export default function Home() {
       {/* Hero Section Container (Reduced padding, closer to screen edges) */}
       <div className="w-full max-w-[1640px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Hero Section */}
-        <section id="overview" className="py-4 lg:py-8">
+        <section id="overview" className="py-4 lg:py-8 scroll-mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
             {/* Left Content Column (Moved slightly to the right) */}
             <div className="lg:col-span-4 space-y-6 pl-4 sm:pl-8 lg:pl-12">
               <motion.h1
                 initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 30, filter: "blur(12px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-neutral-900 tracking-tight leading-[1.15]"
               >
@@ -292,7 +273,7 @@ export default function Home() {
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
-                animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 25, filter: "blur(10px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="text-neutral-600 text-sm sm:text-base leading-relaxed max-w-sm font-normal"
               >
@@ -302,7 +283,7 @@ export default function Home() {
               {/* Action Buttons */}
               <motion.div
                 initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-                animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 20, filter: "blur(8px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="flex flex-wrap items-center gap-3 pt-2"
               >
@@ -322,11 +303,16 @@ export default function Home() {
             {/* Right Visual Hero Container (Majority ~67% width, Exact Proportions) */}
             <motion.div
               initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
-              animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 35, filter: "blur(12px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-8"
             >
-              <div id="hero-glass-root" className="relative w-full h-[520px] sm:h-[600px] lg:h-[650px] rounded-[44px] overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8">
+              <div
+                id="hero-glass-root"
+                onMouseMove={handleHeroMouseMove}
+                onMouseLeave={handleHeroMouseLeave}
+                className="relative w-full h-[520px] sm:h-[600px] lg:h-[650px] rounded-[44px] overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8"
+              >
                 {/* Background Hero Gradient Image (NON-DRAGGABLE, NO SHADOW) */}
                 <Image
                   src="/hero-image.png"
@@ -337,11 +323,11 @@ export default function Home() {
                   priority
                 />
 
-                {/* "Try demo!" handwritten text with curved arch arrow pointing to the slider */}
+                {/* "Try demo!" handwritten text with curved arch arrow pointing to the slider (Appears last as final accent) */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.8, filter: "blur(6px)" }}
-                  animate={!showSplash ? { opacity: 1, scale: 1, filter: "blur(0px)" } : { opacity: 0, scale: 0.8, filter: "blur(6px)" }}
-                  transition={{ duration: 0.7, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                  initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute top-10 sm:top-14 left-6 sm:left-12 z-30 flex flex-col items-start select-none pointer-events-none"
                 >
                   <span
@@ -365,109 +351,123 @@ export default function Home() {
                   </svg>
                 </motion.div>
 
-                {/* Remade WebGL Liquid Glass Demo Slider (Outer Rectangle Track + Animated Frosted Inner Square) */}
-                <div
+                {/* SVG Squircle ClipPath Definitions for Apple Superellipse Curvature */}
+                <svg className="absolute w-0 h-0 pointer-events-none opacity-0" aria-hidden="true">
+                  <defs>
+                    {/* Outer Track Squircle Clip */}
+                    <clipPath id="squircle-track-clip" clipPathUnits="objectBoundingBox">
+                      <path d="M 0,0.20 C 0,0.03 0.03,0 0.20,0 H 0.80 C 0.97,0 1,0.03 1,0.20 V 0.80 C 1,0.97 0.97,1 0.80,1 H 0.20 C 0.03,1 0,0.97 0,0.80 Z" />
+                    </clipPath>
+                    {/* Inner Active Pill Squircle Clip (iOS App Icon Smooth Curvature) */}
+                    <clipPath id="squircle-pill-clip" clipPathUnits="objectBoundingBox">
+                      <path d="M 0,0.36 C 0,0.08 0.08,0 0.36,0 H 0.64 C 0.92,0 1,0.08 1,0.36 V 0.64 C 1,0.92 0.92,1 0.64,1 H 0.36 C 0.08,1 0,0.92 0,0.64 Z" />
+                    </clipPath>
+                  </defs>
+                </svg>
+
+                {/* Clean Modern Demo Slider (Outer White Squircle Track + Animated Soft Charcoal Active Inner Squircle) */}
+                <motion.div
                   id="outer-glass-track"
-                  className="absolute left-6 sm:left-12 lg:left-16 top-28 sm:top-32 z-20 flex flex-col items-center p-2 rounded-[36px] w-[100px] sm:w-[110px] gap-1.5 cursor-pointer select-none border border-white/30 shadow-[0_8px_25px_rgba(0,0,0,0.05)] text-white"
-                  data-config={JSON.stringify({
-                    blurAmount: 0.15,
-                    refraction: 0.75,
-                    chromAberration: 0.15,
-                    edgeHighlight: 0.2,
-                    specular: 0.15,
-                    fresnel: 1,
-                    cornerRadius: 36,
-                    zRadius: 14,
-                    brightness: -0.02,
-                    shadowOpacity: 0.1,
-                    floating: true,
-                  })}
+                  initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    filter: "blur(0px)",
+                    x: sliderOffset.x,
+                    y: sliderOffset.y,
+                  }}
+                  transition={{
+                    opacity: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                    scale: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                    filter: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                    x: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
+                    y: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
+                  }}
+                  style={{
+                    clipPath: "url(#squircle-track-clip)",
+                  }}
+                  className="absolute left-6 sm:left-12 lg:left-16 top-28 sm:top-32 z-20 flex flex-col items-center p-2 rounded-[32px] w-[100px] sm:w-[110px] gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900"
                 >
-                  {/* High Frosted Animated Inner Glass Square (Slides onto clicked button) */}
-                  <div
-                    id="inner-glass-slider"
-                    className="absolute left-2 right-2 aspect-square rounded-[28px] transition-transform duration-300 ease-out pointer-events-none z-10 border border-white/50 shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
+                  {/* Animated Active Tab Indicator (Fluid Spring Soft Charcoal Squircle Pill) */}
+                  <motion.div
+                    className="absolute left-2 right-2 aspect-square rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
                     style={{
-                      transform: `translateY(calc(${activeTab === "Membership" ? 0 : activeTab === "Rewards" ? 1 : 2
-                        } * (100% + 6px)))`,
+                      clipPath: "url(#squircle-pill-clip)",
                     }}
-                    data-config={JSON.stringify({
-                      blurAmount: 0.22, // Frosted translucent liquid without turning white/opaque!
-                      refraction: 0.75,
-                      chromAberration: 0.1,
-                      edgeHighlight: 0.2,
-                      specular: 0.15,
-                      fresnel: 1,
-                      cornerRadius: 28,
-                      zRadius: 10,
-                      brightness: -0.04, // Neutral/translucent instead of white/opaque
-                      shadowOpacity: 0.06,
-                    })}
+                    animate={{
+                      y: activeTab === "Membership" ? "0%" : activeTab === "Rewards" ? "calc(100% + 6px)" : "calc(200% + 12px)",
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 30,
+                      mass: 0.8,
+                    }}
                   />
 
-                  {/* Slider Item 1: Membership (Square, No separate box for icon) */}
+                  {/* Slider Item 1: Membership */}
                   <div
                     onClick={() => setActiveTab("Membership")}
-                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[28px] relative z-20 cursor-pointer group select-none py-1"
+                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
                   >
                     <Lock
                       className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
-                        ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-                        : "text-white/75 group-hover:text-white group-hover:scale-105"
+                        ? "text-white scale-110"
+                        : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                         }`}
                     />
                     <span
                       className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
-                        ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
-                        : "text-white/80 group-hover:text-white"
+                        ? "text-white font-semibold"
+                        : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                         }`}
                     >
                       Membership
                     </span>
                   </div>
 
-                  {/* Slider Item 2: Rewards (Square, No separate box for icon) */}
+                  {/* Slider Item 2: Rewards */}
                   <div
                     onClick={() => setActiveTab("Rewards")}
-                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[28px] relative z-20 cursor-pointer group select-none py-1"
+                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
                   >
                     <Gift
                       className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
-                        ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-                        : "text-white/75 group-hover:text-white group-hover:scale-105"
+                        ? "text-white scale-110"
+                        : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                         }`}
                     />
                     <span
                       className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
-                        ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
-                        : "text-white/80 group-hover:text-white"
+                        ? "text-white font-semibold"
+                        : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                         }`}
                     >
                       Rewards
                     </span>
                   </div>
 
-                  {/* Slider Item 3: Smart Deals (Square, No separate box for icon) */}
+                  {/* Slider Item 3: Smart Deals */}
                   <div
                     onClick={() => setActiveTab("Smart Deals")}
-                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[28px] relative z-20 cursor-pointer group select-none py-1"
+                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
                   >
                     <Star
                       className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
-                        ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-                        : "text-white/75 group-hover:text-white group-hover:scale-105"
+                        ? "text-white scale-110"
+                        : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                         }`}
                     />
                     <span
                       className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
-                        ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
-                        : "text-white/80 group-hover:text-white"
+                        ? "text-white font-semibold"
+                        : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                         }`}
                     >
                       Smart Deals
                     </span>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Mobile Phone Mockup Frame (Centered in the middle of hero image, Exact 2532 x 1170 px aspect ratio) */}
                 <div
@@ -498,7 +498,7 @@ export default function Home() {
       {/* Remaining Sections Container (Centered with normal padding) */}
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20">
         {/* Built for Growth Section */}
-        <section id="features" className="py-12">
+        <section id="features" className="py-12 scroll-mt-6">
           <div className="bg-white/60 rounded-[36px] p-8 sm:p-14 border border-white/60 shadow-sm">
             {/* Header */}
             <motion.div
@@ -886,7 +886,7 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-12">
+        <section id="pricing" className="py-12 scroll-mt-6">
           <div className="relative rounded-[36px] bg-gradient-to-b from-white/40 via-white/60 to-white/80 p-8 sm:p-14 border border-white/60">
             {/* Header */}
             <motion.div
@@ -1089,7 +1089,7 @@ export default function Home() {
       </div>
 
       {/* Footer Section (Full Width, with centered links and edge-to-edge typography inside) */}
-      <footer id="about" className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 overflow-hidden">
+      <footer id="about" className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 overflow-hidden scroll-mt-6">
         <motion.div
           initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
           whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
