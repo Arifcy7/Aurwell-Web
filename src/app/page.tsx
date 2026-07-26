@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import MotionButton from "@/components/ui/motion-button";
 import {
   ArrowRight,
   Check,
@@ -23,13 +24,36 @@ import {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("Membership");
+  const [showSplash, setShowSplash] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(15);
 
   useEffect(() => {
     let outerInstance: any = null;
     let innerInstance: any = null;
     let isMounted = true;
 
-    const initGlass = async () => {
+    const preloadAsset = (src: string) =>
+      new Promise<void>((resolve) => {
+        const img = new window.Image();
+        img.src = src;
+        if (img.complete) {
+          resolve();
+        } else {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        }
+      });
+
+    const minSplashDuration = new Promise((resolve) => setTimeout(resolve, 1800));
+
+    const loadAppResources = async () => {
+      // Step 1: Preload high-res page imagery
+      setLoadProgress(30);
+      await Promise.all(["/hero-image.png", "/logo-black.png", "/typo.png", "/typo-full.png"].map(preloadAsset));
+      if (!isMounted) return;
+      setLoadProgress(65);
+
+      // Step 2: Pre-initialize WebGL shaders and LiquidGlass background canvases
       try {
         const { LiquidGlass } = await import("@ybouane/liquidglass");
         const rootEl = document.getElementById("hero-glass-root");
@@ -50,23 +74,35 @@ export default function Home() {
           });
         }
       } catch (err) {
-        console.error("LiquidGlass init error:", err);
+        console.error("LiquidGlass pre-init error:", err);
       }
+      if (!isMounted) return;
+      setLoadProgress(88);
+
+      // Step 3: Ensure custom typography & web fonts are ready
+      if (typeof document !== "undefined" && document.fonts) {
+        await document.fonts.ready;
+      }
+      if (!isMounted) return;
+      setLoadProgress(100);
+
+      // Step 4: Complete splash reveal after minimum smooth animation duration
+      await minSplashDuration;
+      if (!isMounted) return;
+
+      setShowSplash(false);
+
+      // Refresh WebGL canvases once landing page layout unveils
+      setTimeout(() => {
+        if (outerInstance && typeof outerInstance.markChanged === "function") outerInstance.markChanged();
+        if (innerInstance && typeof innerInstance.markChanged === "function") innerInstance.markChanged();
+      }, 400);
     };
 
-    const timer = setTimeout(() => {
-      initGlass();
-    }, 150);
-
-    const timer2 = setTimeout(() => {
-      if (outerInstance && typeof outerInstance.markChanged === "function") outerInstance.markChanged();
-      if (innerInstance && typeof innerInstance.markChanged === "function") innerInstance.markChanged();
-    }, 900);
+    loadAppResources();
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
-      clearTimeout(timer2);
       if (innerInstance && typeof innerInstance.destroy === "function") {
         innerInstance.destroy();
       }
@@ -78,12 +114,94 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F3F4F6] text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white">
+      {/* Full-Screen Animated Flash / Splash Screen */}
+      <AnimatePresence>
+        {showSplash && (
+          <motion.div
+            key="splash"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.04, filter: "blur(16px)" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-50 bg-[#F3F4F6] flex flex-col items-center justify-center overflow-hidden select-none"
+          >
+            {/* Ambient Background Glow Aura */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 0.7, scale: 1.2 }}
+              transition={{ duration: 1.8, ease: "easeOut" }}
+              className="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-blue-200/40 via-purple-200/30 to-amber-200/30 blur-3xl pointer-events-none"
+            />
+
+            {/* Brand Logo & Typography Lockup */}
+            <div className="relative z-10 flex items-center gap-4 sm:gap-6">
+              {/* Logo Icon Reveal */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.75, filter: "blur(16px)", y: 12 }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)", y: 0 }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                className="relative"
+              >
+                <Image
+                  src="/logo-black.png"
+                  alt="Aurwell Logo"
+                  width={160}
+                  height={44}
+                  className="h-12 sm:h-16 w-auto object-contain drop-shadow-sm"
+                  priority
+                />
+              </motion.div>
+
+              {/* Vertical Shimmer Divider */}
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "40px", opacity: 0.3 }}
+                transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+                className="w-[1.5px] bg-neutral-900 rounded-full"
+              />
+
+              {/* Typography Wordmark Reveal */}
+              <motion.div
+                initial={{ opacity: 0, x: -18, filter: "blur(12px)" }}
+                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <Image
+                  src="/typo.png"
+                  alt="Aurwell Typography"
+                  width={180}
+                  height={48}
+                  className="h-9 sm:h-12 w-auto object-contain transform translate-y-[2px]"
+                  priority
+                />
+              </motion.div>
+            </div>
+
+            {/* Dynamic Asset Loading Progress Bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="absolute bottom-16 flex flex-col items-center"
+            >
+              <div className="w-40 sm:w-48 h-[3px] bg-neutral-200/80 rounded-full overflow-hidden p-[0.5px]">
+                <motion.div
+                  initial={{ width: "15%" }}
+                  animate={{ width: `${loadProgress}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="h-full bg-neutral-900 rounded-full shadow-sm"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header Container (Centered in middle) */}
       <div className="max-w-6xl mx-auto px-6 sm:px-10">
         {/* Header / Navbar */}
         <motion.header
           initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: -20, filter: "blur(10px)" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="py-5 flex items-center justify-between gap-4"
         >
@@ -165,7 +283,7 @@ export default function Home() {
             <div className="lg:col-span-4 space-y-6 pl-4 sm:pl-8 lg:pl-12">
               <motion.h1
                 initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 30, filter: "blur(12px)" }}
                 transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                 className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-neutral-900 tracking-tight leading-[1.15]"
               >
@@ -173,7 +291,7 @@ export default function Home() {
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 25, filter: "blur(10px)" }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="text-neutral-600 text-sm sm:text-base leading-relaxed max-w-sm font-normal"
               >
@@ -183,32 +301,27 @@ export default function Home() {
               {/* Action Buttons */}
               <motion.div
                 initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 20, filter: "blur(8px)" }}
                 transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="flex flex-wrap items-center gap-3 pt-2"
               >
                 <Link
                   href="/admin/signup"
-                  className="px-5 py-2 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors"
+                  className="px-5 py-2.5 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors shadow-sm"
                 >
                   Get Started
                 </Link>
-                <Link
+                <MotionButton
+                  label="See it in action!"
                   href="#features"
-                  className="inline-flex items-center gap-2 border border-neutral-900 bg-white text-neutral-900 font-semibold pl-4 pr-1.5 py-1.5 rounded-full text-xs sm:text-sm hover:bg-neutral-50 transition-colors group"
-                >
-                  <span>See it in action!</span>
-                  <span className="w-6 h-6 rounded-full bg-neutral-900 text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
-                </Link>
+                />
               </motion.div>
             </div>
 
             {/* Right Visual Hero Container (Majority ~67% width, Exact Proportions) */}
             <motion.div
               initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              animate={!showSplash ? { opacity: 1, y: 0, filter: "blur(0px)" } : { opacity: 0, y: 35, filter: "blur(12px)" }}
               transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-8"
             >
@@ -226,7 +339,7 @@ export default function Home() {
                 {/* "Try demo!" handwritten text with curved arch arrow pointing to the slider */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8, filter: "blur(6px)" }}
-                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  animate={!showSplash ? { opacity: 1, scale: 1, filter: "blur(0px)" } : { opacity: 0, scale: 0.8, filter: "blur(6px)" }}
                   transition={{ duration: 0.7, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
                   className="absolute top-10 sm:top-14 left-6 sm:left-12 z-30 flex flex-col items-start select-none pointer-events-none"
                 >
@@ -274,9 +387,8 @@ export default function Home() {
                     id="inner-glass-slider"
                     className="absolute left-2 right-2 aspect-square rounded-[28px] transition-transform duration-300 ease-out pointer-events-none z-10 border border-white/50 shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
                     style={{
-                      transform: `translateY(calc(${
-                        activeTab === "Membership" ? 0 : activeTab === "Rewards" ? 1 : 2
-                      } * (100% + 6px)))`,
+                      transform: `translateY(calc(${activeTab === "Membership" ? 0 : activeTab === "Rewards" ? 1 : 2
+                        } * (100% + 6px)))`,
                     }}
                     data-config={JSON.stringify({
                       blurAmount: 0.22, // Frosted translucent liquid without turning white/opaque!
@@ -298,18 +410,16 @@ export default function Home() {
                     className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[28px] relative z-20 cursor-pointer group select-none py-1"
                   >
                     <Lock
-                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${
-                        activeTab === "Membership"
-                          ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-                          : "text-white/75 group-hover:text-white group-hover:scale-105"
-                      }`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
+                        ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+                        : "text-white/75 group-hover:text-white group-hover:scale-105"
+                        }`}
                     />
                     <span
-                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${
-                        activeTab === "Membership"
-                          ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
-                          : "text-white/80 group-hover:text-white"
-                      }`}
+                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
+                        ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
+                        : "text-white/80 group-hover:text-white"
+                        }`}
                     >
                       Membership
                     </span>
@@ -321,18 +431,16 @@ export default function Home() {
                     className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[28px] relative z-20 cursor-pointer group select-none py-1"
                   >
                     <Gift
-                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${
-                        activeTab === "Rewards"
-                          ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-                          : "text-white/75 group-hover:text-white group-hover:scale-105"
-                      }`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
+                        ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+                        : "text-white/75 group-hover:text-white group-hover:scale-105"
+                        }`}
                     />
                     <span
-                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${
-                        activeTab === "Rewards"
-                          ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
-                          : "text-white/80 group-hover:text-white"
-                      }`}
+                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
+                        ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
+                        : "text-white/80 group-hover:text-white"
+                        }`}
                     >
                       Rewards
                     </span>
@@ -344,18 +452,16 @@ export default function Home() {
                     className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[28px] relative z-20 cursor-pointer group select-none py-1"
                   >
                     <Star
-                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${
-                        activeTab === "Smart Deals"
-                          ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
-                          : "text-white/75 group-hover:text-white group-hover:scale-105"
-                      }`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
+                        ? "text-white scale-110 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+                        : "text-white/75 group-hover:text-white group-hover:scale-105"
+                        }`}
                     />
                     <span
-                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${
-                        activeTab === "Smart Deals"
-                          ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
-                          : "text-white/80 group-hover:text-white"
-                      }`}
+                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
+                        ? "text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]"
+                        : "text-white/80 group-hover:text-white"
+                        }`}
                     >
                       Smart Deals
                     </span>
@@ -1006,7 +1112,7 @@ export default function Home() {
                 width={120}
                 height={32}
                 className="h-5 sm:h-6 w-auto object-contain transform translate-y-[1px]"
-                />
+              />
             </div>
           </div>
 
@@ -1113,7 +1219,7 @@ export default function Home() {
           className="relative max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 -mt-4 sm:-mt-6 lg:-mt-10 pb-2 sm:pb-4 overflow-hidden flex items-center justify-center select-none pointer-events-none"
         >
           <Image
-            src="/typo.png"
+            src="/typo-full.png"
             alt="Aurwell Typography Wordmark"
             width={1200}
             height={300}
