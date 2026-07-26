@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import { CardGridSkeleton } from "@/components/Loader";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Coins,
@@ -22,7 +23,8 @@ import {
   SlidersHorizontal,
   Pencil,
   PlusCircle,
-  TrendingUp
+  TrendingUp,
+  Trash2,
 } from "lucide-react";
 
 interface Reward {
@@ -193,6 +195,10 @@ export default function RewardsPage() {
   const [discountUpTo, setDiscountUpTo] = useState(""); // Maximum discount threshold
   const [expiryDays, setExpiryDays] = useState(""); // Expiry in days
 
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Reward | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const loadData = async (cId: string) => {
     try {
       // Fetch treatments for dropdown selector
@@ -347,6 +353,20 @@ export default function RewardsPage() {
       );
     } catch (err) {
       console.error("Error toggling active state:", err);
+    }
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!deleteTarget || !clinicId) return;
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, "clinics", clinicId, "rewards", deleteTarget.id));
+      setRewards((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Error deleting reward:", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -764,20 +784,39 @@ export default function RewardsPage() {
                     </span>
                   </label>
 
-                  {/* Edit Button */}
-                  <button
-                    onClick={() => handleEditClick(r)}
-                    className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-                  >
-                    <Pencil className="w-3 h-3 text-neutral-500" />
-                    Edit
-                  </button>
+                  {/* Edit & Delete Buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleEditClick(r)}
+                      className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    >
+                      <Pencil className="w-3 h-3 text-neutral-500" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(r)}
+                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirmed}
+        isDeleting={isDeleting}
+        title="Delete Reward"
+        description="This reward will be permanently removed. Clients who have already availed this reward won't be affected, but new redemptions will no longer be possible."
+        itemName={deleteTarget?.title}
+      />
     </div>
   );
 }

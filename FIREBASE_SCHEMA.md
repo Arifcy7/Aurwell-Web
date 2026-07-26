@@ -1,6 +1,6 @@
 # 🗄️ Aurwell Firebase Database Schema
 
-This document details the complete Firestore database schema, paths, data types, and collection hierarchies implemented across the Aurwell platform.
+This document is the single source of truth for all Firestore and Realtime Database structures used across the Aurwell platform. It reflects the exact fields read and written by the admin panel and mobile app.
 
 ---
 
@@ -12,26 +12,29 @@ This document details the complete Firestore database schema, paths, data types,
 
 /clinics (root collection)
     └── {clinicId} (clinic config document)
-         ├── /categories
-         │     └── {categoryId}
          ├── /treatments
          │     └── {treatmentId}
-         ├── /memberships
-         │     └── {membershipId}
+         ├── /membership_tiers              ← collection name (NOT "memberships")
+         │     └── {tierId}
          ├── /rewards
          │     └── {rewardId}
          ├── /settings
-         │     └── rewards_ratio (fixed document ID)
+         │     └── rewards_ratio            ← fixed document ID
          ├── /blogs
          │     └── {blogId}
          ├── /banners
          │     └── {bannerId}
          ├── /patients
          │     └── {patientId}
+         │           └── /availed_rewards
+         │                 └── {availedRewardId}
          ├── /transactions
          │     └── {transactionId}
          └── /active_memberships
                └── {memberId}
+
+/referrals (root collection)
+    └── {referralCode}
 ```
 
 ---
@@ -46,248 +49,327 @@ Stores user profile mapping and security role metadata.
 
 | Field | Type | Description |
 |---|---|---|
-| `uid` | `string` | Unique Authentication Identifier |
+| `uid` | `string` | Firebase Authentication User ID |
 | `firstName` | `string` | User's first name |
 | `lastName` | `string` | User's last name |
 | `email` | `string` | Primary email address |
-| `role` | `string` | System RBAC role (e.g. `"clinic_admin"`) |
-| `clinicId` | `string` | Associated Tenant Document ID (maps to `/clinics/{clinicId}`) |
+| `role` | `string` | RBAC role — always `"clinic_admin"` for admin users |
+| `clinicId` | `string` | Associated clinic document ID (maps to `/clinics/{clinicId}`) |
 | `createdAt` | `timestamp` | Account creation timestamp |
+| `fcmTokens` | `array` of `string` | FCM device push tokens (added by mobile app on login) |
 
 ---
 
 ### 2. Root Collection: `clinics`
-Houses base branding, settings, and profile details for individual clinics.
+Base branding, settings, and profile for each clinic tenant.
 
 - **Path**: `/clinics/{clinicId}`
-- **Document ID**: `clinicId` (format: `clinic_{ownerUid}`)
+- **Document ID format**: `clinic_{ownerUid}`
 
 | Field | Type | Description |
 |---|---|---|
-| `clinicId` | `string` | Tenant Identifier |
+| `clinicId` | `string` | Tenant identifier — same as the document ID |
+| `ownerUid` | `string` | Firebase Auth UID of the clinic owner |
 | `merchantName` | `string` | Public display name of the clinic |
-| `logoUrl` | `string` | Custom clinic logo image link |
-| `brandColor` | `string` | Hex value for white-label app customization |
-| `websiteUrl` | `string` | Optional external clinic site |
-| `treatmentList` | `array` of `string` | List of treatments tags |
-| `description` | `string` | Public clinic bio / details |
-| `currency` | `string` | Standard base currency (e.g., `"EUR"`, `"USD"`, `"RON"`, `"SEK"`, `"INR"`) |
-| `timezone` | `string` | Local operations timezone (e.g. `"Europe/Stockholm"`) |
-| `country` | `string` | Two-character ISO country code (e.g. `"RO"`) |
-| `address` | `string` | Physical location street address |
-| `postalCode` | `string` | Local address zip/postal code |
-| `phone` | `string` | Formatted contact number containing dial code |
-| `googleMapUrl` | `string` | Optional Google Map URL of the address |
-| `latitude` | `number` | Auto-extracted physical latitude of the clinic map address |
-| `longitude` | `number` | Auto-extracted physical longitude of the clinic map address |
-| `appHeroImageUrl` | `string` | Custom mobile app home screen hero image link |
-| `blogSectionTitle` | `string` | Customized title label for the blogs section/tab (default `"Blogs"`) |
-| `createdAt` | `timestamp` | Provisioning timestamp |
-| `ownerUid` | `string` | Owner profile UID |
+| `description` | `string` | Public clinic bio / service description |
+| `logoUrl` | `string` | Clinic logo image URL (Firebase Storage) |
+| `appHeroImageUrl` | `string` | Mobile app home screen hero banner image URL |
+| `brandColor` | `string` | Hex colour for white-label app theming (e.g. `"#C9A96E"`) |
+| `websiteUrl` | `string` | External clinic website URL (optional) |
+| `treatmentList` | `array` of `string` | High-level treatment type tags (e.g. `["Botox", "Laser"]`) |
+| `currency` | `string` | ISO currency code (e.g. `"GBP"`, `"EUR"`, `"USD"`, `"RON"`, `"SEK"`, `"INR"`) |
+| `timezone` | `string` | IANA timezone (e.g. `"Europe/London"`) |
+| `country` | `string` | ISO 2-char country code (e.g. `"GB"`) |
+| `address` | `string` | Street address string |
+| `postalCode` | `string` | Postal / ZIP code |
+| `phone` | `string` | Contact phone number including dial code (e.g. `"+44 20 7946 0813"`) |
+| `googleMapUrl` | `string` | Google Maps URL for the clinic location (optional) |
+| `latitude` | `number` | Latitude extracted automatically from `googleMapUrl` |
+| `longitude` | `number` | Longitude extracted automatically from `googleMapUrl` |
+| `blogSectionTitle` | `string` | Custom label for the blogs tab in the mobile app (default: `"Blogs"`) |
+| `createdAt` | `timestamp` | Clinic provisioning timestamp |
+
+> **Deprecated legacy fields** (still read with fallback for backwards compatibility):
+> - `heroBannerUrl` — superseded by `appHeroImageUrl`
+> - `primaryColor` — superseded by `brandColor`
+> - `address` as a nested object `{ street, city, postalCode, phone }` — superseded by flat string fields
 
 ---
 
 ### 3. System Constants: Treatment Categories
-Treatment categories are fixed system-wide tags (not editable per clinic). A single treatment document can belong to **multiple categories** simultaneously.
+Treatment categories are system-wide fixed tags (not stored in Firestore; defined in `src/lib/constants.ts`). A treatment document may belong to **multiple categories** simultaneously.
 
-**Predefined Standard Categories**:
-`Acne`, `Arm flaps`, `Arm pits`, `Arms`, `Back`, `Belly`, `Bikini area`, `Bunny lines`, `Buttocks`, `Cheeks`, `Cheekbones`, `Chest`, `Chin`, `Chin cleft`, `Collagen`, `Crow's feet`, `Double chin`, `Elasticity`, `Eyebrows`, `Eyes`, `Face`, `Feet`, `Fine lines`, `Frown lines`, `Hair`, `Hands`, `Hydration`, `Hyperpigmentation`, `Inner thighs`, `Jawline`, `Jowls`, `Legs`, `Lip flip`, `Lip lines`, `Lips`, `Low energy`, `Love handles`, `Marionette lines`, `Mood`, `Nails`, `Neck`, `Neck bands`, `Nose`, `Outer thighs`, `Pore shrinking`, `Redness`, `Rosecea`, `Scarring`, `Skin-tightening`, `Smile lines`, `Smoothness`, `Sun damage`, `Teeth`, `Temples`, `Texture`, `Upper legs`, `Veins`, `Wrinkles`.
+**58 predefined categories**: `Acne`, `Arm flaps`, `Arm pits`, `Arms`, `Back`, `Belly`, `Bikini area`, `Bunny lines`, `Buttocks`, `Cheeks`, `Cheekbones`, `Chest`, `Chin`, `Chin cleft`, `Collagen`, `Crow's feet`, `Double chin`, `Elasticity`, `Eyebrows`, `Eyes`, `Face`, `Feet`, `Fine lines`, `Frown lines`, `Hair`, `Hands`, `Hydration`, `Hyperpigmentation`, `Inner thighs`, `Jawline`, `Jowls`, `Legs`, `Lip flip`, `Lip lines`, `Lips`, `Low energy`, `Love handles`, `Marionette lines`, `Mood`, `Nails`, `Neck`, `Neck bands`, `Nose`, `Outer thighs`, `Pore shrinking`, `Redness`, `Rosecea`, `Scarring`, `Skin-tightening`, `Smile lines`, `Smoothness`, `Sun damage`, `Teeth`, `Temples`, `Texture`, `Upper legs`, `Veins`, `Wrinkles`.
 
 ---
 
 ### 4. Subcollection: `treatments`
-Stores services, description details, dynamic advantages, multi-category tags, and pricing variants.
+Clinic service products with pricing variants.
 
 - **Path**: `/clinics/{clinicId}/treatments/{treatmentId}`
-- **Document ID**: Firestore Auto-Generated
+- **Document ID**: Firestore auto-generated
 
 | Field | Type | Description |
 |---|---|---|
-| `categories` | `array` of `string` | List of assigned category tag titles (e.g. `["Face", "Fine lines", "Wrinkles"]`) |
-| `title` | `string` | Treatment item name (e.g. `"Botox Cosmetic"`) |
-| `description` | `string` | Comprehensive details of the service |
-| `bannerUrl` | `string` | Public image illustration link |
-| `featuresHeading`| `string` | Header string for features list (e.g. `"Key Benefits"`) |
-| `features` | `array` of `string` | Bulleted list of characteristics |
-| `types` | `array` of `object` | Pricing tier configurations (structure below) |
-| `isActive` | `boolean` | Visible/Available state in patient app |
-| `createdAt` | `timestamp` | Creation timestamp |
+| `title` | `string` | Treatment name (e.g. `"Botox Anti-Wrinkle Injections"`) |
+| `categories` | `array` of `string` | List of assigned category tag titles (e.g. `["Face", "Wrinkles", "Frown lines"]`) |
+| `description` | `string` | Full treatment description shown in the mobile app |
+| `bannerUrl` | `string` | Treatment banner image URL |
+| `featuresHeading` | `string` | Section heading for the features list (e.g. `"Key Benefits"`) |
+| `features` | `array` of `string` | Feature / benefit bullet points (entered comma-separated in the form; stored as an array) |
+| `types` | `array` of `object` | Pricing variants — see schema below |
+| `isActive` | `boolean` | Whether this treatment is visible in the patient app |
+| `createdAt` | `timestamp` | Document creation timestamp |
 
-#### `types` Object Schema:
+#### `types` item schema:
 ```json
 {
-  "title": "string (e.g. Full Face)",
-  "nonMemberPrice": "number (e.g. 250)",
-  "memberPrice": "number (e.g. 199)"
+  "title": "string  (e.g. Full Face)",
+  "nonMemberPrice": "number  (e.g. 295)",
+  "memberPrice": "number | null  (e.g. 240, or null if not set)"
 }
 ```
 
+> **Legacy field fallbacks** (handled in admin code for backwards compatibility):
+> - `types[].originalPrice` → mapped to `nonMemberPrice`
+> - `types[].discountedPrice` → mapped to `memberPrice`
+> - `categoryId` (single string) → mapped to `categories` array
+
 ---
 
-### 5. Subcollection: `memberships`
-Houses bundle plans incorporating multiple treatment services.
+### 5. Subcollection: `membership_tiers`
+Recurring subscription plans with bundled treatment sessions.
 
-- **Path**: `/clinics/{clinicId}/memberships/{membershipId}`
-- **Document ID**: Firestore Auto-Generated
+- **Path**: `/clinics/{clinicId}/membership_tiers/{tierId}`
+- **Document ID**: Firestore auto-generated
+- **⚠️ Important**: The collection name is `membership_tiers` — NOT `memberships`.
 
 | Field | Type | Description |
 |---|---|---|
-| `title` | `string` | Membership tier title (e.g. `"Platinum VIP"`) |
-| `description` | `string` | Summary details of package benefits |
-| `price` | `number` | Monthly subscription cost |
-| `bannerUrl` | `string` | Subscription card banner image URL |
-| `terms` | `string` | Terms and conditions policy |
-| `bundledTreatments` | `array` of `string` | List of bundled treatment IDs |
-| `isActive` | `boolean` | Subscription visibility toggle |
-| `createdAt` | `timestamp` | Creation timestamp |
+| `title` | `string` | Tier name (e.g. `"Prestige Elite"`) |
+| `description` | `string` | Short tagline shown on the tier card |
+| `monthlyPrice` | `number` | Monthly subscription price |
+| `annualPrice` | `number \| null` | Annual subscription price (optional) |
+| `benefits` | `array` of `string` | Member perk bullet points (entered one-per-line in the form; stored as an array) |
+| `includedTreatments` | `array` of `object` | Bundled treatment sessions — see schema below |
+| `imageUrl` | `string` | Tier cover / card banner image URL |
+| `terms` | `string` | Membership terms and conditions text |
+| `isActive` | `boolean` | Whether the tier is visible and purchasable in the patient app |
+| `createdAt` | `timestamp` | Document creation timestamp |
+
+#### `includedTreatments` item schema:
+```json
+{
+  "treatmentId": "string  (Firestore document ID from /treatments)",
+  "sessionsCount": "number  (e.g. 2)"
+}
+```
 
 ---
 
 ### 6. Subcollection: `rewards`
-Point-redemption coupons.
+Point-redemption discount coupons.
 
 - **Path**: `/clinics/{clinicId}/rewards/{rewardId}`
-- **Document ID**: Firestore Auto-Generated
+- **Document ID**: Firestore auto-generated
 
 | Field | Type | Description |
 |---|---|---|
-| `title` | `string` | Reward voucher name |
-| `description` | `string` | Description of points exchange rules |
-| `cardInfo` | `string` | Text badge shown on the loyalty card (e.g., `"10% OFF"`) |
-| `pointsRequired` | `number` | Required points to unlock the reward |
-| `treatmentId` | `string` | Target treatment document ID |
-| `discountPercentage` | `number` | Amount off (%) applied to the treatment price |
-| `discountUpTo` | `number` (optional) | Maximum allowed discount cap threshold |
-| `expiryDays` | `number` (optional) | Number of days the redeemed reward remains valid |
-| `isActive` | `boolean` | Active status toggle switch |
-| `createdAt` | `timestamp` | Creation timestamp |
+| `title` | `string` | Reward name (e.g. `"HydraFacial Loyalty Reward"`) |
+| `description` | `string` | Explanation of the reward and how to use it |
+| `cardInfo` | `string` | Short badge text shown on the loyalty card (e.g. `"10% OFF"`, `"FREE"`) |
+| `pointsRequired` | `number` | Points needed to unlock this reward |
+| `treatmentId` | `string` | Target treatment document ID the discount applies to |
+| `discountPercentage` | `number` | Discount percentage applied at checkout (e.g. `10` for 10%) |
+| `discountUpTo` | `number \| null` | Maximum currency cap for the discount (optional) |
+| `expiryDays` | `number \| null` | Days the availed coupon remains valid after redemption (optional) |
+| `isActive` | `boolean` | Whether this reward is visible and redeemable in the patient app |
+| `createdAt` | `timestamp` | Document creation timestamp |
 
 ---
 
-### 7. Subcollection: `settings` (Ratio Document)
-Houses single documents containing fixed-ID clinic metadata.
+### 7. Subcollection: `settings` — Rewards Ratio Document
+A single fixed-ID document storing the clinic's loyalty point earning rules.
 
 - **Path**: `/clinics/{clinicId}/settings/rewards_ratio`
-- **Document ID**: `rewards_ratio`
+- **Document ID**: `rewards_ratio` (fixed — not auto-generated)
 
 | Field | Type | Description |
 |---|---|---|
-| `spendAmount` | `number` | Threshold currency spend amount |
-| `pointsEarned` | `number` | Point rewards earned per spend amount |
-| `firstVisitPoints` | `number` | Point rewards earned on very first check-in visit |
-| `googleReviewPoints` | `number` | Point rewards earned for leaving a Google Review |
-| `referralPoints` | `number` | Point rewards earned for referring a friend |
+| `spendAmount` | `number` | Base currency spend threshold to trigger point earning (e.g. `10` = every £10 spent) |
+| `pointsEarned` | `number` | Points awarded per `spendAmount` threshold (e.g. `1` = 1 point per £10) |
+| `firstVisitPoints` | `number` | Bonus points awarded on the patient's first check-in visit |
+| `googleReviewPoints` | `number` | Bonus points awarded when a patient submits a Google Review |
+| `referralPoints` | `number` | Bonus points awarded when a patient successfully refers a friend |
+
+> **Note**: This document is created/updated via `setDoc` (not `addDoc`) to enforce the fixed document ID. It is auto-saved whenever the admin changes the sliders on the Rewards page.
 
 ---
 
-### 8. Subcollection: `patients`
-Registered client files for the clinic.
+### 8. Subcollection: `blogs`
+Educational and promotional articles shown in the patient app.
+
+- **Path**: `/clinics/{clinicId}/blogs/{blogId}`
+- **Document ID**: Firestore auto-generated
+- **Ordering**: Queried `orderBy("createdAt", "desc")`
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | `string` | Article title |
+| `description` | `string` | Short summary / teaser shown on the blog card |
+| `imageUrl` | `string` | Banner image URL |
+| `articleUrl` | `string` | Full article URL (external website link) |
+| `isActive` | `boolean` | Whether the article is visible in the patient app |
+| `createdAt` | `timestamp` | Document creation timestamp |
+
+> **Note**: Blogs support both `isActive` toggling and hard deletion (`deleteDoc`) from the admin panel.
+
+---
+
+### 9. Subcollection: `banners`
+Promotional carousel banners displayed in the patient mobile app.
+
+- **Path**: `/clinics/{clinicId}/banners/{bannerId}`
+- **Document ID**: Firestore auto-generated
+- **Ordering**: Queried `orderBy("createdAt", "desc")`
+
+| Field | Type | Description |
+|---|---|---|
+| `title` | `string` | Banner headline / announcement text |
+| `imageUrl` | `string` | Banner image URL (high resolution recommended) |
+| `targetType` | `string` | Click action type: `"treatment"` (opens a treatment detail) or `"link"` (opens external URL) |
+| `targetId` | `string` | Treatment document ID when `targetType` is `"treatment"`, or a full URL when `targetType` is `"link"` |
+| `isActive` | `boolean` | Whether the banner is live and displayed in the app |
+| `createdAt` | `timestamp` | Document creation timestamp |
+
+> **Note**: The admin panel only exposes two `targetType` values: `"treatment"` and `"link"`. The mobile app may handle additional deep-link types (`"SHOP_TREATMENTS"`, `"SHOP_MEMBERSHIPS"`, `"TREATMENT_DETAIL"`, `"MEMBERSHIP_DETAIL"`, `"REWARDS_PAGE"`, `"SCAN_PAGE"`, `"URL"`) if set directly in Firestore or via the seed script, but the admin UI maps these to `"treatment"` / `"link"`.
+
+> Banners support both `isActive` toggling and hard deletion (`deleteDoc`) from the admin panel.
+
+---
+
+### 10. Subcollection: `patients`
+Registered client profiles for the clinic.
 
 - **Path**: `/clinics/{clinicId}/patients/{patientId}`
-- **Document ID**: Firestore Auto-Generated
+- **Document ID**: Firestore auto-generated
 
 | Field | Type | Description |
 |---|---|---|
-| `name` | `string` | Full name |
+| `name` | `string` | Patient full name |
 | `email` | `string` | Registered contact email |
-| `phone` | `string` | Phone details |
-| `joinedAt` | `timestamp` | Join date timestamp |
-| `visitsCount` | `number` | Visited session counter |
-| `loyaltyBalance` | `number` | [DEPRECATED] Migrated to Firebase Realtime Database at `/loyalty_points/{patientId}` |
-| `referralCode` | `string` | Unique referral identifier (format: `REF-{clinicId}-{uid}`) |
-| `referredBy` | `string` (optional) | UID of the user who referred this patient |
-| `hasGivenGoogleReview` | `boolean` (optional) | Flag indicating if this patient has submitted a Google review for rewards points |
+| `phone` | `string` | Phone number (with dial code) |
+| `joinedAt` | `timestamp` or `string` | Registration / join date |
+| `visitsCount` | `number` | Total check-in visit count |
+| `loyaltyBalance` | `number` | **Deprecated** — loyalty points migrated to Firebase Realtime Database at `/loyalty_points/{clinicId}/{userId}` |
+| `referralCode` | `string` | Unique referral code (format: `REF-{clinicId}-{uid}`) |
+| `referredBy` | `string` (optional) | UID of the patient who referred this user |
+| `hasGivenGoogleReview` | `boolean` (optional) | Whether this patient has claimed the Google Review reward |
 
 ---
 
-### 9. Subcollection: `transactions`
-Payment transaction invoices history.
+### 11. Sub-subcollection: `availed_rewards`
+Coupons a patient has unlocked (redeemed points for) but not yet used at checkout.
+
+- **Path**: `/clinics/{clinicId}/patients/{patientId}/availed_rewards/{availedRewardId}`
+- **Document ID**: Firestore auto-generated
+
+| Field | Type | Description |
+|---|---|---|
+| `rewardId` | `string` | Source reward document ID |
+| `title` | `string` | Reward title (copied at avail time) |
+| `description` | `string` | Reward description (copied at avail time) |
+| `cardInfo` | `string` | Badge text (e.g. `"10% OFF"`) |
+| `discountPercentage` | `number` | Discount percentage |
+| `treatmentId` | `string` | Treatment the discount applies to |
+| `availedDate` | `number` (epoch ms) | Timestamp when the patient redeemed their points for this coupon |
+| `expiryDate` | `number` (epoch ms) | Expiration timestamp of the availed coupon |
+| `isUsed` | `boolean` | Whether this coupon has been applied to a checkout purchase |
+
+---
+
+### 12. Subcollection: `transactions`
+Payment transaction history.
 
 - **Path**: `/clinics/{clinicId}/transactions/{transactionId}`
-- **Document ID**: Firestore Auto-Generated (format: `tx_{epochMs}_{uidSuffix}`)
+- **Document ID format**: `tx_{epochMs}_{uidSuffix}`
 
 | Field | Type | Description |
 |---|---|---|
 | `clientName` | `string` | Payer patient name |
-| `email` | `string` | Payer patient email address |
-| `userUid` | `string` | Associated Firebase Authentication User ID |
-| `treatmentName` | `string` | Summary title of items or subscribed membership |
-| `items` | `array` of `object` | Line-item breakdown (structure below) |
-| `amount` | `number` | Final charged price amount |
-| `subtotal` | `number` (optional) | Order price before discounts |
-| `discountAmount` | `number` (optional) | Total coupon discount applied |
-| `appliedRewardId` | `string` (optional) | Target availed reward document ID used in checkout |
-| `type` | `string` | Transaction category (`"treatment"` or `"membership"`) |
-| `date` | `number` / `timestamp` | Checkout timestamp (epoch ms) |
-| `status` | `string` | Invoice status (`"Completed"`, `"Pending"`, `"Refunded"`) |
+| `email` | `string` | Payer patient email |
+| `userUid` | `string` | Firebase Auth UID of the patient |
+| `treatmentName` | `string` | Summary title of the purchased item(s) |
+| `items` | `array` of `object` | Line-item breakdown — see schema below |
+| `amount` | `number` | Final charged amount |
+| `subtotal` | `number` (optional) | Amount before discounts |
+| `discountAmount` | `number` (optional) | Total discount applied |
+| `appliedRewardId` | `string` (optional) | ID of the availed reward coupon used at checkout |
+| `type` | `string` | Transaction category: `"treatment"` or `"membership"` |
+| `date` | `number` (epoch ms) or `timestamp` | Checkout timestamp |
+| `status` | `string` | Invoice status: `"Completed"`, `"Pending"`, or `"Refunded"` |
 
-#### `items` Object Schema:
+#### `items` item schema:
 ```json
 {
-  "id": "string (Treatment or Membership ID)",
-  "title": "string (Item display title)",
-  "price": "number (Item unit price)",
-  "typeTitle": "string (Selected variant title e.g. Full Face)",
-  "isMembership": "boolean (Flag indicating if item is a membership)"
+  "id": "string  (treatment or membership document ID)",
+  "title": "string  (display title)",
+  "price": "number  (unit price)",
+  "typeTitle": "string  (selected variant e.g. Full Face)",
+  "isMembership": "boolean"
 }
 ```
 
 ---
 
-### 10. Subcollection: `active_memberships`
-Active patient subscription trackers.
+### 13. Subcollection: `active_memberships`
+Active patient subscription records.
 
 - **Path**: `/clinics/{clinicId}/active_memberships/{memberId}`
-- **Document ID**: Firestore Auto-Generated (format: `sub_{epochMs}_{uidSuffix}`)
+- **Document ID format**: `sub_{epochMs}_{uidSuffix}`
 
 | Field | Type | Description |
 |---|---|---|
-| `clientName` | `string` | Patient subscriber name |
-| `email` | `string` | Patient email address |
-| `userUid` | `string` | Associated Firebase Authentication User ID |
-| `membershipId` | `string` | Target membership plan document ID |
-| `membershipName` | `string` | Subscribed membership bundle title |
-| `price` | `number` | Recurring monthly subscription price rate |
-| `startDate` | `number` / `timestamp` | Subscription start timestamp (epoch ms) |
-| `nextBilling` | `number` / `timestamp` | Next renewal billing timestamp (epoch ms) |
-| `status` | `string` | Active state (`"Active"`, `"Failed"`, `"Cancelled"`) |
-| `createdAt` | `number` / `timestamp` | Subscription record creation timestamp (epoch ms) |
+| `clientName` | `string` | Subscriber patient name |
+| `email` | `string` | Subscriber email |
+| `userUid` | `string` | Firebase Auth UID |
+| `membershipId` | `string` | Target membership tier document ID |
+| `membershipName` | `string` | Subscribed tier name |
+| `price` | `number` | Recurring price at time of subscription |
+| `startDate` | `number` (epoch ms) or `timestamp` | Subscription start |
+| `nextBilling` | `number` (epoch ms) or `timestamp` | Next renewal date |
+| `status` | `string` | `"Active"`, `"Failed"`, or `"Cancelled"` |
+| `createdAt` | `number` (epoch ms) or `timestamp` | Record creation timestamp |
 
 ---
 
-### 11. Subcollection: `blogs`
-Informational and promotional blog articles for patient education.
+### 14. Root Collection: `referrals`
+Maps shortened referral codes to their clinic and patient owner.
 
-- **Path**: `/clinics/{clinicId}/blogs/{blogId}`
-- **Document ID**: Firestore Auto-Generated
+- **Path**: `/referrals/{referralCode}`
+- **Document ID**: 8-character uppercase code (e.g. `REF5A9B8`)
 
 | Field | Type | Description |
 |---|---|---|
-| `title` | `string` | Article title |
-| `description` | `string` | Brief summary of the article |
-| `imageUrl` | `string` | Banner image URL |
-| `articleUrl` | `string` | URL to the full article on the clinic's website |
-| `isActive` | `boolean` | Visible/Active switch toggle |
-| `createdAt` | `timestamp` | Creation timestamp |
+| `clinicId` | `string` | Clinic where the referral was generated |
+| `uid` | `string` | UID of the patient who owns this referral code |
 
 ---
 
 ## ⚡ Firebase Realtime Database Schema
 
-In addition to Firestore, Aurwell uses Firebase Realtime Database for high-performance and low-latency synchronization of key metrics (such as client loyalty balances).
-
-### 1. Root Node: `loyalty_points`
-Stores the active balance of loyalty points for each registered patient partitioned by clinic ID.
+### 1. Node: `loyalty_points`
+Live loyalty point balances, partitioned by clinic.
 
 - **Path**: `/loyalty_points/{clinicId}/{userId}`
-- **Data Format**: Clinic ID containing key-value pair of string (User ID) mapped to number (Loyalty Points balance)
+- **Value type**: `number` (current points balance)
 
 ```json
 {
   "loyalty_points": {
     "clinic_abc123": {
-      "CqJSmHls3qPFHx48ncEVo1Kc9GB3": 50,
-      "patient_another_uid": 120
+      "userUid_A": 320,
+      "userUid_B": 85
     }
   }
 }
@@ -295,20 +377,21 @@ Stores the active balance of loyalty points for each registered patient partitio
 
 ---
 
-### 2. Root Node: `activity_events`
-Stores real-time activity event logs (check-ins, reward redemptions, membership subscriptions, treatment purchases) partitioned per clinic.
+### 2. Node: `activity_events`
+Real-time activity log feed shown on the admin dashboard. Max 30 events per clinic (oldest pruned automatically).
 
 - **Path**: `/activity_events/{clinicId}/{eventId}`
-- **Retention Policy**: Per clinic, a maximum of 30 most recent events are maintained. When a new event exceeds the 30-item limit, the oldest event is automatically pruned from Realtime Database.
 
 | Field | Type | Description |
 |---|---|---|
-| `id` | `string` | Unique Realtime DB push key (e.g. `evt_1721669800000`) |
-| `message` | `string` | Detailed activity description (e.g., `"Sarah Jenkins opened the app"`, `"Sarah Jenkins signed in"`, `"Sarah Jenkins added Hydrafacial to cart"`, `"Sarah Jenkins viewed treatment Hydrafacial"`, `"Sarah Jenkins viewed membership VIP Gold Tier"`, `"Sarah Jenkins opened Rewards & Loyalty Points"`, `"Sarah Jenkins completed QR Verification check-in"`, `"Markus Thorne redeemed 500 Loyalty Points for Hydrafacial"`, `"Elena Vance renewed Gold VIP Membership Tier"`, `"Sarah Jenkins purchased Hydrafacial"`) |
-| `timestamp` | `number` | Event timestamp (epoch ms) |
-| `type` | `string` | Event category (`"app_opened"`, `"user_signed_in"`, `"item_added_to_cart"`, `"treatment_viewed"`, `"membership_viewed"`, `"rewards_viewed"`, `"qr_checkin"`, `"reward_redeemed"`, `"membership_subscribed"`, `"treatment_purchased"`) |
-| `userName` | `string` | Name of the patient performing the activity |
-| `userUid` | `string` | Associated Firebase Authentication UID |
+| `id` | `string` | Realtime DB push key |
+| `message` | `string` | Human-readable activity description |
+| `timestamp` | `number` (epoch ms) | Event time |
+| `type` | `string` | Event category — see values below |
+| `userName` | `string` | Patient name performing the activity |
+| `userUid` | `string` | Patient Firebase Auth UID |
+
+**`type` values**: `"app_opened"`, `"user_signed_in"`, `"item_added_to_cart"`, `"treatment_viewed"`, `"membership_viewed"`, `"rewards_viewed"`, `"qr_checkin"`, `"reward_redeemed"`, `"membership_subscribed"`, `"treatment_purchased"`
 
 ```json
 {
@@ -316,66 +399,13 @@ Stores real-time activity event logs (check-ins, reward redemptions, membership 
     "clinic_abc123": {
       "-Nxyz123456": {
         "id": "-Nxyz123456",
-        "message": "Sarah Jenkins completed QR Verification check-in",
+        "message": "Sophia Hartley completed QR Verification check-in",
         "timestamp": 1721669800000,
         "type": "qr_checkin",
-        "userName": "Sarah Jenkins",
+        "userName": "Sophia Hartley",
         "userUid": "CqJSmHls3qPFHx48ncEVo1Kc9GB3"
       }
     }
   }
 }
 ```
-
----
-
-### 12. Subcollection: `banners`
-Announcement banners displayed inside the customer mobile app (Home or Shop screens).
-
-- **Path**: `/clinics/{clinicId}/banners/{bannerId}`
-- **Document ID**: Firestore Auto-Generated
-
-| Field | Type | Description |
-|---|---|---|
-| `title` | `string` | Announcement text of the banner |
-| `screen` | `string` | Target display screen (fixed to `"home"`) |
-| `isActive` | `boolean` | Status toggle switch for display visibility |
-| `buttonText` | `string` | Optional text shown on the call-to-action button (e.g. `"Learn More"`) |
-| `targetType` | `string` | Optional navigation destination action: `"SHOP_TREATMENTS"`, `"SHOP_MEMBERSHIPS"`, `"TREATMENT_DETAIL"`, `"MEMBERSHIP_DETAIL"`, `"REWARDS_PAGE"`, `"SCAN_PAGE"`, or `"URL"` |
-| `targetId` | `string` | Optional target reference payload (contains treatment ID, membership ID, or URL string corresponding to the `targetType`) |
-| `createdAt` | `timestamp` | Creation timestamp |
-
----
-
-### 13. Subcollection: `availed_rewards`
-Stores the coupons that the patient has claimed/unlocked but not yet applied to a cart purchase.
-
-- **Path**: `/clinics/{clinicId}/patients/{patientId}/availed_rewards/{availedRewardId}`
-- **Document ID**: Firestore Auto-Generated
-
-| Field | Type | Description |
-|---|---|---|
-| `rewardId` | `string` | ID of the source reward coupon |
-| `title` | `string` | Title of the reward |
-| `description` | `string` | Description of the reward |
-| `cardInfo` | `string` | Text badge (e.g. `"10% OFF"`) |
-| `discountPercentage` | `number` | Discount percentage amount |
-| `treatmentId` | `string` | Treatment service the discount applies to |
-| `availedDate` | `number` (epoch ms) | Timestamp when reward was unlocked |
-| `expiryDate` | `number` (epoch ms) | Expiration timestamp of the availed reward |
-| `isUsed` | `boolean` | Flag indicating if this coupon has been used in a checkout purchase |
-
----
-
-### 14. Root Collection: `referrals`
-Stores the mapping of shortened referral codes to their respective clinics and referee patient accounts.
-
-- **Path**: `/referrals/{referralCode}`
-- **Document ID**: The 8-character uppercase referral code (e.g. `REF5A9B8`).
-
-| Field | Type | Description |
-|---|---|---|
-| `clinicId` | `string` | ID of the clinic where the referral was generated |
-| `uid` | `string` | UID of the patient who owns this referral code |
-
-

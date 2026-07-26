@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { TREATMENT_CATEGORIES } from "@/lib/constants";
-import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TreatmentType {
@@ -52,6 +53,10 @@ export default function TreatmentsPage() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [featuresHeading, setFeaturesHeading] = useState("Key Benefits");
+
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Treatment | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [featuresListInput, setFeaturesListInput] = useState(""); // Comma separated benefits
 
   // Treatment Types State (multiple types)
@@ -245,7 +250,23 @@ export default function TreatmentsPage() {
     }
   };
 
-  // Filtered Treatment List according to Selected Funnel Categories & Search term
+  const handleDeleteConfirmed = async () => {
+    if (!deleteTarget || !clinicId) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.bannerUrl) {
+        await deleteImageFile(deleteTarget.bannerUrl).catch(() => {});
+      }
+      await deleteDoc(doc(db, "clinics", clinicId, "treatments", deleteTarget.id));
+      setTreatments((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Error deleting treatment:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const filteredTreatments = treatments.filter((t) => {
     const matchesSearch =
       !searchTerm.trim() ||
@@ -841,6 +862,13 @@ export default function TreatmentsPage() {
                     >
                       Edit
                     </button>
+                    <button
+                      onClick={() => setDeleteTarget(t)}
+                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
@@ -848,6 +876,16 @@ export default function TreatmentsPage() {
           ))}
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirmed}
+        isDeleting={isDeleting}
+        title="Delete Treatment"
+        description="This treatment will be permanently removed from your clinic. Clients will no longer see it in the app."
+        itemName={deleteTarget?.title}
+      />
     </div>
   );
 }

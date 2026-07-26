@@ -18,6 +18,7 @@ import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Blog {
@@ -49,6 +50,10 @@ export default function BlogsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [articleUrl, setArticleUrl] = useState("");
+
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Blog | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadData = async (cId: string) => {
     try {
@@ -208,18 +213,20 @@ export default function BlogsPage() {
     }
   };
 
-  const handleDeleteBlog = async (blogId: string) => {
-    if (!clinicId) return;
-    if (!confirm("Are you sure you want to delete this blog article? This action cannot be undone.")) return;
-
-    setLoading(true);
+  const handleDeleteBlog = async () => {
+    if (!deleteTarget || !clinicId) return;
+    setIsDeleting(true);
     try {
-      await deleteDoc(doc(db, "clinics", clinicId, "blogs", blogId));
-      setBlogs((prev) => prev.filter((b) => b.id !== blogId));
+      if (deleteTarget.imageUrl) {
+        await deleteImageFile(deleteTarget.imageUrl).catch(() => {});
+      }
+      await deleteDoc(doc(db, "clinics", clinicId, "blogs", deleteTarget.id));
+      setBlogs((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting blog:", err);
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -450,7 +457,7 @@ export default function BlogsPage() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteBlog(b.id)}
+                        onClick={() => setDeleteTarget(b)}
                         className="rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer"
                       >
                         Delete
@@ -463,6 +470,16 @@ export default function BlogsPage() {
           ))}
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteBlog}
+        isDeleting={isDeleting}
+        title="Delete Blog Article"
+        description="This article will be permanently removed from your clinic app. The banner image will also be deleted from storage."
+        itemName={deleteTarget?.title}
+      />
     </div>
   );
 }

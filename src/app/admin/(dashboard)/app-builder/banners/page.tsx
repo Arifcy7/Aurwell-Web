@@ -18,6 +18,7 @@ import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Treatment {
@@ -49,6 +50,10 @@ export default function BannersPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [targetType, setTargetType] = useState<"treatment" | "link">("treatment");
   const [targetId, setTargetId] = useState("");
+
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadData = async (cId: string) => {
     try {
@@ -193,18 +198,20 @@ export default function BannersPage() {
     }
   };
 
-  const handleDeleteBanner = async (bannerId: string) => {
-    if (!clinicId) return;
-    if (!confirm("Are you sure you want to delete this banner? This action cannot be undone.")) return;
-
-    setLoading(true);
+  const handleDeleteBanner = async () => {
+    if (!deleteTarget || !clinicId) return;
+    setIsDeleting(true);
     try {
-      await deleteDoc(doc(db, "clinics", clinicId, "banners", bannerId));
-      setBanners((prev) => prev.filter((b) => b.id !== bannerId));
+      if (deleteTarget.imageUrl) {
+        await deleteImageFile(deleteTarget.imageUrl).catch(() => {});
+      }
+      await deleteDoc(doc(db, "clinics", clinicId, "banners", deleteTarget.id));
+      setBanners((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting banner:", err);
     } finally {
-      setLoading(false);
+      setIsDeleting(false);
     }
   };
 
@@ -401,7 +408,7 @@ export default function BannersPage() {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteBanner(b.id)}
+                      onClick={() => setDeleteTarget(b)}
                       className="rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer"
                     >
                       Delete
@@ -413,6 +420,16 @@ export default function BannersPage() {
           ))}
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteBanner}
+        isDeleting={isDeleting}
+        title="Delete Banner"
+        description="This banner will be permanently removed from the app carousel. The banner image will also be deleted from storage."
+        itemName={deleteTarget?.title}
+      />
     </div>
   );
 }

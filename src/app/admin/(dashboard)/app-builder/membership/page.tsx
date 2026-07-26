@@ -9,6 +9,7 @@ import {
   getDoc,
   addDoc,
   updateDoc,
+  deleteDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -16,6 +17,8 @@ import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+import { Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Treatment {
@@ -61,6 +64,9 @@ export default function MembershipPage() {
   const [terms, setTerms] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Delete confirmation state
+  const [deleteTarget, setDeleteTarget] = useState<MembershipTier | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   // Selected included treatments in tier form
   const [includedItems, setIncludedItems] = useState<{ treatmentId: string; sessionsCount: number }[]>([]);
 
@@ -220,6 +226,23 @@ export default function MembershipPage() {
       );
     } catch (err) {
       console.error("Error toggling active state:", err);
+    }
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!deleteTarget || !clinicId) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.imageUrl) {
+        await deleteImageFile(deleteTarget.imageUrl).catch(() => {});
+      }
+      await deleteDoc(doc(db, "clinics", clinicId, "membership_tiers", deleteTarget.id));
+      setTiers((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Error deleting membership tier:", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -547,17 +570,36 @@ export default function MembershipPage() {
                   </span>
                 </label>
 
-                <button
-                  onClick={() => handleEditClick(t)}
-                  className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-                >
-                  Edit
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEditClick(t)}
+                    className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget(t)}
+                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Delete
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirmed}
+        isDeleting={isDeleting}
+        title="Delete Membership Tier"
+        description="This membership tier will be permanently removed. Any active subscribers will not be affected but no new subscriptions can be started."
+        itemName={deleteTarget?.title}
+      />
     </div>
   );
 }
