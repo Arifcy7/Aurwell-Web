@@ -1,0 +1,45 @@
+
+> @aurwell/admin@0.1.0 build
+> next build
+
+▲ Next.js 16.2.10 (Turbopack)
+- Environments: .env
+- Experiments (use with caution):
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.6s
+  Running TypeScript ...
+  Finished TypeScript in 6.3s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/19) ...
+  Generating static pages using 11 workers (4/19) 
+  Generating static pages using 11 workers (9/19) 
+  Generating static pages using 11 workers (14/19) 
+✓ Generating static pages using 11 workers (19/19) in 2.6s
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/notifications/send
+├ ƒ /api/resolve-map-link
+├ ○ /app-builder/banners
+├ ○ /app-builder/blogs
+├ ○ /app-builder/membership
+├ ○ /app-builder/rewards
+├ ○ /app-builder/settings
+├ ○ /app-builder/treatments
+├ ○ /clients
+├ ○ /dashboard
+├ ○ /forgot-password
+├ ○ /login
+├ ○ /memberships
+├ ○ /notifications
+├ ○ /shop
+└ ○ /signup
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

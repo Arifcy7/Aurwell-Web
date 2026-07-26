@@ -1,25 +1,20 @@
 {
-  "name": "aurwell",
+  "name": "aurwell-monorepo",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.6.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@ybouane/liquidglass": "^1.0.3",
-    "clsx": "^2.1.1",
-    "firebase": "^11.9.0",
-    "firebase-admin": "^13.4.0",
-    "framer-motion": "^12.42.2",
-    "html5-qrcode": "^2.3.8",
-    "lucide-react": "^1.25.0",
-    "next": "16.2.10",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "tailwind-merge": "^3.6.0"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "dev:website": "npm run dev --workspace=@aurwell/website",
+    "dev:admin": "npm run dev --workspace=@aurwell/admin",
+    "build:website": "npm run build --workspace=@aurwell/website",
+    "build:admin": "npm run build --workspace=@aurwell/admin"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -29,6 +24,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
+    "turbo": "^2.4.0",
     "typescript": "^5"
   }
 }
