@@ -27,6 +27,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("Membership");
   const [showSplash, setShowSplash] = useState(true);
   const [loadProgress, setLoadProgress] = useState(30);
+  const [isMobile, setIsMobile] = useState(false);
   const [sliderOffset, setSliderOffset] = useState({ x: 0, y: 0 });
 
   const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -72,7 +73,13 @@ export default function Home() {
   useEffect(() => {
     let isMounted = true;
 
-    // Fast 600ms progress reveal
+    const checkMobile = () => {
+      if (isMounted) setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
     const progressTimer1 = setTimeout(() => {
       if (isMounted) setLoadProgress(75);
     }, 200);
@@ -87,6 +94,7 @@ export default function Home() {
 
     return () => {
       isMounted = false;
+      window.removeEventListener("resize", checkMobile);
       clearTimeout(progressTimer1);
       clearTimeout(progressTimer2);
       clearTimeout(hideSplashTimer);
@@ -94,7 +102,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white">
+    <div className="min-h-screen bg-white text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white">
       {/* Full-Screen Fast & Elegant Splash Screen */}
       <AnimatePresence>
         {showSplash && (
@@ -178,142 +186,129 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Header Container (Centered in middle) */}
-      <div className="max-w-6xl mx-auto px-6 sm:px-10">
-        {/* Header / Navbar */}
-        <motion.header
-          initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="py-5 flex items-center justify-between gap-4"
-        >
-          {/* Left Group: Logo and Nav Links */}
-          <div className="flex items-center gap-8 lg:gap-12">
-            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-              <Image
-                src="/logo-black.png"
-                alt="Aurwell Logo"
-                width={140}
-                height={36}
-                className="h-8 sm:h-9 w-auto object-contain select-none"
-                draggable={false}
-                priority
-              />
-              <Image
-                src="/typo.png"
-                alt="Aurwell Typography Wordmark"
-                width={120}
-                height={32}
-                className="h-5 sm:h-6 w-auto object-contain select-none transform translate-y-[1px]"
-                draggable={false}
-                priority
-              />
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-1.5 lg:gap-3 text-xs sm:text-sm font-semibold text-neutral-700">
-              <Link
-                href="#overview"
-                className="bg-neutral-100 text-neutral-900 px-3.5 py-1.5 rounded-full font-semibold hover:bg-neutral-200/80 transition-colors"
-              >
-                Overview
-              </Link>
-              <Link
-                href="#features"
-                className="text-neutral-600 hover:text-neutral-900 px-3.5 py-1.5 rounded-full hover:bg-neutral-50 transition-all"
-              >
-                Features
-              </Link>
-              <Link
-                href="#pricing"
-                className="text-neutral-600 hover:text-neutral-900 px-3.5 py-1.5 rounded-full hover:bg-neutral-50 transition-all"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="#about"
-                className="text-neutral-600 hover:text-neutral-900 px-3.5 py-1.5 rounded-full hover:bg-neutral-50 transition-all"
-              >
-                About
-              </Link>
-            </nav>
-          </div>
-
-          {/* Right Group: Action Buttons (Login & Build app) */}
-          <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-            <Link
-              href={`${adminUrl}/login`}
-              className="bg-neutral-100 hover:bg-neutral-200/80 text-neutral-900 font-semibold px-4 py-2 rounded-full text-xs sm:text-sm transition-all"
-            >
-              Login
-            </Link>
-            <Link
-              href={`${adminUrl}/signup`}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4.5 py-2 rounded-full text-xs sm:text-sm shadow-sm transition-all flex items-center gap-1.5"
-            >
-              <span>Build app</span>
-            </Link>
-          </div>
-        </motion.header>
-      </div>
-
-      {/* Hero Section Container (Reduced padding, closer to screen edges) */}
-      <div className="w-full max-w-[1640px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section */}
-        <section id="overview" className="py-4 lg:py-8 scroll-mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
-            {/* Left Content Column (Moved slightly to the right) */}
-            <div className="lg:col-span-4 space-y-6 pl-4 sm:pl-8 lg:pl-12">
-              <motion.h1
-                initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
+      {/* Hero & Navigation Master Container (Full height of viewport on desktop) */}
+      <div className="w-full max-w-[1840px] mx-auto p-1.5 sm:p-2 lg:p-2.5 min-h-screen flex flex-col justify-center">
+        <section id="overview" className="w-full lg:h-[calc(100vh-20px)] lg:min-h-[660px]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-3 h-full items-stretch">
+            {/* Left Content & Header Column (~33% width) */}
+            <div className="lg:col-span-4 flex flex-col justify-between pt-2 sm:pt-3 lg:pt-3 pb-6 px-4 sm:px-6 lg:px-7 bg-white sm:rounded-2xl lg:rounded-[24px]">
+              {/* Header / Navbar on Left Side (Moved closer to top & mobile responsive) */}
+              <motion.header
+                initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="text-3xl sm:text-4xl lg:text-[42px] font-bold text-neutral-900 tracking-tight leading-[1.15]"
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-center justify-between gap-1.5 sm:gap-2.5 w-full flex-wrap sm:flex-nowrap py-0.5"
               >
-                Loyalty That Keeps Clients Coming Back
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="text-neutral-600 text-sm sm:text-base leading-relaxed max-w-sm font-normal"
-              >
-                Create memorable client experiences with rewards, personalized offers, and automated engagement—all from one platform.
-              </motion.p>
+                {/* Left Group: Logo and Nav Links */}
+                <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
+                  <Link href="/" className="flex items-center gap-1.5 flex-shrink-0">
+                    <Image
+                      src="/logo-black.png"
+                      alt="Aurwell Logo"
+                      width={140}
+                      height={36}
+                      className="h-6 sm:h-8 w-auto object-contain select-none"
+                      draggable={false}
+                      priority
+                    />
+                  </Link>
 
-              {/* Action Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-wrap items-center gap-3 pt-2"
-              >
-                <Link
-                  href={`${adminUrl}/signup`}
-                  className="px-5 py-2.5 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors shadow-sm"
+                  <nav className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-sm font-bold text-neutral-900">
+                    <Link
+                      href="#features"
+                      className="hover:text-neutral-600 transition-colors"
+                    >
+                      Features
+                    </Link>
+                    <Link
+                      href="#pricing"
+                      className="hover:text-neutral-600 transition-colors"
+                    >
+                      Pricing
+                    </Link>
+                    <Link
+                      href="#about"
+                      className="hover:text-neutral-600 transition-colors"
+                    >
+                      About
+                    </Link>
+                  </nav>
+                </div>
+
+                {/* Right Group: Action Buttons */}
+                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                  <Link
+                    href={`${adminUrl}/login`}
+                    className="bg-neutral-100 hover:bg-neutral-200/80 text-neutral-900 font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs transition-all"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href={`${adminUrl}/signup`}
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs shadow-sm transition-all flex items-center gap-1"
+                  >
+                    <span>Build app</span>
+                  </Link>
+                </div>
+              </motion.header>
+
+              {/* Center Group: Hero Heading, Subheading & CTAs */}
+              <div className="my-auto py-6 sm:py-10 space-y-5 max-w-md">
+                <motion.h1
+                  initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-neutral-900 tracking-tight leading-[1.14]"
                 >
-                  Get Started
-                </Link>
-                <MotionButton
-                  label="See it in action!"
-                  href="#features"
-                />
-              </motion.div>
+                  Loyalty That Keeps Clients Coming Back
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-neutral-600 text-sm sm:text-base leading-relaxed font-normal"
+                >
+                  Create memorable client experiences with rewards, personalized offers, and automated engagement—all from one platform.
+                </motion.p>
+
+                {/* Action Buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex flex-wrap items-center gap-3 pt-2"
+                >
+                  <Link
+                    href={`${adminUrl}/signup`}
+                    className="px-5 py-2.5 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors shadow-sm"
+                  >
+                    Get Started
+                  </Link>
+                  <MotionButton
+                    label="See it in action!"
+                    href="#features"
+                  />
+                </motion.div>
+              </div>
+
+              {/* Bottom Spacer for balanced flex layout */}
+              <div className="hidden lg:block h-2" />
             </div>
 
-            {/* Right Visual Hero Container (Majority ~67% width, Exact Proportions) */}
+            {/* Right Visual Hero Container (Extended to Left ~67% width, Minimal Padding) */}
             <motion.div
               initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-8"
+              className="lg:col-span-8 h-full min-h-[520px] lg:min-h-0"
             >
               <div
                 id="hero-glass-root"
                 onMouseMove={handleHeroMouseMove}
                 onMouseLeave={handleHeroMouseLeave}
-                className="relative w-full h-[520px] sm:h-[600px] lg:h-[650px] rounded-[44px] overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8"
+                className="relative w-full h-full min-h-[520px] sm:min-h-[600px] rounded-2xl sm:rounded-[24px] overflow-hidden flex items-center justify-center p-4 sm:p-5 lg:p-6"
               >
-                {/* Background Hero Gradient Image (NON-DRAGGABLE, NO SHADOW) */}
+                {/* Background Hero Gradient Image (Full Height) */}
                 <Image
                   src="/hero-image.png"
                   alt="Gradient Hero Background"
@@ -323,171 +318,195 @@ export default function Home() {
                   priority
                 />
 
-                {/* "Try demo!" handwritten text with curved arch arrow pointing to the slider (Appears last as final accent) */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute top-10 sm:top-14 left-6 sm:left-12 z-30 flex flex-col items-start select-none pointer-events-none"
-                >
-                  <span
-                    className="text-neutral-900 text-lg sm:text-xl font-bold italic transform -rotate-12 translate-x-1"
-                    style={{ fontFamily: "'Caveat', 'Comic Sans MS', cursive, sans-serif" }}
-                  >
-                    Try demo!
-                  </span>
-                  {/* Curved Arch Arrow */}
-                  <svg
-                    className="w-12 h-10 text-neutral-900 -mt-1 ml-6 transform rotate-12"
-                    viewBox="0 0 50 40"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M 5 5 Q 28 10 38 28" />
-                    <path d="M 26 28 L 38 28 L 36 17" />
-                  </svg>
-                </motion.div>
-
-                {/* SVG Squircle ClipPath Definitions for Apple Superellipse Curvature */}
+                {/* SVG Squircle ClipPath Definitions */}
                 <svg className="absolute w-0 h-0 pointer-events-none opacity-0" aria-hidden="true">
                   <defs>
-                    {/* Outer Track Squircle Clip */}
                     <clipPath id="squircle-track-clip" clipPathUnits="objectBoundingBox">
                       <path d="M 0,0.20 C 0,0.03 0.03,0 0.20,0 H 0.80 C 0.97,0 1,0.03 1,0.20 V 0.80 C 1,0.97 0.97,1 0.80,1 H 0.20 C 0.03,1 0,0.97 0,0.80 Z" />
                     </clipPath>
-                    {/* Inner Active Pill Squircle Clip (iOS App Icon Smooth Curvature) */}
                     <clipPath id="squircle-pill-clip" clipPathUnits="objectBoundingBox">
                       <path d="M 0,0.36 C 0,0.08 0.08,0 0.36,0 H 0.64 C 0.92,0 1,0.08 1,0.36 V 0.64 C 1,0.92 0.92,1 0.64,1 H 0.36 C 0.08,1 0,0.92 0,0.64 Z" />
                     </clipPath>
                   </defs>
-                </svg>
-
-                {/* Clean Modern Demo Slider (Outer White Squircle Track + Animated Soft Charcoal Active Inner Squircle) */}
-                <motion.div
-                  id="outer-glass-track"
-                  initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                    filter: "blur(0px)",
-                    x: sliderOffset.x,
-                    y: sliderOffset.y,
-                  }}
-                  transition={{
-                    opacity: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                    scale: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                    filter: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                    x: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
-                    y: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
-                  }}
-                  style={{
-                    clipPath: "url(#squircle-track-clip)",
-                  }}
-                  className="absolute left-6 sm:left-12 lg:left-16 top-28 sm:top-32 z-20 flex flex-col items-center p-2 rounded-[32px] w-[100px] sm:w-[110px] gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900"
-                >
-                  {/* Animated Active Tab Indicator (Fluid Spring Soft Charcoal Squircle Pill) */}
-                  <motion.div
-                    className="absolute left-2 right-2 aspect-square rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)]"
-                    style={{
-                      clipPath: "url(#squircle-pill-clip)",
-                    }}
-                    animate={{
-                      y: activeTab === "Membership" ? "0%" : activeTab === "Rewards" ? "calc(100% + 6px)" : "calc(200% + 12px)",
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 30,
-                      mass: 0.8,
-                    }}
-                  />
-
-                  {/* Slider Item 1: Membership */}
-                  <div
-                    onClick={() => setActiveTab("Membership")}
-                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
-                  >
-                    <Lock
-                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
-                        ? "text-white scale-110"
-                        : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
-                        }`}
-                    />
-                    <span
-                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
-                        ? "text-white font-semibold"
-                        : "text-neutral-600 group-hover:text-neutral-800 font-medium"
-                        }`}
+                </svg>                {/* Side-by-side Layout Container for Slider & Phone */}
+                <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-14 w-full h-full max-w-3xl mx-auto pt-10 sm:pt-0">
+                  
+                  {/* Left: Slider Assembly with "Try demo!" Annotation */}
+                  <div className="relative flex flex-col items-center flex-shrink-0">
+                    {/* "Try demo!" handwritten text with curved arch arrow */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
+                      animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute -top-11 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
                     >
-                      Membership
-                    </span>
-                  </div>
+                      <span
+                        className="text-neutral-900 text-base sm:text-xl font-bold italic transform -rotate-12 translate-x-1"
+                        style={{ fontFamily: "'Caveat', 'Comic Sans MS', cursive, sans-serif" }}
+                      >
+                        Try demo!
+                      </span>
+                      {/* Curved Arch Arrow */}
+                      <svg
+                        className="w-10 h-8 sm:w-12 sm:h-10 text-neutral-900 -mt-1 ml-4 sm:ml-6 transform rotate-12"
+                        viewBox="0 0 50 40"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M 5 5 Q 28 10 38 28" />
+                        <path d="M 26 28 L 38 28 L 36 17" />
+                      </svg>
+                    </motion.div>
 
-                  {/* Slider Item 2: Rewards */}
-                  <div
-                    onClick={() => setActiveTab("Rewards")}
-                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
-                  >
-                    <Gift
-                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
-                        ? "text-white scale-110"
-                        : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
-                        }`}
-                    />
-                    <span
-                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
-                        ? "text-white font-semibold"
-                        : "text-neutral-600 group-hover:text-neutral-800 font-medium"
-                        }`}
-                    >
-                      Rewards
-                    </span>
-                  </div>
-
-                  {/* Slider Item 3: Smart Deals */}
-                  <div
-                    onClick={() => setActiveTab("Smart Deals")}
-                    className="w-full aspect-square flex flex-col items-center justify-center gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
-                  >
-                    <Star
-                      className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
-                        ? "text-white scale-110"
-                        : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
-                        }`}
-                    />
-                    <span
-                      className={`font-semibold text-[11px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
-                        ? "text-white font-semibold"
-                        : "text-neutral-600 group-hover:text-neutral-800 font-medium"
-                        }`}
-                    >
-                      Smart Deals
-                    </span>
-                  </div>
-                </motion.div>
-
-                {/* Mobile Phone Mockup Frame (Centered in the middle of hero image, Exact 2532 x 1170 px aspect ratio) */}
-                <div
-                  className="relative z-10 mx-auto h-[460px] sm:h-[550px] lg:h-[590px] bg-white rounded-[46px] shadow-[0_30px_80px_-15px_rgba(0,0,0,0.35)] border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none"
-                  style={{ aspectRatio: "1170 / 2532" }}
-                >
-                  {/* Side button detail */}
-                  <div className="absolute -right-[11px] top-32 w-[3px] h-16 bg-neutral-200 rounded-r-md" />
-
-                  {/* Screen Container with Dynamic Interactive Content */}
-                  <div className="w-full h-full bg-white rounded-[38px] flex flex-col items-center justify-center border border-neutral-100 relative overflow-hidden p-4">
-                    {/* Background Grid Pattern */}
-                    <div
-                      className="absolute inset-0 opacity-30"
-                      style={{
-                        backgroundImage: `linear-gradient(#d1d5db 1px, transparent 1px), linear-gradient(90deg, #d1d5db 1px, transparent 1px)`,
-                        backgroundSize: "32px 32px",
+                    {/* Interactive Feature Slider (Horizontal on mobile, Vertical on desktop) */}
+                    <motion.div
+                      id="outer-glass-track"
+                      initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                        filter: "blur(0px)",
+                        x: sliderOffset.x,
+                        y: sliderOffset.y,
                       }}
-                    />
+                      transition={{
+                        opacity: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                        scale: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                        filter: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                        x: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
+                        y: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
+                      }}
+                      style={{
+                        clipPath: "url(#squircle-track-clip)",
+                      }}
+                      className="relative z-20 flex flex-row sm:flex-col items-center p-1.5 sm:p-2 rounded-[28px] sm:rounded-[32px] w-[290px] sm:w-[115px] h-[82px] sm:h-auto gap-1 sm:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900"
+                    >
+                      {/* Animated Active Tab Indicator (Horizontal on mobile, Vertical on desktop) */}
+                      <motion.div
+                        className={`absolute rounded-[22px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${
+                          isMobile
+                            ? "top-1.5 bottom-1.5 w-[calc(33.333%-5px)] h-[calc(100%-12px)] left-1.5"
+                            : "left-2 right-2 aspect-square top-2"
+                        }`}
+                        style={{
+                          clipPath: "url(#squircle-pill-clip)",
+                        }}
+                        animate={{
+                          x: isMobile
+                            ? activeTab === "Membership"
+                              ? "0%"
+                              : activeTab === "Rewards"
+                              ? "calc(100% + 4px)"
+                              : "calc(200% + 8px)"
+                            : 0,
+                          y: !isMobile
+                            ? activeTab === "Membership"
+                              ? "0%"
+                              : activeTab === "Rewards"
+                              ? "calc(100% + 6px)"
+                              : "calc(200% + 12px)"
+                            : 0,
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 30,
+                          mass: 0.8,
+                        }}
+                      />
+
+                      {/* Slider Item 1: Membership */}
+                      <div
+                        onClick={() => setActiveTab("Membership")}
+                        className="flex-1 sm:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                      >
+                        <Lock
+                          className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
+                            ? "text-white scale-110"
+                            : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                            }`}
+                        />
+                        <span
+                          className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
+                            ? "text-white font-semibold"
+                            : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                            }`}
+                        >
+                          Membership
+                        </span>
+                      </div>
+
+                      {/* Slider Item 2: Rewards */}
+                      <div
+                        onClick={() => setActiveTab("Rewards")}
+                        className="flex-1 sm:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                      >
+                        <Gift
+                          className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
+                            ? "text-white scale-110"
+                            : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                            }`}
+                        />
+                        <span
+                          className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
+                            ? "text-white font-semibold"
+                            : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                            }`}
+                        >
+                          Rewards
+                        </span>
+                      </div>
+
+                      {/* Slider Item 3: Smart Deals */}
+                      <div
+                        onClick={() => setActiveTab("Smart Deals")}
+                        className="flex-1 sm:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                      >
+                        <Star
+                          className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
+                            ? "text-white scale-110"
+                            : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                            }`}
+                        />
+                        <span
+                          className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
+                            ? "text-white font-semibold"
+                            : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                            }`}
+                        >
+                          Smart Deals
+                        </span>
+                      </div>
+                    </motion.div>
                   </div>
+
+                  {/* Right: Mobile Phone Mockup Frame */}
+                  <div
+                    className="relative z-10 h-[340px] sm:h-[480px] lg:h-[540px] bg-white rounded-[38px] sm:rounded-[46px] shadow-[0_30px_80px_-15px_rgba(0,0,0,0.35)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
+                    style={{ aspectRatio: "1170 / 2532" }}
+                  >
+                    {/* Side button detail */}
+                    <div className="absolute -right-[11px] top-32 w-[3px] h-16 bg-neutral-200 rounded-r-md" />
+
+                    {/* Screen Container with Dynamic Content */}
+                    <div className="w-full h-full bg-white rounded-[38px] flex flex-col items-center justify-center border border-neutral-100 relative overflow-hidden p-4">
+                      {/* Background Grid Pattern */}
+                      <div
+                        className="absolute inset-0 opacity-30"
+                        style={{
+                          backgroundImage: `linear-gradient(#d1d5db 1px, transparent 1px), linear-gradient(90deg, #d1d5db 1px, transparent 1px)`,
+                          backgroundSize: "32px 32px",
+                        }}
+                      />
+                      <span className="relative z-10 text-neutral-900 font-bold text-lg sm:text-xl tracking-tight">
+                        App Demo
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </motion.div>
