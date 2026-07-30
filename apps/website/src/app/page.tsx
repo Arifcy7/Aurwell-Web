@@ -5,6 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import MotionButton from "@/components/ui/motion-button";
+import stepImg1 from "@/assets/1.png";
+import stepImg2 from "@/assets/2.png";
+import stepImg3 from "@/assets/3.png";
 import {
   ArrowRight,
   Check,
@@ -20,6 +23,9 @@ import {
   CreditCard,
   Settings,
   Sparkles,
+  Palette,
+  Sliders,
+  Rocket,
 } from "lucide-react";
 
 export default function Home() {
@@ -221,10 +227,10 @@ export default function Home() {
                       Features
                     </Link>
                     <Link
-                      href="#pricing"
+                      href="#how-it-works"
                       className="hover:text-neutral-600 transition-colors"
                     >
-                      Pricing
+                      How It Works
                     </Link>
                     <Link
                       href="#about"
@@ -485,7 +491,7 @@ export default function Home() {
 
                   {/* Right: Mobile Phone Mockup Frame */}
                   <div
-                    className="relative z-10 h-[340px] sm:h-[480px] lg:h-[540px] bg-white rounded-[38px] sm:rounded-[46px] shadow-[0_30px_80px_-15px_rgba(0,0,0,0.35)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
+                    className="relative z-10 h-[340px] sm:h-[480px] lg:h-[540px] bg-white rounded-[38px] sm:rounded-[46px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.12)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
                     style={{ aspectRatio: "1170 / 2532" }}
                   >
                     {/* Side button detail */}
@@ -678,7 +684,7 @@ export default function Home() {
                 className="lg:col-span-7 relative flex justify-center items-center py-6 min-h-[380px]"
               >
                 {/* Desktop Dashboard Preview Card */}
-                <div className="w-full bg-white rounded-2xl shadow-xl border border-neutral-200/80 p-4 sm:p-5 space-y-4">
+                <div className="w-full bg-white rounded-2xl shadow-md border border-neutral-200/80 p-4 sm:p-5 space-y-4">
                   {/* Dashboard Header */}
                   <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div className="flex items-center gap-2">
@@ -861,7 +867,7 @@ export default function Home() {
                 </div>
 
                 {/* Overlapping Mobile App Card (Positioned to the left bottom) */}
-                <div className="absolute -left-3 sm:-left-6 bottom-2 w-44 sm:w-52 bg-white rounded-3xl shadow-2xl border-[5px] border-white p-3 space-y-2 z-20 hidden xs:block">
+                <div className="absolute -left-3 sm:-left-6 bottom-2 w-44 sm:w-52 bg-white rounded-3xl shadow-md border-[5px] border-white p-3 space-y-2 z-20 hidden xs:block">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold text-neutral-900">
                       aurwell
@@ -904,9 +910,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="py-12 scroll-mt-6">
-          <div className="relative rounded-[36px] bg-gradient-to-b from-white/40 via-white/60 to-white/80 p-8 sm:p-14 border border-white/60">
+        {/* How It Works - 3 Step Process Section */}
+        <section id="how-it-works" className="py-12 scroll-mt-6">
+          <div className="relative rounded-[36px] bg-gradient-to-b from-white/40 via-white/60 to-white/80 p-8 sm:p-14 border border-white/60 shadow-sm">
             {/* Header */}
             <motion.div
               initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
@@ -916,164 +922,105 @@ export default function Home() {
               className="text-center space-y-2 mb-12"
             >
               <span className="text-neutral-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
-                Simple Pricing
+                How It Works
               </span>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-neutral-900 tracking-tight">
-                Plans That Grow With You
+                Launch Your App in 3 Steps
               </h2>
+              <p className="text-neutral-500 text-xs sm:text-sm max-w-lg mx-auto font-normal">
+                From website brand import to a live client application delivered in 24 hours.
+              </p>
             </motion.div>
 
-            {/* Pricing Cards Grid */}
+            {/* 3 Step Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-5xl mx-auto">
-              {/* Starter Card */}
+              {/* Step 1 Card */}
               <motion.div
                 initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
               >
-                <div>
-                  <h3 className="text-lg font-bold text-neutral-900">Starter</h3>
-                  <p className="text-xs text-neutral-500 mt-1 min-h-[32px]">
-                    Perfect for small clinics getting started.
-                  </p>
-                  <div className="mt-4 mb-6">
-                    <span className="text-3xl font-extrabold text-neutral-900">
-                      ₹2,999
-                    </span>
-                    <span className="text-xs text-neutral-500"> / month</span>
+                <div className="space-y-4">
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100/60 border border-neutral-100">
+                    <Image
+                      src={stepImg1}
+                      alt="Website Brand Import"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                  <ul className="space-y-3 text-xs sm:text-sm text-neutral-600">
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Up to 500 members</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Basic rewards</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Email support</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="mt-8">
-                  <Link
-                    href={`${adminUrl}/signup`}
-                    className="w-full block text-center border border-neutral-300 hover:border-neutral-400 text-neutral-800 font-semibold py-2.5 rounded-full text-xs sm:text-sm transition-colors"
-                  >
-                    Get Started
-                  </Link>
+                  <div>
+                    <h3 className="text-lg font-bold text-neutral-900">
+                      Website Brand Import
+                    </h3>
+                    <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                      Aurwell automatically imports your brand design, logo, colors, and fonts directly from your clinic website.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
 
-              {/* Growth Card (Featured / Most Popular) */}
+              {/* Step 2 Card */}
               <motion.div
                 initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-neutral-900 shadow-xl relative flex flex-col justify-between transform md:-translate-y-2"
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
               >
-                {/* Most Popular Badge */}
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-neutral-900 text-white text-[11px] font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-md">
-                  Most Popular
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-bold text-neutral-900 mt-1">
-                    Growth
-                  </h3>
-                  <p className="text-xs text-neutral-500 mt-1 min-h-[32px]">
-                    Ideal for growing clinics and salons.
-                  </p>
-                  <div className="mt-4 mb-6">
-                    <span className="text-3xl font-extrabold text-neutral-900">
-                      ₹5,999
-                    </span>
-                    <span className="text-xs text-neutral-500"> / month</span>
+                <div className="space-y-4">
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100/60 border border-neutral-100">
+                    <Image
+                      src={stepImg2}
+                      alt="Customize & Configure"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                  <ul className="space-y-3 text-xs sm:text-sm text-neutral-600">
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Up to 2,000 members</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Advanced rewards & tiers</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Automations & reminders</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Priority support</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="mt-8">
-                  <Link
-                    href={`${adminUrl}/signup`}
-                    className="w-full block text-center bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-2.5 rounded-full text-xs sm:text-sm shadow-md transition-colors"
-                  >
-                    Get Started
-                  </Link>
+                  <div>
+                    <h3 className="text-lg font-bold text-neutral-900">
+                      Customize & Configure
+                    </h3>
+                    <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                      Your app is ready in 24 hours. Easily configure themes, membership tiers, and reward plans from your admin portal.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
 
-              {/* Pro Card */}
+              {/* Step 3 Card */}
               <motion.div
                 initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow"
+                className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
               >
-                <div>
-                  <h3 className="text-lg font-bold text-neutral-900">Pro</h3>
-                  <p className="text-xs text-neutral-500 mt-1 min-h-[32px]">
-                    For large clinics with advanced needs.
-                  </p>
-                  <div className="mt-4 mb-6">
-                    <span className="text-3xl font-extrabold text-neutral-900">
-                      ₹9,999
-                    </span>
-                    <span className="text-xs text-neutral-500"> / month</span>
+                <div className="space-y-4">
+                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100/60 border border-neutral-100">
+                    <Image
+                      src={stepImg3}
+                      alt="Start Passive Earning"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                  <ul className="space-y-3 text-xs sm:text-sm text-neutral-600">
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Unlimited members</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Custom rewards & offers</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Advanced analytics</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <Check className="w-4 h-4 text-neutral-900" />
-                      <span>Dedicated account manager</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="mt-8">
-                  <Link
-                    href={`${adminUrl}/signup`}
-                    className="w-full block text-center border border-neutral-300 hover:border-neutral-400 text-neutral-800 font-semibold py-2.5 rounded-full text-xs sm:text-sm transition-colors"
-                  >
-                    Get Started
-                  </Link>
+                  <div>
+                    <h3 className="text-lg font-bold text-neutral-900">
+                      Start Passive Earning
+                    </h3>
+                    <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                      Launch your app to patients to generate automated recurring membership revenue and repeat clinic appointments.
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             </div>
           </div>
         </section>
+
 
         {/* Bottom Call to Action Banner */}
         <section className="py-8">
@@ -1082,7 +1029,7 @@ export default function Home() {
             whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-gradient-to-r from-[#1D4ED8] via-[#2563EB] to-[#06B6D4] text-white rounded-[32px] p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl"
+            className="bg-gradient-to-r from-[#1D4ED8] via-[#2563EB] to-[#06B6D4] text-white rounded-[32px] p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md"
           >
             <div className="space-y-2 text-center md:text-left">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -1153,8 +1100,8 @@ export default function Home() {
                 </Link>
               </li>
               <li>
-                <Link href="#pricing" className="hover:text-neutral-900 transition-colors">
-                  Pricing
+                <Link href="#how-it-works" className="hover:text-neutral-900 transition-colors">
+                  How It Works
                 </Link>
               </li>
             </ul>
