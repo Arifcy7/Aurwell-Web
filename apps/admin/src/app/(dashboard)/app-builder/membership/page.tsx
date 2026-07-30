@@ -37,6 +37,7 @@ interface MembershipTier {
   description: string;
   monthlyPrice: number;
   annualPrice?: number | null;
+  minCommitmentMonths?: number | null;
   benefits: string[];
   includedTreatments: IncludedTreatment[];
   imageUrl?: string;
@@ -57,6 +58,7 @@ export default function MembershipPage() {
   const [description, setDescription] = useState("");
   const [monthlyPrice, setMonthlyPrice] = useState("");
   const [annualPrice, setAnnualPrice] = useState("");
+  const [minCommitmentMonths, setMinCommitmentMonths] = useState("");
   const [benefitsInput, setBenefitsInput] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [originalImageUrl, setOriginalImageUrl] = useState("");
@@ -153,6 +155,7 @@ export default function MembershipPage() {
         description,
         monthlyPrice: Number(monthlyPrice),
         annualPrice: annualPrice ? Number(annualPrice) : null,
+        minCommitmentMonths: minCommitmentMonths ? Number(minCommitmentMonths) : null,
         benefits: benefitsList,
         includedTreatments: includedItems,
         imageUrl: finalImageUrl || "",
@@ -184,6 +187,7 @@ export default function MembershipPage() {
       setDescription("");
       setMonthlyPrice("");
       setAnnualPrice("");
+      setMinCommitmentMonths("");
       setBenefitsInput("");
       setIncludedItems([]);
       setImageUrl("");
@@ -205,6 +209,7 @@ export default function MembershipPage() {
     setDescription(tier.description || "");
     setMonthlyPrice(String(tier.monthlyPrice || ""));
     setAnnualPrice(tier.annualPrice ? String(tier.annualPrice) : "");
+    setMinCommitmentMonths(tier.minCommitmentMonths ? String(tier.minCommitmentMonths) : "");
     setBenefitsInput((tier.benefits || []).join("\n"));
     setIncludedItems(tier.includedTreatments || []);
     setImageUrl(tier.imageUrl || "");
@@ -261,6 +266,7 @@ export default function MembershipPage() {
             setDescription("");
             setMonthlyPrice("");
             setAnnualPrice("");
+            setMinCommitmentMonths("");
             setBenefitsInput("");
             setIncludedItems([]);
             setImageUrl("");
@@ -316,7 +322,7 @@ export default function MembershipPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                     Annual Price (€) <span className="text-neutral-400 font-normal">(Optional)</span>
@@ -328,6 +334,19 @@ export default function MembershipPage() {
                     onChange={(e) => setAnnualPrice(e.target.value)}
                     className="input-modern"
                     placeholder="e.g. 999"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                    Min Commitment (Months) <span className="text-neutral-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={minCommitmentMonths}
+                    onChange={(e) => setMinCommitmentMonths(e.target.value)}
+                    className="input-modern"
+                    placeholder="e.g. 3, 6, 12"
                   />
                 </div>
                 <div>
@@ -499,6 +518,11 @@ export default function MembershipPage() {
                   <div>
                     <h3 className="text-lg font-bold text-neutral-900">{t.title}</h3>
                     <p className="text-xs text-neutral-500 mt-0.5">{t.description}</p>
+                    {Boolean(t.minCommitmentMonths) && Number(t.minCommitmentMonths) > 0 && (
+                      <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-200 mt-1.5">
+                        {t.minCommitmentMonths}-Month Minimum Commitment
+                      </span>
+                    )}
                   </div>
                   <div className="text-right">
                     <span className="text-xl font-black text-neutral-900">€{t.monthlyPrice}</span>

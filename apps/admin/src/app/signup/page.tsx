@@ -386,11 +386,12 @@ export default function SignUpPage() {
 
             <div>
               <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Phone Number</label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <select
                   value={phoneDialCode}
                   onChange={(e) => setPhoneDialCode(e.target.value)}
-                  className="select-modern w-auto px-3"
+                  style={{ width: "110px", minWidth: "110px", flexShrink: 0 }}
+                  className="h-10 rounded-full border border-neutral-200 bg-neutral-50/80 px-3 text-xs font-bold text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 focus:bg-white transition-all cursor-pointer"
                 >
                   {COUNTRIES.map((c) => (
                     <option key={c.code} value={c.dialCode}>
@@ -403,8 +404,8 @@ export default function SignUpPage() {
                   required
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="input-modern flex-1"
-                  placeholder="555-0199"
+                  className="input-modern flex-1 min-w-0"
+                  placeholder="e.g. 9876543210"
                 />
               </div>
             </div>

@@ -164,6 +164,7 @@ Recurring subscription plans with bundled treatment sessions.
 | `description` | `string` | Short tagline shown on the tier card |
 | `monthlyPrice` | `number` | Monthly subscription price |
 | `annualPrice` | `number \| null` | Annual subscription price (optional) |
+| `minCommitmentMonths` | `number \| null` | Minimum commitment period in months (e.g. `3`, `6`, `12`) |
 | `benefits` | `array` of `string` | Member perk bullet points (entered one-per-line in the form; stored as an array) |
 | `includedTreatments` | `array` of `object` | Bundled treatment sessions — see schema below |
 | `imageUrl` | `string` | Tier cover / card banner image URL |
