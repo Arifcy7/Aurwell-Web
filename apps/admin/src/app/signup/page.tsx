@@ -203,7 +203,7 @@ export default function SignUpPage() {
           <ArrowLeft className="h-4 w-4" />
         </a>
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
+          <div className="w-12 h-12 rounded-md bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
             A
           </div>
           <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Create Clinic Account</h2>

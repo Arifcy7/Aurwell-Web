@@ -8,6 +8,7 @@ interface ImageUploaderProps {
   imageUrl?: string;
   onClearImage?: () => void;
   label?: string;
+  heightClass?: string;
 }
 
 export default function ImageUploader({
@@ -16,6 +17,7 @@ export default function ImageUploader({
   imageUrl,
   onClearImage,
   label = "Upload Image",
+  heightClass,
 }: ImageUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -115,21 +117,22 @@ export default function ImageUploader({
 
       {currentPreview ? (
         /* Image Preview Box with Replace Button Overlay */
-        <div className="relative group w-full h-40 rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 flex items-center justify-center shadow-sm">
+        <div className={`relative group w-full ${heightClass || "h-40"} rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-50 flex items-center justify-center shadow-xs`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={currentPreview}
             alt="Preview"
             className="w-full h-full object-cover"
           />
-          {/* Hover Overlay */}
-          <div
-            onClick={onButtonClick}
-            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200 cursor-pointer"
-          >
-            <span className="text-white text-xs font-semibold px-3 py-1.5 bg-black/60 rounded-full hover:bg-black/80 transition-colors">
+          {/* Permanent Corner Action Button - Styled identically to AppDockMockup */}
+          <div className="absolute top-3 right-3">
+            <button
+              type="button"
+              onClick={onButtonClick}
+              className="px-3.5 py-1.5 bg-neutral-900/85 hover:bg-neutral-900 text-white text-xs font-semibold rounded-full backdrop-blur-md shadow-xs transition-all cursor-pointer"
+            >
               Change Image
-            </span>
+            </button>
           </div>
           {/* Hidden Input for Changing */}
           <input
@@ -148,10 +151,11 @@ export default function ImageUploader({
           onDragLeave={handleDrag}
           onDrop={handleDrop}
           onClick={onButtonClick}
-          className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-5 cursor-pointer transition-all duration-200 ${dragActive
+          className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-5 cursor-pointer transition-all duration-200 ${heightClass || "min-h-[160px]"} ${
+            dragActive
               ? "border-black bg-neutral-50 scale-[1.01]"
               : "border-neutral-300 hover:border-neutral-400 bg-white hover:bg-neutral-50"
-            }`}
+          }`}
         >
           <input
             ref={fileInputRef}

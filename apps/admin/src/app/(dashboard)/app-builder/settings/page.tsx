@@ -5,6 +5,8 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
+import ColorPickerDropdown from "@/components/ColorPickerDropdown";
+import AppDockMockup from "@/components/AppDockMockup";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
 import { CreditCard, CheckCircle2, AlertCircle, Mail } from "lucide-react";
@@ -319,8 +321,8 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ImageUploader
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <AppDockMockup
               file={logoFile}
               onChange={setLogoFile}
               imageUrl={logoUrl}
@@ -334,6 +336,7 @@ export default function SettingsPage() {
               imageUrl={appHeroImageUrl}
               onClearImage={() => setAppHeroImageUrl("")}
               label="App Home Hero Header Banner"
+              heightClass="aspect-[3/2]"
             />
           </div>
         </div>
@@ -346,21 +349,11 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brand Accent Color</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="h-10 w-12 rounded-xl border border-neutral-200 cursor-pointer p-1 bg-white"
-                />
-                <input
-                  type="text"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="input-modern flex-1 font-mono text-xs"
-                />
-              </div>
+              <ColorPickerDropdown
+                value={brandColor}
+                onChange={setBrandColor}
+                label="Brand Accent Color"
+              />
             </div>
 
             <div>

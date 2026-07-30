@@ -149,12 +149,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="space-y-6">
         {/* Brand Emblem / Top Logo */}
         <div className="flex items-center gap-3 px-3">
-          <div className="relative w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-neutral-200/50">
+          <div className="relative w-10 h-10 rounded-md bg-white text-white flex items-center justify-center shadow-md overflow-hidden shrink-0 border-0 outline-none">
             {logoUrl && !logoError ? (
               <img
                 src={logoUrl}
                 alt={clinicName}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-1"
                 onError={() => setLogoError(true)}
               />
             ) : (
@@ -449,12 +449,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Header Bar */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#f4f5f7] border-b border-neutral-200/60 sticky top-0 z-30">
         <div className="flex items-center gap-2.5">
-          <div className="relative w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold overflow-hidden border border-neutral-200/50 shrink-0">
+          <div className="relative w-8 h-8 rounded-md bg-white text-white flex items-center justify-center text-xs font-bold overflow-hidden shadow-sm shrink-0 border-0 outline-none">
             {logoUrl && !logoError ? (
               <img
                 src={logoUrl}
                 alt={clinicName}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-1 text-neutral-900"
                 onError={() => setLogoError(true)}
               />
             ) : (
