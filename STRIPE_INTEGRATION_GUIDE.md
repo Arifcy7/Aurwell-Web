@@ -39,7 +39,7 @@ Complete technical guide for integrating Stripe payments, membership subscriptio
 
 Clinic owners connect their Stripe Account by providing their Stripe API keys. Keys are stored securely in Google Cloud Secret Manager.
 
-### 2.1 Configure Clinic Stripe Keys
+### 2.1 Configure Clinic Stripe Keys (not needed in the admin panel donnt use this in admin panel)
 Store Secret Key and Publishable Key for a clinic.
 
 * **Endpoint**: `POST /clinic/setup-stripe`

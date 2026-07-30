@@ -18,6 +18,59 @@ interface ClientProfile {
   loyaltyBalance: number;
 }
 
+function formatJoinedDate(joinedAt: any): string {
+  if (!joinedAt) return "N/A";
+
+  try {
+    // 1. Firestore Timestamp (object with toDate method)
+    if (typeof joinedAt === "object" && joinedAt !== null && typeof joinedAt.toDate === "function") {
+      return joinedAt.toDate().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    // 2. Epoch timestamp in seconds (e.g. 1783625135) or milliseconds
+    if (typeof joinedAt === "number") {
+      const ms = joinedAt < 10000000000 ? joinedAt * 1000 : joinedAt;
+      return new Date(ms).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    // 3. String that might be numeric epoch string or ISO date string
+    if (typeof joinedAt === "string") {
+      const trimmed = joinedAt.trim();
+      if (!isNaN(Number(trimmed)) && trimmed.length >= 9) {
+        const num = Number(trimmed);
+        const ms = num < 10000000000 ? num * 1000 : num;
+        return new Date(ms).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+      }
+
+      const parsedDate = new Date(trimmed);
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+      }
+      return trimmed;
+    }
+  } catch (err) {
+    console.error("Error formatting joined date:", err);
+  }
+
+  return String(joinedAt);
+}
+
 export default function ClientsPage() {
   const [clients, setClients] = useState<ClientProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,9 +95,11 @@ export default function ClientsPage() {
           snapshot.forEach((d) => {
             const data = d.data();
             const rtdbLoyalty = loyaltyMap[d.id] !== undefined ? loyaltyMap[d.id] : 0;
+            const jDate = data.joinedAt || data.createdAt;
             loadedClients.push({
               id: d.id,
               ...data,
+              joinedAt: jDate,
               loyaltyBalance: rtdbLoyalty,
             } as ClientProfile);
           });
@@ -62,9 +117,9 @@ export default function ClientsPage() {
 
   const filteredClients = clients.filter(
     (c) =>
-      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.phone.includes(searchTerm)
+      (c.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.phone || "").includes(searchTerm)
   );
 
   return (
@@ -115,17 +170,17 @@ export default function ClientsPage() {
                       <td className="py-4 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-neutral-100 text-neutral-700 flex items-center justify-center font-bold text-xs">
-                            {client.name[0]}
+                            {client.name ? client.name[0] : "C"}
                           </div>
-                          <div className="font-semibold text-neutral-900">{client.name}</div>
+                          <div className="font-semibold text-neutral-900">{client.name || "Valued Client"}</div>
                         </div>
                       </td>
                       <td className="py-4 px-4 whitespace-nowrap">
-                        <div className="text-neutral-900 font-medium">{client.email}</div>
-                        <div className="text-xs text-neutral-400 mt-0.5">{client.phone}</div>
+                        <div className="text-neutral-900 font-medium">{client.email || "N/A"}</div>
+                        <div className="text-xs text-neutral-400 mt-0.5">{client.phone || "N/A"}</div>
                       </td>
                       <td className="py-4 px-4 whitespace-nowrap text-neutral-500 text-xs">
-                        {client.joinedAt || "Jan 2026"}
+                        {formatJoinedDate(client.joinedAt)}
                       </td>
                       <td className="py-4 px-4 whitespace-nowrap text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-neutral-100 text-neutral-800 border border-neutral-200/80">
