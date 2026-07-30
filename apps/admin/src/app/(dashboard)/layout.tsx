@@ -28,6 +28,7 @@ import {
   FileText,
   Image as ImageIcon,
   Settings,
+  Share2,
 } from "lucide-react";
 
 interface SubNavItem {
@@ -374,6 +375,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </Link>
           </motion.div>
+
+          {/* Referrals Program */}
+          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+            <Link
+              href="/referrals"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                pathname === "/referrals"
+                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+              }`}
+            >
+              <div className="flex items-center gap-3.5">
+                <Share2
+                  className={`w-5 h-5 transition-colors ${
+                    pathname === "/referrals" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                  }`}
+                />
+                <span>Referrals Program</span>
+              </div>
+            </Link>
+          </motion.div>
         </nav>
       </div>
 
@@ -413,6 +435,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (pathname.includes("shop")) return "Shop Overview";
     if (pathname.includes("memberships")) return "Active Memberships";
     if (pathname.includes("notifications")) return "Push Notifications";
+    if (pathname.includes("referrals")) return "Referral Program & Earnings";
     return "Product overview";
   };
 

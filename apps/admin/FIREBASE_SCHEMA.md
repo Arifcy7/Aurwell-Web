@@ -403,6 +403,31 @@ Maps shortened referral codes to their clinic and patient owner.
 
 ---
 
+### 15. Root Collection: `b2b_referrals`
+Tracks B2B clinic referrals, monthly commission payouts, and subscription statuses.
+
+- **Path**: `/b2b_referrals/{referralId}`
+- **Document ID**: `ref_{referredClinicId}`
+
+| Field | Type | Description |
+|---|---|---|
+| `referralId` | `string` | Referral tracking document ID |
+| `referrerUid` | `string` | Firebase Auth UID of the clinic admin who shared the referral link |
+| `referrerCode` | `string` | Unique referral code string (e.g. `REF-ABC123`) |
+| `referredClinicId` | `string` | Document ID of the newly registered clinic tenant |
+| `referredClinicName` | `string` | Public display name of the referred clinic |
+| `ownerEmail` | `string` | Email address of the referred clinic owner |
+| `status` | `string` | Subscription status — `"active"`, `"pending_trial"`, or `"cancelled"` |
+| `monthlyFee` | `number` | Monthly subscription fee (€/mo) |
+| `commissionPercentage` | `number` | Recurring commission percentage rate (default: `15` for 15%) |
+| `monthlyCommission` | `number` | Calculated monthly commission amount (€) |
+| `totalEarned` | `number` | Total lifetime commission earned |
+| `currentMonthPaid` | `boolean` | Whether current month subscription payout is marked paid |
+| `paymentHistory` | `array` of `object` | Monthly payout log entries `{ month, status, amount, paidAt }` |
+| `createdAt` | `timestamp` | Document creation timestamp |
+
+---
+
 ## ⚡ Firebase Realtime Database Schema
 
 ### 1. Node: `loyalty_points`

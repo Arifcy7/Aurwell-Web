@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, setDoc, serverTimestamp, query, where, getDocs, limit } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
 import { ArrowLeft } from "lucide-react";
@@ -14,6 +14,7 @@ export default function SignUpPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [referredByCode, setReferredByCode] = useState("");
 
   const landingPageUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000";
 
@@ -39,6 +40,28 @@ export default function SignUpPage() {
   const [postalCode, setPostalCode] = useState("");
   const [phoneDialCode, setPhoneDialCode] = useState(COUNTRIES[0].dialCode);
   const [phoneNumber, setPhoneNumber] = useState("");
+
+  // 🔑 Detect & Persist Referral Attribution (30-day window)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const refCode = searchParams.get("ref");
+      if (refCode) {
+        setReferredByCode(refCode);
+        try {
+          localStorage.setItem("aurwell_ref_code", refCode);
+          document.cookie = `aurwell_ref_code=${refCode}; max-age=${30 * 24 * 60 * 60}; path=/`;
+        } catch (err) {
+          console.error("Error saving referral code to browser storage:", err);
+        }
+      } else {
+        const storedRef = localStorage.getItem("aurwell_ref_code");
+        if (storedRef) {
+          setReferredByCode(storedRef);
+        }
+      }
+    }
+  }, []);
 
   const handleCountryChange = (countryCode: string) => {
     setCountry(countryCode);
@@ -88,8 +111,9 @@ export default function SignUpPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      // 2. Generate a clinicId (we can use a custom prefix or let Firestore generate it. Let's use user's UID or create a new document in clinics collection)
+      // 2. Generate a clinicId
       const clinicId = `clinic_${uid}`;
+      const activeRefCode = referredByCode || (typeof window !== "undefined" ? localStorage.getItem("aurwell_ref_code") || "" : "");
 
       // 3. Write clinic document configurations
       await setDoc(doc(db, "clinics", clinicId), {
@@ -107,6 +131,7 @@ export default function SignUpPage() {
         phone: `${phoneDialCode} ${phoneNumber}`,
         createdAt: serverTimestamp(),
         ownerUid: uid,
+        ...(activeRefCode ? { referredByCode: activeRefCode } : {}),
       });
 
       // 4. Create User profile mapping
@@ -118,9 +143,47 @@ export default function SignUpPage() {
         role: "clinic_admin",
         clinicId,
         createdAt: serverTimestamp(),
+        ...(activeRefCode ? { referredByCode: activeRefCode } : {}),
       });
 
-      // 5. Success -> redirect
+      // 5. Create B2B Referral Document if referred
+      if (activeRefCode) {
+        try {
+          const snapshot = await getDocs(query(collection(db, "users"), limit(50)));
+          let referrerUid = "PLATFORM_ADMIN";
+          snapshot.forEach((uDoc) => {
+            const code = `REF-${uDoc.id.substring(0, 6).toUpperCase()}`;
+            if (code === activeRefCode) {
+              referrerUid = uDoc.id;
+            }
+          });
+
+          const monthlyFee = 300;
+          const commissionPercentage = 30; // 30% recurring commission
+          const monthlyCommission = (monthlyFee * commissionPercentage) / 100;
+
+          await setDoc(doc(db, "b2b_referrals", `ref_${clinicId}`), {
+            referralId: `ref_${clinicId}`,
+            referrerUid: referrerUid,
+            referrerCode: activeRefCode,
+            referredClinicId: clinicId,
+            referredClinicName: merchantName,
+            ownerEmail: email,
+            status: "pending_trial",
+            monthlyFee: monthlyFee,
+            commissionPercentage: commissionPercentage,
+            monthlyCommission: monthlyCommission,
+            totalEarned: 0,
+            currentMonthPaid: false,
+            paymentHistory: [],
+            createdAt: serverTimestamp(),
+          });
+        } catch (refErr) {
+          console.error("Error logging B2B referral:", refErr);
+        }
+      }
+
+      // 6. Success -> redirect
       router.push("/dashboard");
     } catch (err: any) {
       setError(err?.message || "Sign up failed. Please try again.");

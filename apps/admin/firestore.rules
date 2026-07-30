@@ -12,7 +12,21 @@ service cloud.firestore {
     // ── Users ──────────────────────────────────────────────
     // Users can read and write their own document only
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if request.auth != null;
+    }
+
+    // ── Clinics ─────────────────────────────────────────────
+    match /clinics/{clinicId} {
+      allow read, write: if request.auth != null;
+
+      match /{subcollection=**} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // ── B2B Referrals ───────────────────────────────────────
+    match /b2b_referrals/{referralId} {
+      allow read, write: if request.auth != null;
     }
 
     // Default: deny everything else
