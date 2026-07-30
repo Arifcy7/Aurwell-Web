@@ -88,6 +88,20 @@ Base branding, settings, and profile for each clinic tenant.
 | `longitude` | `number` | Longitude extracted automatically from `googleMapUrl` |
 | `blogSectionTitle` | `string` | Custom label for the blogs tab in the mobile app (default: `"Blogs"`) |
 | `createdAt` | `timestamp` | Clinic provisioning timestamp |
+| `stripe` | `object` (optional) | Tenant Stripe integration metadata — see schema below |
+
+#### `stripe` item schema:
+```json
+{
+  "enabled": "boolean  (e.g. true)",
+  "publishableKey": "string  (e.g. pk_live_...)",
+  "accountId": "string  (e.g. acct_...)",
+  "secretKeyName": "string  (Google Secret Manager resource reference)",
+  "webhookSecretName": "string | null  (Google Secret Manager resource reference)",
+  "defaultCurrency": "string  (e.g. GBP)",
+  "country": "string  (e.g. GB)"
+}
+```
 
 > **Deprecated legacy fields** (still read with fallback for backwards compatibility):
 > - `heroBannerUrl` — superseded by `appHeroImageUrl`
@@ -265,6 +279,7 @@ Registered client profiles for the clinic.
 | `referralCode` | `string` | Unique referral code (format: `REF-{clinicId}-{uid}`) |
 | `referredBy` | `string` (optional) | UID of the patient who referred this user |
 | `hasGivenGoogleReview` | `boolean` (optional) | Whether this patient has claimed the Google Review reward |
+| `stripeCustomerId` | `string` (optional) | Stripe Customer ID (format: `cus_...`) linked for this clinic |
 
 ---
 
@@ -307,7 +322,7 @@ Payment transaction history.
 | `appliedRewardId` | `string` (optional) | ID of the availed reward coupon used at checkout |
 | `type` | `string` | Transaction category: `"treatment"` or `"membership"` |
 | `date` | `number` (epoch ms) or `timestamp` | Checkout timestamp |
-| `status` | `string` | Invoice status: `"Completed"`, `"Pending"`, or `"Refunded"` |
+| `status` | `string` | Transaction/invoice payment status: `"Completed"`, `"Pending"`, or `"Refunded"` (automatically updated to `"Refunded"` via `charge.refunded` webhook) |
 
 #### `items` item schema:
 ```json
@@ -316,9 +331,12 @@ Payment transaction history.
   "title": "string  (display title)",
   "price": "number  (unit price)",
   "typeTitle": "string  (selected variant e.g. Full Face)",
-  "isMembership": "boolean"
+  "isMembership": "boolean",
+  "status": "string  (treatment status: \"not started\", \"ongoing\", or \"completed\"; initially \"not started\")"
 }
 ```
+
+> **Note**: For cart treatment purchases, each item in the `items` array includes an individual `status` field. Initially set to `"not started"` upon checkout payment, the clinic owner can update each treatment's status independently to `"not started"`, `"ongoing"`, or `"completed"` via the admin panel.
 
 ---
 
@@ -326,7 +344,7 @@ Payment transaction history.
 Active patient subscription records.
 
 - **Path**: `/clinics/{clinicId}/active_memberships/{memberId}`
-- **Document ID format**: `sub_{epochMs}_{uidSuffix}`
+- **Document ID format**: Stripe subscription ID (e.g. `sub_1Ty7wz0dE9xmQD3LF6T7leRA`) or `sub_{epochMs}_{uidSuffix}`
 
 | Field | Type | Description |
 |---|---|---|
@@ -338,8 +356,36 @@ Active patient subscription records.
 | `price` | `number` | Recurring price at time of subscription |
 | `startDate` | `number` (epoch ms) or `timestamp` | Subscription start |
 | `nextBilling` | `number` (epoch ms) or `timestamp` | Next renewal date |
-| `status` | `string` | `"Active"`, `"Failed"`, or `"Cancelled"` |
+| `status` | `string` | `"Active"`, `"Paused"`, `"Failed"`, or `"Cancelled"` |
+| `subscriptionId` | `string` (optional) | Stripe subscription ID (e.g. `sub_...`) |
+| `stripeSubscriptionId` | `string` (optional) | Stripe subscription ID alias |
+| `monthlyRecords` | `array` of `object` | Month-by-month billing & treatment tracking — see schema below |
 | `createdAt` | `number` (epoch ms) or `timestamp` | Record creation timestamp |
+
+#### `monthlyRecords` item schema:
+```json
+{
+  "yearMonth": "string  (e.g. \"2026-07\")",
+  "monthName": "string  (e.g. \"July 2026\")",
+  "billingPeriodStart": "number  (epoch ms timestamp)",
+  "billingPeriodEnd": "number  (epoch ms timestamp)",
+  "isPaid": "boolean  (whether membership payment succeeded for this month)",
+  "paymentStatus": "string  (\"paid\", \"unpaid\", or \"failed\")",
+  "overallStatus": "string  (overall monthly membership status: \"not started\", \"ongoing\", or \"completed\")",
+  "treatments": [
+    {
+      "treatmentId": "string  (Firestore document ID from /treatments)",
+      "treatmentTitle": "string  (treatment name)",
+      "sessionsCount": "number  (included sessions count e.g. 1)",
+      "status": "string  (individual treatment status: \"not started\", \"ongoing\", or \"completed\")"
+    }
+  ],
+  "notes": "string  (clinic admin notes for this billing month)"
+}
+```
+
+> **Note**: For recurring memberships, each billing cycle automatically generates or updates an entry in `monthlyRecords`. Clinic staff can manage the overall status (`overallStatus`), individual treatment progress (`treatments[].status`), and administrative notes (`notes`) for each month independently from the admin panel.
+
 
 ---
 
