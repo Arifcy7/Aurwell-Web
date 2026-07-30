@@ -405,7 +405,11 @@ export default function SignUpPage() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="input-modern flex-1 min-w-0"
-                  placeholder="e.g. 9876543210"
+                  placeholder={
+                    COUNTRIES.find((c) => c.dialCode === phoneDialCode || c.code === country)?.placeholder
+                      ? `e.g. ${COUNTRIES.find((c) => c.dialCode === phoneDialCode || c.code === country)?.placeholder}`
+                      : "e.g. 712 345 678"
+                  }
                 />
               </div>
             </div>

@@ -9,6 +9,7 @@ export interface CountryOption {
   code: string;
   name: string;
   dialCode: string;
+  placeholder?: string;
 }
 
 export interface CurrencyOption {
@@ -31,16 +32,16 @@ export const TIMEZONES: TimezoneOption[] = [
 ];
 
 export const COUNTRIES: CountryOption[] = [
-  { code: "RO", name: "Romania", dialCode: "+40" },
-  { code: "SE", name: "Sweden", dialCode: "+46" },
-  { code: "GB", name: "United Kingdom", dialCode: "+44" },
-  { code: "FR", name: "France", dialCode: "+33" },
-  { code: "DE", name: "Germany", dialCode: "+49" },
-  { code: "IT", name: "Italy", dialCode: "+39" },
-  { code: "ES", name: "Spain", dialCode: "+34" },
-  { code: "US", name: "United States", dialCode: "+1" },
-  { code: "CA", name: "Canada", dialCode: "+1" },
-  { code: "IN", name: "India", dialCode: "+91" },
+  { code: "RO", name: "Romania", dialCode: "+40", placeholder: "712 345 678" },
+  { code: "SE", name: "Sweden", dialCode: "+46", placeholder: "70 123 45 67" },
+  { code: "GB", name: "United Kingdom", dialCode: "+44", placeholder: "7911 123456" },
+  { code: "FR", name: "France", dialCode: "+33", placeholder: "6 12 34 56 78" },
+  { code: "DE", name: "Germany", dialCode: "+49", placeholder: "151 23456789" },
+  { code: "IT", name: "Italy", dialCode: "+39", placeholder: "312 345 6789" },
+  { code: "ES", name: "Spain", dialCode: "+34", placeholder: "612 34 56 78" },
+  { code: "US", name: "United States", dialCode: "+1", placeholder: "(555) 234-5678" },
+  { code: "CA", name: "Canada", dialCode: "+1", placeholder: "(555) 234-5678" },
+  { code: "IN", name: "India", dialCode: "+91", placeholder: "98765 43210" },
 ];
 
 export const CURRENCIES: CurrencyOption[] = [
