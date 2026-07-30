@@ -45,6 +45,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [clinicName, setClinicName] = useState("Loading...");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoError, setLogoError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [clinicId, setClinicId] = useState("");
   const [showScanner, setShowScanner] = useState(false);
@@ -73,12 +75,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           setClinicId(uData.clinicId);
           const clinicDoc = await getDoc(doc(db, "clinics", uData.clinicId));
           if (clinicDoc.exists()) {
-            setClinicName(clinicDoc.data().merchantName || "Aurwell Clinic");
+            const cData = clinicDoc.data();
+            setClinicName(cData.merchantName || "Aurwell Clinic");
+            setLogoUrl(cData.logoUrl || "");
           } else {
             setClinicName("Aurwell Clinic");
+            setLogoUrl("");
           }
         } else {
           setClinicName("Aurwell Clinic");
+          setLogoUrl("");
         }
       } catch (err) {
         console.error("Error loading clinic profile:", err);
@@ -140,17 +146,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const SidebarContent = () => (
     <div className="flex flex-col h-full justify-between py-6 px-4">
       <div className="space-y-6">
-        {/* Brand Emblem / Top Logo (Static) */}
+        {/* Brand Emblem / Top Logo */}
         <div className="flex items-center gap-3 px-3">
-          <div className="relative w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-md overflow-hidden shrink-0">
-            {/* Shaded quad emblem */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-800 to-neutral-700"></div>
-            <div className="relative grid grid-cols-2 gap-0.5 p-2">
-              <div className="w-2.5 h-2.5 rounded-tl-full bg-neutral-200/90"></div>
-              <div className="w-2.5 h-2.5 rounded-tr-full bg-neutral-400/90"></div>
-              <div className="w-2.5 h-2.5 rounded-bl-full bg-neutral-400/90"></div>
-              <div className="w-2.5 h-2.5 rounded-br-full bg-neutral-200/90"></div>
-            </div>
+          <div className="relative w-10 h-10 rounded-full bg-neutral-900 text-white flex items-center justify-center shadow-md overflow-hidden shrink-0 border border-neutral-200/50">
+            {logoUrl && !logoError ? (
+              <img
+                src={logoUrl}
+                alt={clinicName}
+                className="w-full h-full object-cover"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <>
+                {/* Default Aurwell Quad Emblem */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-800 to-neutral-700"></div>
+                <div className="relative grid grid-cols-2 gap-0.5 p-2">
+                  <div className="w-2.5 h-2.5 rounded-tl-full bg-neutral-200/90"></div>
+                  <div className="w-2.5 h-2.5 rounded-tr-full bg-neutral-400/90"></div>
+                  <div className="w-2.5 h-2.5 rounded-bl-full bg-neutral-400/90"></div>
+                  <div className="w-2.5 h-2.5 rounded-br-full bg-neutral-200/90"></div>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex flex-col min-w-0">
             <span className="font-bold text-base text-neutral-900 truncate tracking-tight">
@@ -409,8 +426,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Header Bar */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#f4f5f7] border-b border-neutral-200/60 sticky top-0 z-30">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold">
-            A
+          <div className="relative w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center text-xs font-bold overflow-hidden border border-neutral-200/50 shrink-0">
+            {logoUrl && !logoError ? (
+              <img
+                src={logoUrl}
+                alt={clinicName}
+                className="w-full h-full object-cover"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              "A"
+            )}
           </div>
           <span className="font-bold text-sm text-neutral-900 truncate max-w-[140px]">
             {clinicName}
