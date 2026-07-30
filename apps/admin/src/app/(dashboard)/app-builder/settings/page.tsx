@@ -7,6 +7,7 @@ import { auth, db } from "@/lib/firebase/client";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
+import { CreditCard, CheckCircle2, AlertCircle, Mail } from "lucide-react";
 
 /**
  * Silently extracts latitude and longitude from Google Maps URLs
@@ -79,6 +80,9 @@ export default function SettingsPage() {
   const [googleMapUrl, setGoogleMapUrl] = useState("");
   const [blogSectionTitle, setBlogSectionTitle] = useState("Blogs");
 
+  // Stripe Setup Status
+  const [stripeSetup, setStripeSetup] = useState(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -93,6 +97,15 @@ export default function SettingsPage() {
           if (clinicDoc.exists()) {
             const data = clinicDoc.data();
             setMerchantName(data.merchantName || "");
+            
+            // Stripe Setup Check according to FIREBASE_SCHEMA.md (/clinics/{clinicId})
+            const isStripeConfigured = Boolean(
+              data.stripe &&
+                typeof data.stripe === "object" &&
+                Object.keys(data.stripe).length > 0 &&
+                data.stripe.enabled !== false
+            );
+            setStripeSetup(isStripeConfigured);
             
             // Logo
             setLogoUrl(data.logoUrl || "");
@@ -466,6 +479,63 @@ export default function SettingsPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Stripe Payment Gateway Integration */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-sm font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-2">
+            Stripe Payment Gateway Integration
+          </h3>
+
+          {stripeSetup ? (
+            <div className="rounded-2xl bg-emerald-50/70 border border-emerald-100 p-5 transition-all">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-neutral-900 tracking-tight">Stripe Connected Successfully</h4>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      Online payments and memberships are active for your clinic.
+                    </p>
+                  </div>
+                </div>
+
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-3.5 py-1.5 text-xs font-semibold text-emerald-800 border border-emerald-200/80 self-start sm:self-auto">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Connected
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-amber-50/60 border border-amber-200/80 p-5 space-y-3 transition-all">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-amber-950 tracking-tight">Stripe Payment Gateway Not Set Up</h4>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100/80 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200/80">
+                      <AlertCircle className="w-3 h-3 text-amber-600" />
+                      Not Configured
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-900/80 leading-relaxed max-w-2xl">
+                    Stripe is not configured for your clinic yet. To start accepting online payments and subscriptions, please contact our team at{" "}
+                    <a
+                      href="mailto:contact@aurwell.app"
+                      className="inline-flex items-center gap-1 font-bold text-amber-950 underline underline-offset-2 hover:text-amber-800 transition-colors"
+                    >
+                      <Mail className="w-3 h-3 inline" />
+                      contact@aurwell.app
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="pt-2 flex justify-end border-t border-neutral-100">

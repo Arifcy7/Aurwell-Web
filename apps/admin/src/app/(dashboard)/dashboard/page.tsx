@@ -8,7 +8,7 @@ import { auth, db, rtdb } from "@/lib/firebase/client";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton, PageSpinner } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
-import { Wallet, Users, DollarSign, Activity, CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react";
+import { Wallet, Users, DollarSign, Activity, CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 interface ActivityItem {
@@ -69,6 +69,7 @@ function getActivityBadgeLabel(type: string): string {
 
 export default function DashboardPage() {
   const [currency, setCurrency] = useState("EUR");
+  const [stripeConnected, setStripeConnected] = useState(false);
   const [stats, setStats] = useState({
     overviewEarnings: "€0.00",
     activeCustomers: "0",
@@ -108,12 +109,21 @@ export default function DashboardPage() {
           return;
         }
 
-        // 2. Fetch Clinic Settings (Currency)
+        // 2. Fetch Clinic Settings & Stripe status according to FIREBASE_SCHEMA.md
         let clinicCurr = "EUR";
         const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
         if (clinicDoc.exists()) {
-          clinicCurr = clinicDoc.data().currency || "EUR";
+          const cData = clinicDoc.data();
+          clinicCurr = cData.currency || "EUR";
           setCurrency(clinicCurr);
+
+          const hasStripe = Boolean(
+            cData.stripe &&
+              typeof cData.stripe === "object" &&
+              Object.keys(cData.stripe).length > 0 &&
+              cData.stripe.enabled !== false
+          );
+          setStripeConnected(hasStripe);
         }
 
         // 3. Fetch Transactions for Financial Stats
@@ -344,10 +354,21 @@ export default function DashboardPage() {
 
               <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-50/70 border border-neutral-100/80">
                 <span className="text-sm font-semibold text-neutral-800">Stripe Payment Gateway</span>
-                <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Connected
-                </span>
+                {stripeConnected ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Connected
+                  </span>
+                ) : (
+                  <a
+                    href="mailto:contact@aurwell.app"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+                    title="Stripe is not set up. Click to contact support."
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                    Not Configured
+                  </a>
+                )}
               </div>
             </div>
           </div>
