@@ -117,12 +117,12 @@ export default function ImageUploader({
 
       {currentPreview ? (
         /* Image Preview Box with Replace Button Overlay */
-        <div className={`relative group w-full ${heightClass || "h-40"} rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-50 flex items-center justify-center shadow-xs`}>
+        <div className={`relative group w-full ${heightClass || "aspect-[16/9] h-auto max-h-56"} rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-50 flex items-center justify-center shadow-xs`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={currentPreview}
             alt="Preview"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover aspect-[16/9]"
           />
           {/* Permanent Corner Action Button - Styled identically to AppDockMockup */}
           <div className="absolute top-3 right-3">
@@ -151,7 +151,7 @@ export default function ImageUploader({
           onDragLeave={handleDrag}
           onDrop={handleDrop}
           onClick={onButtonClick}
-          className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-5 cursor-pointer transition-all duration-200 ${heightClass || "min-h-[160px]"} ${
+          className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-5 cursor-pointer transition-all duration-200 ${heightClass || "aspect-[16/9] h-auto min-h-[150px] max-h-56"} ${
             dragActive
               ? "border-black bg-neutral-50 scale-[1.01]"
               : "border-neutral-300 hover:border-neutral-400 bg-white hover:bg-neutral-50"

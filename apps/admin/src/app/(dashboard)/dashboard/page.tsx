@@ -6,10 +6,12 @@ import { ref, onValue, off } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db, rtdb } from "@/lib/firebase/client";
 import StatCard from "@/components/StatCard";
+import ClinicAnalyticsDashboard from "@/components/ClinicAnalyticsDashboard";
 import { StatCardSkeleton, PageSpinner } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Wallet, Users, DollarSign, Activity, CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ActivityItem {
   id: string;
@@ -68,6 +70,7 @@ function getActivityBadgeLabel(type: string): string {
 }
 
 export default function DashboardPage() {
+  const [clinicId, setClinicId] = useState("");
   const [currency, setCurrency] = useState("EUR");
   const [stripeConnected, setStripeConnected] = useState(false);
   const [stats, setStats] = useState({
@@ -78,6 +81,21 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rtdbConnected, setRtdbConnected] = useState(false);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+
+  // Automatically clear high-visibility highlight 2 seconds (2000ms) after a new event arrives
+  useEffect(() => {
+    if (activities.length > 0) {
+      const newestId = activities[0].id;
+      setHighlightedId(newestId);
+
+      const timer = setTimeout(() => {
+        setHighlightedId((current) => (current === newestId ? null : current));
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [activities]);
 
   useEffect(() => {
     let rtdbRef: any = null;
@@ -108,6 +126,8 @@ export default function DashboardPage() {
           setLoading(false);
           return;
         }
+
+        setClinicId(clinicId);
 
         // 2. Fetch Clinic Settings & Stripe status according to FIREBASE_SCHEMA.md
         let clinicCurr = "EUR";
@@ -262,7 +282,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Live Operational Feed - Realtime DB activity_events */}
+        {/* Product Activity Live Feed */}
         <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
@@ -292,97 +312,73 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="max-h-[380px] overflow-y-auto pr-1.5 space-y-3 custom-scrollbar">
-              {activities.map((act) => {
-                const badgeLabel = getActivityBadgeLabel(act.type);
-                return (
-                  <div
-                    key={act.id}
-                    className="flex items-start gap-3.5 p-3.5 rounded-2xl bg-neutral-50/70 border border-neutral-100/80 hover:bg-neutral-50 transition-colors"
-                  >
-                    <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-neutral-800 shadow-sm border border-neutral-100 flex-shrink-0 uppercase tracking-tight">
-                      {badgeLabel.substring(0, 3)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/80">
-                          {badgeLabel}
-                        </span>
-                        <span className="text-xs font-medium text-neutral-400 whitespace-nowrap">
-                          {formatRelativeTime(act.timestamp)}
-                        </span>
+              <AnimatePresence initial={false} mode="popLayout">
+                {activities.map((act) => {
+                  const badgeLabel = getActivityBadgeLabel(act.type);
+                  const isHighlighted = act.id === highlightedId;
+                  return (
+                    <motion.div
+                      key={act.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9, y: -24 }}
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                        y: 0,
+                        backgroundColor: isHighlighted ? "rgba(236, 253, 245, 0.95)" : "rgba(249, 250, 251, 0.7)",
+                        borderColor: isHighlighted ? "rgba(167, 243, 208, 0.9)" : "rgba(243, 244, 246, 0.8)",
+                      }}
+                      exit={{ opacity: 0, scale: 0.9, y: -10, transition: { duration: 0.2 } }}
+                      transition={{
+                        layout: { type: "spring", stiffness: 350, damping: 30 },
+                        opacity: { duration: 0.35 },
+                        scale: { type: "spring", stiffness: 400, damping: 28 },
+                        y: { type: "spring", stiffness: 400, damping: 28 },
+                        backgroundColor: { duration: 0.85 },
+                        borderColor: { duration: 0.85 },
+                      }}
+                      className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-shadow duration-300 ${
+                        isHighlighted ? "shadow-md shadow-emerald-500/10 ring-1 ring-emerald-400/30" : "hover:bg-neutral-50"
+                      }`}
+                    >
+                      <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-neutral-800 shadow-xs border border-neutral-100 flex-shrink-0 uppercase tracking-tight">
+                        {badgeLabel.substring(0, 3)}
                       </div>
-                      <p className="text-xs font-semibold text-neutral-900 mt-1 leading-snug">
-                        {act.message}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                              {badgeLabel}
+                            </span>
+                            {isHighlighted && (
+                              <motion.span
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-200/70 px-1.5 py-0.5 rounded-md animate-pulse"
+                              >
+                                NEW
+                              </motion.span>
+                            )}
+                          </div>
+                          <span className="text-xs font-medium text-neutral-400 whitespace-nowrap">
+                            {formatRelativeTime(act.timestamp)}
+                          </span>
+                        </div>
+                        <p className="text-xs font-semibold text-neutral-900 mt-1 leading-snug">
+                          {act.message}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           )}
         </div>
 
-        {/* Integration Status Card */}
-        <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 flex flex-col justify-between transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2">
-              <div className="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-neutral-900 tracking-tight">Clinic Integration Status</h3>
-                <p className="text-xs text-neutral-400 font-medium">Core system services & database sync</p>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-50/70 border border-neutral-100/80">
-                <span className="text-sm font-semibold text-neutral-800">Realtime DB Live Listener</span>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${rtdbConnected ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-amber-50 text-amber-700 border border-amber-100"}`}>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  {rtdbConnected ? "Live Connected" : "Initializing..."}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-50/70 border border-neutral-100/80">
-                <span className="text-sm font-semibold text-neutral-800">Clinic Currency ({currency})</span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Active
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-neutral-50/70 border border-neutral-100/80">
-                <span className="text-sm font-semibold text-neutral-800">Stripe Payment Gateway</span>
-                {stripeConnected ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Connected
-                  </span>
-                ) : (
-                  <a
-                    href="mailto:contact@aurwell.app"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
-                    title="Stripe is not set up. Click to contact support."
-                  >
-                    <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                    Not Configured
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-4 border-t border-neutral-100 flex items-center gap-3">
-            <Link
-              href="/app-builder/treatments"
-              className="flex-1 rounded-full bg-neutral-900 px-5 py-3 text-xs font-bold text-white hover:bg-neutral-800 shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              Launch App Builder
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
+        {/* Real-Data 5 Performance Analytics Graphs Dashboard */}
+        <ClinicAnalyticsDashboard clinicId={clinicId} currency={currency} />
       </div>
     </div>
   );

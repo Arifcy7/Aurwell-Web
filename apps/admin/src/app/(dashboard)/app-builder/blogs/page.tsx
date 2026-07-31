@@ -19,6 +19,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+import Modal from "@/components/Modal";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Blog {
@@ -299,20 +300,15 @@ export default function BlogsPage() {
         )}
       </motion.div>
 
-      {/* New / Edit Blog Form */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.form
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            onSubmit={handleSaveBlog}
-            className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full overflow-hidden"
-          >
-            <h3 className="text-md font-bold tracking-tight">
-              {editId ? "Edit Blog Article" : "New Blog Article"}
-            </h3>
+      {/* New / Edit Blog Article Form Modal */}
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title={editId ? "Edit Blog Article" : "Create New Blog Article"}
+        subtitle="Blogs & Articles"
+        maxWidth="max-w-6xl"
+      >
+        <form onSubmit={handleSaveBlog} className="space-y-6">
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Article Title</label>
@@ -377,16 +373,15 @@ export default function BlogsPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    {editId ? "Updating Article..." : "Saving Article..."}
+                    <span>{editId ? "Updating Article..." : "Saving Article..."}</span>
                   </>
                 ) : (
                   editId ? "Update Article" : "Save Article"
                 )}
               </button>
             </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
+          </form>
+        </Modal>
 
       {/* Blogs Listing Cards with Simple Fade Animation */}
       {blogs.length === 0 ? (

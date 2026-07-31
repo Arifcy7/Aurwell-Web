@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { collection, query, getDocs, doc, getDoc, orderBy, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import AdminSplashScreen from "@/components/AdminSplashScreen";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile } from "@/lib/firebase/upload";
 import { TableSkeleton } from "@/components/Loader";
@@ -185,11 +186,8 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-black"></div>
-          <p className="text-sm font-medium text-neutral-500">Loading notifications...</p>
-        </div>
+      <div className="relative w-full min-h-[500px]">
+        <AdminSplashScreen fullScreen={false} label="Loading notifications..." />
       </div>
     );
   }

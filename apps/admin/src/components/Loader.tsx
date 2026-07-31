@@ -73,14 +73,12 @@ export function CardGridSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
+import AdminSplashScreen from "./AdminSplashScreen";
+
 export function PageSpinner({ label = "Loading data..." }: { label?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 space-y-4">
-      <div className="relative flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full border-4 border-neutral-200 border-t-neutral-900 animate-spin"></div>
-        <div className="absolute w-3 h-3 bg-emerald-500 rounded-full animate-ping"></div>
-      </div>
-      <p className="text-xs font-semibold text-neutral-400 tracking-wide">{label}</p>
+    <div className="relative w-full min-h-[480px]">
+      <AdminSplashScreen fullScreen={false} label={label} />
     </div>
   );
 }

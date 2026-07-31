@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
@@ -8,6 +8,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+import Modal from "@/components/Modal";
 import { TREATMENT_CATEGORIES } from "@/lib/constants";
 import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,6 +41,9 @@ export default function TreatmentsPage() {
   const [selectedFilterCategories, setSelectedFilterCategories] = useState<string[]>([]);
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   const [filterCategorySearch, setFilterCategorySearch] = useState("");
+
+  // Form Reference for Auto-Scroll
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Treatment Creation / Edit Form State
   const [showTreatmentForm, setShowTreatmentForm] = useState(false);
@@ -233,6 +237,15 @@ export default function TreatmentsPage() {
         : [{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]
     );
     setShowTreatmentForm(true);
+
+    // Smooth scroll to top where form card pops up
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 50);
   };
 
   const handleToggleActive = async (treatment: Treatment) => {
@@ -496,28 +509,14 @@ export default function TreatmentsPage() {
       </motion.div>
 
       {/* Add / Edit Treatment Form Modal */}
-      <AnimatePresence>
-        {showTreatmentForm && (
-          <motion.form
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            onSubmit={handleSaveTreatment}
-            className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5 overflow-hidden"
-          >
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-              <h3 className="text-base font-bold text-neutral-900">
-                {editId ? "Edit Treatment Product" : "Create New Treatment Product"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowTreatmentForm(false)}
-                className="text-xs font-semibold text-neutral-400 hover:text-neutral-700"
-              >
-                Cancel
-              </button>
-            </div>
+      <Modal
+        isOpen={showTreatmentForm}
+        onClose={() => setShowTreatmentForm(false)}
+        title={editId ? "Edit Treatment Product" : "Create New Treatment Product"}
+        subtitle="Treatment Product Builder"
+        maxWidth="max-w-6xl"
+      >
+        <form onSubmit={handleSaveTreatment} className="space-y-6">
 
             {/* Multi-Category Selector Section */}
             <div className="space-y-2">
@@ -673,6 +672,19 @@ export default function TreatmentsPage() {
                     </button>
                   </div>
 
+                  {/* Column Header Labels */}
+                  <div className="grid grid-cols-3 gap-2 px-1 pt-1">
+                    <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
+                      Variant Title / Area
+                    </span>
+                    <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
+                      Standard Price (€)
+                    </span>
+                    <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">
+                      Member Price (€)
+                    </span>
+                  </div>
+
                   {types.map((type, idx) => (
                     <div key={idx} className="grid grid-cols-3 gap-2 border-b border-neutral-100 pb-2">
                       <input
@@ -727,9 +739,8 @@ export default function TreatmentsPage() {
                 )}
               </button>
             </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
+          </form>
+        </Modal>
 
       {/* Treatments Display Grid with Simple Fade Animation */}
       {loading ? (
@@ -838,7 +849,7 @@ export default function TreatmentsPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-neutral-100 pt-3 flex items-center justify-between">
+                  <div className="border-t border-neutral-100 pt-3 flex items-center justify-between gap-2">
                     {/* Toggle switch */}
                     <div className="flex items-center gap-2">
                       <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -855,20 +866,22 @@ export default function TreatmentsPage() {
                       </label>
                     </div>
 
-                    {/* Edit button */}
-                    <button
-                      onClick={() => handleEditClick(t)}
-                      className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(t)}
-                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
+                    {/* Action Buttons (right) */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditClick(t)}
+                        className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(t)}
+                        className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
