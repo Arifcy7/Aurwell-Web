@@ -1198,7 +1198,7 @@ export default function Home() {
         </motion.div>
 
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 py-6 border-t border-neutral-100 text-xs text-neutral-400">
-          © 2024 Aurwell. All rights reserved.
+          © 2026 Aurwell. All rights reserved.
         </div>
       </footer>
     </div>
