@@ -24,6 +24,8 @@ This document is the single source of truth for all Firestore and Realtime Datab
          │     └── {blogId}
          ├── /banners
          │     └── {bannerId}
+         ├── /automated_offers
+         │     └── {offerId}
          ├── /patients
          │     └── {patientId}
          │           └── /availed_rewards
@@ -256,6 +258,32 @@ Promotional carousel banners displayed in the patient mobile app.
 | `targetId` | `string` | Treatment document ID when `targetType` is `"treatment"`, or a full URL when `targetType` is `"link"` |
 | `isActive` | `boolean` | Whether the banner is live and displayed in the app |
 | `createdAt` | `timestamp` | Document creation timestamp |
+
+---
+
+### 10. Subcollection: `automated_offers`
+Occasion-based automated promotional offers configured via App Builder.
+
+- **Path**: `/clinics/{clinicId}/automated_offers/{offerId}`
+- **Document ID**: Preset identifier (e.g., `birthday_special`, `christmas`) or auto-generated for custom offers
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Unique offer document ID |
+| `occasion` | `string` | Occasion name (e.g. `"Birthday Special"`, `"Christmas"`) |
+| `title` | `string` | Display title for the offer |
+| `isActive` | `boolean` | Toggle status (true for active, false for inactive) |
+| `discountType` | `string` | Discount type (`"fixed"` or `"percentage"`) |
+| `discountValue` | `number` | Discount amount in currency or percentage value |
+| `maxDiscountAmount` | `number \| null` | Optional max discount limit ("Up to $X") |
+| `allProductsIncluded` | `boolean` | Whether all clinic products/treatments are included |
+| `includedProductIds` | `array` of `string` | Selected product/treatment IDs when `allProductsIncluded` is false |
+| `startDate` | `string \| null` | Optional validity start date (e.g. `"2026-12-01"`) |
+| `endDate` | `string \| null` | Optional validity end date (e.g. `"2026-12-31"`) |
+| `imageUrl` | `string \| null` | Uploaded square banner / scratch card image URL (used for custom offers) |
+| `isCustom` | `boolean` (optional) | Indicates whether this is a user-created custom occasion |
+| `createdAt` | `timestamp` | Provisioning timestamp |
+| `updatedAt` | `timestamp` | Last update timestamp |
 
 > **Note**: The admin panel only exposes two `targetType` values: `"treatment"` and `"link"`. The mobile app may handle additional deep-link types (`"SHOP_TREATMENTS"`, `"SHOP_MEMBERSHIPS"`, `"TREATMENT_DETAIL"`, `"MEMBERSHIP_DETAIL"`, `"REWARDS_PAGE"`, `"SCAN_PAGE"`, `"URL"`) if set directly in Firestore or via the seed script, but the admin UI maps these to `"treatment"` / `"link"`.
 

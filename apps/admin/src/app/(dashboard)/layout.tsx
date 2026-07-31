@@ -115,8 +115,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Treatments", href: "/app-builder/treatments", icon: <Tag className="w-4 h-4" /> },
     { name: "Membership Tiers", href: "/app-builder/membership", icon: <CreditCard className="w-4 h-4" /> },
     { name: "Rewards", href: "/app-builder/rewards", icon: <Gift className="w-4 h-4" /> },
+    { name: "Automated Offers", href: "/app-builder/offers", icon: <Sparkles className="w-4 h-4" />, badge: { text: "New", variant: "green" } },
     { name: "Blogs & Articles", href: "/app-builder/blogs", icon: <FileText className="w-4 h-4" /> },
-    { name: "Banners", href: "/app-builder/banners", icon: <ImageIcon className="w-4 h-4" />, badge: { text: "New", variant: "green" } },
+    { name: "Banners", href: "/app-builder/banners", icon: <ImageIcon className="w-4 h-4" /> },
     { name: "App Settings", href: "/app-builder/settings", icon: <Settings className="w-4 h-4" /> },
   ];
 
