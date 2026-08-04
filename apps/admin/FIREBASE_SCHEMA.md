@@ -273,7 +273,7 @@ Occasion-based automated promotional offers configured via App Builder.
 | `occasion` | `string` | Occasion name (e.g. `"Birthday Special"`, `"Christmas"`) |
 | `title` | `string` | Display title for the offer |
 | `isActive` | `boolean` | Toggle status (true for active, false for inactive) |
-| `discountType` | `string` | Discount type (`"fixed"` or `"percentage"`) |
+| `discountType` | `string` | Discount type (`"percentage"`) |
 | `discountValue` | `number` | Discount amount in currency or percentage value |
 | `maxDiscountAmount` | `number \| null` | Optional max discount limit ("Up to $X") |
 | `allProductsIncluded` | `boolean` | Whether all clinic products/treatments are included |
