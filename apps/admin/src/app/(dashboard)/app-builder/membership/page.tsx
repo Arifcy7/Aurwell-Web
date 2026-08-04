@@ -19,6 +19,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+import Modal from "@/components/Modal";
 import { Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -282,22 +283,19 @@ export default function MembershipPage() {
         </button>
       </div>
 
-      {/* New / Edit Tier Form */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.form
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            onSubmit={handleSaveTier}
-            className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full overflow-hidden"
-          >
-            <h3 className="text-md font-bold tracking-tight">
-              {editId ? "Edit Membership Tier" : "New Membership Tier"}
-            </h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* New / Edit Tier Form Modal */}
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title={editId ? "Edit Membership Tier" : "New Membership Tier"}
+        subtitle="Membership Configuration"
+        maxWidth="max-w-6xl"
+      >
+        <form onSubmit={handleSaveTier} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Column (7 cols): Plan Pricing & Text Details */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Tier Name</label>
                   <input
@@ -323,7 +321,7 @@ export default function MembershipPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
                     Annual Price (€) <span className="text-neutral-400 font-normal">(Optional)</span>
@@ -339,7 +337,7 @@ export default function MembershipPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                    Min Commitment (Months) <span className="text-neutral-400 font-normal">(Optional)</span>
+                    Min Commitment (Months)
                   </label>
                   <input
                     type="number"
@@ -357,11 +355,40 @@ export default function MembershipPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="input-modern"
-                    placeholder="e.g. Unlimited monthly hydrafacials & VIP perks"
+                    placeholder="e.g. Unlimited monthly hydrafacials"
                   />
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Included Benefits (One per line)
+                </label>
+                <textarea
+                  rows={3}
+                  value={benefitsInput}
+                  onChange={(e) => setBenefitsInput(e.target.value)}
+                  className="textarea-modern"
+                  placeholder="10% Off all skincare products&#10;Priority booking window&#10;Free quarterly skin analysis"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                  Membership Terms & Conditions <span className="text-neutral-400 font-normal">(Optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={terms}
+                  onChange={(e) => setTerms(e.target.value)}
+                  className="textarea-modern"
+                  placeholder="Refund policies, commitment period, etc..."
+                />
+              </div>
+            </div>
+
+            {/* Right Column (5 cols): Bundled Treatments & 16:9 Image Uploader */}
+            <div className="lg:col-span-5 space-y-5">
               {/* Included Treatment Bundles Setup */}
               <div className="border border-neutral-200/80 rounded-2xl p-4 bg-neutral-50/50 space-y-3">
                 <div className="flex justify-between items-center">
@@ -373,14 +400,14 @@ export default function MembershipPage() {
                     onClick={handleAddTreatmentRow}
                     className="text-xs text-black font-semibold hover:underline cursor-pointer"
                   >
-                    + Add Treatment Session
+                    + Add Session
                   </button>
                 </div>
 
                 {includedItems.length === 0 ? (
                   <p className="text-xs text-neutral-400 italic">No bundled treatments added to this tier yet.</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                     {includedItems.map((item, idx) => (
                       <div key={idx} className="flex gap-2 items-center">
                         <select
@@ -411,15 +438,15 @@ export default function MembershipPage() {
                                 prev.map((it, i) => (i === idx ? { ...it, sessionsCount: val } : it))
                               );
                             }}
-                            className="input-modern w-20 text-xs text-center"
+                            className="input-modern w-16 text-xs text-center"
                           />
-                          <span className="text-xs text-neutral-500 font-medium">sessions</span>
+                          <span className="text-xs text-neutral-500 font-medium">x</span>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => handleRemoveTreatmentRow(idx)}
-                          className="text-xs text-red-500 hover:text-red-700 px-2 py-1 cursor-pointer font-bold"
+                          className="text-xs text-red-500 hover:text-red-700 px-1.5 py-1 cursor-pointer font-bold"
                         >
                           ✕
                         </button>
@@ -429,40 +456,19 @@ export default function MembershipPage() {
                 )}
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                  Included Benefits (One per line)
-                </label>
-                <textarea
-                  rows={3}
-                  value={benefitsInput}
-                  onChange={(e) => setBenefitsInput(e.target.value)}
-                  className="textarea-modern"
-                  placeholder="10% Off all skincare products&#10;Priority booking window&#10;Free quarterly skin analysis"
-                />
-              </div>
-
-              <ImageUploader
-                file={imageFile}
-                onChange={setImageFile}
-                imageUrl={imageUrl}
-                onClearImage={() => setImageUrl("")}
-                label="Tier Cover Image (Optional)"
-              />
-
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                  Membership Terms & Conditions <span className="text-neutral-400 font-normal">(Optional)</span>
-                </label>
-                <textarea
-                  rows={2}
-                  value={terms}
-                  onChange={(e) => setTerms(e.target.value)}
-                  className="textarea-modern"
-                  placeholder="Refund policies, commitment period, etc..."
+              {/* Cover Image Card */}
+              <div className="bg-neutral-50/60 border border-neutral-200/60 rounded-2xl p-4">
+                <ImageUploader
+                  file={imageFile}
+                  onChange={setImageFile}
+                  imageUrl={imageUrl}
+                  onClearImage={() => setImageUrl("")}
+                  label="Tier Cover Image"
+                  heightClass="aspect-[16/9] h-auto w-full"
                 />
               </div>
             </div>
+          </div>
 
             <div className="pt-2 flex items-center justify-end gap-3 border-t border-neutral-100 mt-4">
               <button
@@ -483,16 +489,15 @@ export default function MembershipPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    {editId ? "Updating Bundle..." : "Creating Bundle..."}
+                    <span>{editId ? "Updating Bundle..." : "Creating Bundle..."}</span>
                   </>
                 ) : (
                   editId ? "Update Bundle" : "Create Bundle"
                 )}
               </button>
             </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
+          </form>
+        </Modal>
 
       {/* Tiers Listing Cards with Simple Fade Animation */}
       {loading ? (
@@ -507,81 +512,128 @@ export default function MembershipPage() {
           {tiers.map((t, idx) => (
             <motion.div
               key={t.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: idx * 0.04 }}
-              className={`rounded-3xl border bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between space-y-6 transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: idx * 0.05 }}
+              className={`rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] flex flex-col justify-between overflow-hidden transition-all duration-300 ${
                 t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
               }`}
             >
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-bold text-neutral-900">{t.title}</h3>
-                    <p className="text-xs text-neutral-500 mt-0.5">{t.description}</p>
-                    {Boolean(t.minCommitmentMonths) && Number(t.minCommitmentMonths) > 0 && (
-                      <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-200 mt-1.5">
-                        {t.minCommitmentMonths}-Month Minimum Commitment
+              <div>
+                {/* Card Cover Header Banner */}
+                <div className="relative h-44 sm:h-48 w-full bg-neutral-900 overflow-hidden">
+                  {t.imageUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={t.imageUrl}
+                      alt={t.title}
+                      className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-950 p-6 flex flex-col justify-end">
+                      <span className="text-white/40 font-mono text-xs uppercase tracking-widest">Aurwell Luxury Membership</span>
+                    </div>
+                  )}
+
+                  {/* Dark overlay gradient for contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/30 pointer-events-none" />
+
+                  {/* Badges on Top of Cover Image */}
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2 z-10">
+                    {Boolean(t.minCommitmentMonths) && Number(t.minCommitmentMonths) > 0 ? (
+                      <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-md text-neutral-900 text-[11px] font-bold px-3 py-1 rounded-full shadow-md border border-white/40">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        {t.minCommitmentMonths}-Month Minimum
                       </span>
+                    ) : (
+                      <div />
                     )}
+
+                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-md ${
+                      t.isActive !== false
+                        ? "bg-emerald-500/90 text-white"
+                        : "bg-neutral-800/90 text-neutral-300"
+                    }`}>
+                      {t.isActive !== false ? "Active Tier" : "Inactive"}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xl font-black text-neutral-900">€{t.monthlyPrice}</span>
-                    <span className="text-xs text-neutral-400 font-medium">/mo</span>
-                    {t.annualPrice && (
-                      <div className="text-[10px] text-neutral-400">€{t.annualPrice}/yr</div>
-                    )}
+
+                  {/* Price & Title Overlay on Cover Header */}
+                  <div className="absolute bottom-4 left-6 right-6 flex justify-between items-end z-10 text-white">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white drop-shadow-md">
+                        {t.title}
+                      </h3>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">€{t.monthlyPrice}</span>
+                        <span className="text-xs font-semibold text-white/80">/mo</span>
+                      </div>
+                      {t.annualPrice && (
+                        <span className="text-[11px] font-semibold text-white/80 block">
+                          €{t.annualPrice} / year
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {t.imageUrl && (
-                  <div
-                    className="h-36 rounded-2xl bg-cover bg-center border border-neutral-100"
-                    style={{ backgroundImage: `url(${t.imageUrl})` }}
-                  />
-                )}
+                {/* Card Content Body */}
+                <div className="p-6 sm:p-7 space-y-5">
+                  {/* Tagline Description */}
+                  {t.description && (
+                    <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+                      {t.description}
+                    </p>
+                  )}
 
-                {/* Included Treatments Badge List */}
-                {t.includedTreatments && t.includedTreatments.length > 0 && (
-                  <div className="space-y-1.5 pt-2 border-t border-neutral-100">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Bundled Monthly Treatments
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {t.includedTreatments.map((inc, i) => {
-                        const tr = treatments.find((item) => item.id === inc.treatmentId);
-                        return (
-                          <span
-                            key={i}
-                            className="bg-neutral-100 text-neutral-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-neutral-200"
-                          >
-                            {inc.sessionsCount}x {tr ? tr.title : "Treatment"}
-                          </span>
-                        );
-                      })}
+                  {/* Included Treatments Badge List */}
+                  {t.includedTreatments && t.includedTreatments.length > 0 && (
+                    <div className="space-y-2.5 pt-1 border-t border-neutral-100">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
+                        Bundled Monthly Treatments
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {t.includedTreatments.map((inc, i) => {
+                          const tr = treatments.find((item) => item.id === inc.treatmentId);
+                          return (
+                            <span
+                              key={i}
+                              className="inline-flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs"
+                            >
+                              <span className="text-emerald-400 font-bold">{inc.sessionsCount}x</span>
+                              <span>{tr ? tr.title : "Treatment"}</span>
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Additional Perks */}
-                {t.benefits && t.benefits.length > 0 && (
-                  <div className="space-y-1.5 pt-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-                      Member Perks
-                    </span>
-                    <ul className="text-xs text-neutral-600 space-y-1">
-                      {t.benefits.map((b, i) => (
-                        <li key={i} className="flex items-center gap-1.5">
-                          <span className="text-emerald-500 font-bold">✓</span> {b}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  {/* Member Perks */}
+                  {t.benefits && t.benefits.length > 0 && (
+                    <div className="space-y-2.5 pt-1 border-t border-neutral-100">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
+                        Member Perks & Benefits
+                      </span>
+                      <div className="grid grid-cols-1 gap-2">
+                        {t.benefits.map((b, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs text-neutral-700 font-medium">
+                            <div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 border border-emerald-200/80">
+                              ✓
+                            </div>
+                            <span className="leading-snug">{b}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Status Toggle & Edit */}
-              <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
+              {/* Footer Actions Bar */}
+              <div className="px-6 py-4 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between gap-3">
                 <label className="relative inline-flex items-center cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -589,8 +641,8 @@ export default function MembershipPage() {
                     onChange={() => handleToggleActive(t)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
-                  <span className="ml-2 text-xs font-medium text-neutral-500">
+                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neutral-900"></div>
+                  <span className="ml-2.5 text-xs font-semibold text-neutral-700">
                     {t.isActive !== false ? "Active Tier" : "Inactive"}
                   </span>
                 </label>
@@ -598,15 +650,15 @@ export default function MembershipPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleEditClick(t)}
-                    className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                    className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-800 hover:bg-neutral-100 transition cursor-pointer shadow-2xs"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => setDeleteTarget(t)}
-                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
+                    className="rounded-full border border-red-200 bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                     Delete
                   </button>
                 </div>

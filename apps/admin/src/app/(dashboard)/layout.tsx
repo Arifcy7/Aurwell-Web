@@ -8,6 +8,7 @@ import { doc } from "firebase/firestore";
 import { getDocCacheFirst } from "@/lib/firebase/logger";
 import { auth, db } from "@/lib/firebase/client";
 import QRScannerModal from "@/components/QRScannerModal";
+import AdminSplashScreen from "@/components/AdminSplashScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -172,14 +173,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-[#f4f5f7] text-black">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-3 border-neutral-300 border-t-neutral-900"></div>
-          <p className="text-sm font-semibold tracking-wide text-neutral-600">Loading panel...</p>
-        </div>
-      </div>
-    );
+    return <AdminSplashScreen label="Loading Admin Panel..." />;
   }
 
   // Sidebar Component for reuse in Desktop and Mobile drawer (Static, zero re-animating on route changes)

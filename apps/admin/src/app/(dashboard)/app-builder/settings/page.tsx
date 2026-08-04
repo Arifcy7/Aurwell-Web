@@ -10,6 +10,8 @@ import AppDockMockup from "@/components/AppDockMockup";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
 import { CreditCard, CheckCircle2, AlertCircle, Mail } from "lucide-react";
+import AdminSplashScreen from "@/components/AdminSplashScreen";
+import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * Silently extracts latitude and longitude from Google Maps URLs
@@ -238,11 +240,8 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-black"></div>
-          <p className="text-sm font-medium text-neutral-500">Loading settings...</p>
-        </div>
+      <div className="relative w-full min-h-[500px]">
+        <AdminSplashScreen fullScreen={false} label="Loading settings..." />
       </div>
     );
   }

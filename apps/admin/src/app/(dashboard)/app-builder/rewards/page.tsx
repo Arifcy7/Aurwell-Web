@@ -7,6 +7,7 @@ import { auth, db } from "@/lib/firebase/client";
 import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+import Modal from "@/components/Modal";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Coins,
@@ -562,23 +563,15 @@ export default function RewardsPage() {
         </button>
       </div>
 
-      {/* Reward Creation/Edit Form */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.form
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            onSubmit={handleSaveReward}
-            className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4 w-full overflow-hidden"
-          >
-            <div className="flex items-center gap-2 border-b border-neutral-100 pb-3">
-              <Pencil className="w-4 h-4 text-neutral-700" />
-              <h3 className="text-sm font-bold tracking-tight text-neutral-900">
-                {editId ? "Edit Reward Option" : "Create New Reward Option"}
-              </h3>
-            </div>
+      {/* Reward Creation/Edit Form Modal */}
+      <Modal
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        title={editId ? "Edit Reward Option" : "Create New Reward Option"}
+        subtitle="Rewards Configuration"
+        maxWidth="max-w-6xl"
+      >
+        <form onSubmit={handleSaveReward} className="space-y-6">
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -705,9 +698,8 @@ export default function RewardsPage() {
                 {editId ? "Update Reward Option" : "Save & Publish Reward"}
               </button>
             </div>
-          </motion.form>
-        )}
-      </AnimatePresence>
+          </form>
+        </Modal>
 
       {/* Rewards Cards Grid with Simple Fade Animation */}
       {loading ? (
