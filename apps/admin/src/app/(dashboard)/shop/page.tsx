@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -86,27 +87,27 @@ export default function ShopSummaryPage() {
       }
 
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userDoc = await getDocCacheFirst(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const cId = userDoc.data().clinicId;
           setClinicId(cId);
 
           // 1. Fetch Clinic details for Currency
           let clinicCurr = "EUR";
-          const clinicDoc = await getDoc(doc(db, "clinics", cId));
+          const clinicDoc = await getDocCacheFirst(doc(db, "clinics", cId));
           if (clinicDoc.exists()) {
             clinicCurr = clinicDoc.data().currency || "EUR";
             setCurrency(clinicCurr);
           }
 
           // 2. Fetch Rewards collection to count unlocked/available rewards
-          const rewardsSnapshot = await getDocs(
+          const rewardsSnapshot = await getDocsCacheFirst(
             collection(db, "clinics", cId, "rewards")
           );
           const totalRewardsUnlocked = rewardsSnapshot.size;
 
           // 3. Fetch patients for fallback name & email lookup
-          const patientsSnapshot = await getDocs(collection(db, "clinics", cId, "patients"));
+          const patientsSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "patients"));
           const patientMap = new Map<string, { name: string; email: string }>();
           patientsSnapshot.forEach((pDoc) => {
             const pData = pDoc.data();
@@ -118,7 +119,7 @@ export default function ShopSummaryPage() {
 
           // 4. Fetch Transactions collection
           const txQuery = query(collection(db, "clinics", cId, "transactions"));
-          const txSnapshot = await getDocs(txQuery);
+          const txSnapshot = await getDocsCacheFirst(txQuery);
 
           const loadedTransactions: Transaction[] = [];
           let totalSalesVal = 0;

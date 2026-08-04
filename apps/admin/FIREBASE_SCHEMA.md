@@ -280,7 +280,7 @@ Occasion-based automated promotional offers configured via App Builder.
 | `includedProductIds` | `array` of `string` | Selected product/treatment IDs when `allProductsIncluded` is false |
 | `startDate` | `string \| null` | Optional validity start date (e.g. `"2026-12-01"`) |
 | `endDate` | `string \| null` | Optional validity end date (e.g. `"2026-12-31"`) |
-| `imageUrl` | `string \| null` | Uploaded square banner / scratch card image URL (used for custom offers) |
+| `imageUrl` | `string \| null` | Uploaded square banner / scratch card image URL |
 | `isCustom` | `boolean` (optional) | Indicates whether this is a user-created custom occasion |
 | `createdAt` | `timestamp` | Provisioning timestamp |
 | `updatedAt` | `timestamp` | Last update timestamp |
@@ -302,6 +302,7 @@ Registered client profiles for the clinic.
 | `name` | `string` | Patient full name |
 | `email` | `string` | Registered contact email |
 | `phone` | `string` | Phone number (with dial code) |
+| `birthDate` | `string` (optional) | Patient date of birth (format: `"DD/MM/YYYY"`) |
 | `joinedAt` | `timestamp` or `string` | Registration / join date |
 | `visitsCount` | `number` | Total check-in visit count |
 | `loyaltyBalance` | `number` | **Deprecated** — loyalty points migrated to Firebase Realtime Database at `/loyalty_points/{clinicId}/{userId}` |
@@ -313,22 +314,29 @@ Registered client profiles for the clinic.
 ---
 
 ### 11. Sub-subcollection: `availed_rewards`
-Coupons a patient has unlocked (redeemed points for) but not yet used at checkout.
+Coupons a patient has unlocked (redeemed points for) or claimed automated promotional offers not yet used at checkout.
 
 - **Path**: `/clinics/{clinicId}/patients/{patientId}/availed_rewards/{availedRewardId}`
 - **Document ID**: Firestore auto-generated
 
 | Field | Type | Description |
 |---|---|---|
-| `rewardId` | `string` | Source reward document ID |
-| `title` | `string` | Reward title (copied at avail time) |
-| `description` | `string` | Reward description (copied at avail time) |
-| `cardInfo` | `string` | Badge text (e.g. `"10% OFF"`) |
-| `discountPercentage` | `number` | Discount percentage |
-| `treatmentId` | `string` | Treatment the discount applies to |
-| `availedDate` | `number` (epoch ms) | Timestamp when the patient redeemed their points for this coupon |
-| `expiryDate` | `number` (epoch ms) | Expiration timestamp of the availed coupon |
-| `isUsed` | `boolean` | Whether this coupon has been applied to a checkout purchase |
+| `rewardId` | `string` | Source reward or automated offer document ID |
+| `source` | `string` (optional) | Origin of coupon — `"automated_offer"` for claimed automated offers, or missing for loyalty rewards |
+| `title` | `string` | Offer/Reward display title |
+| `description` | `string` | Detailed description |
+| `cardInfo` | `string` | Badge text (e.g. `"mid summer occation Offer"`, `"10% OFF"`) |
+| `discountPercentage` | `number` | Discount percentage value |
+| `discountValue` | `number` (optional) | Discount amount in currency or percentage |
+| `discountType` | `string` (optional) | Discount calculation mode (`"percentage"` or `"fixed"`) |
+| `discountUpTo` | `number \| null` (optional) | Optional max discount cap |
+| `allProductsIncluded` | `boolean` (optional) | Whether all clinic products/treatments are eligible (`true`/`false`) |
+| `includedProductIds` | `array` of `string` (optional) | Array of treatment IDs eligible for discount when `allProductsIncluded` is false |
+| `treatmentId` | `string` | Specific treatment ID, or `"all"` for all products |
+| `availedDate` | `number` (epoch ms) | Timestamp when claimed / redeemed |
+| `expiryDate` | `number` (epoch ms) | Expiration timestamp |
+| `isUsed` | `boolean` | Whether this coupon/offer has been used at checkout |
+
 
 ---
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -201,8 +202,8 @@ export default function RewardsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch treatments for dropdown selector
-      const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+      // Fetch treatments for dropdown selector (Cache-First)
+      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: Treatment[] = [];
       treatSnapshot.forEach((d) => {
         loadedTreatments.push({ id: d.id, title: d.data().title } as Treatment);
@@ -212,8 +213,8 @@ export default function RewardsPage() {
         setSelectedTreatmentId(loadedTreatments[0].id);
       }
 
-      // Fetch point ratio settings
-      const ratioDoc = await getDoc(doc(db, "clinics", cId, "settings", "rewards_ratio"));
+      // Fetch point ratio settings (Cache-First)
+      const ratioDoc = await getDocCacheFirst(doc(db, "clinics", cId, "settings", "rewards_ratio"));
       if (ratioDoc.exists()) {
         const data = ratioDoc.data();
         setSpendAmount(data.spendAmount || 10);
@@ -223,8 +224,8 @@ export default function RewardsPage() {
         setReferralPoints(data.referralPoints || 0);
       }
 
-      // Fetch rewards list
-      const rewardSnapshot = await getDocs(collection(db, "clinics", cId, "rewards"));
+      // Fetch rewards list (Cache-First)
+      const rewardSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "rewards"));
       const loadedRewards: Reward[] = [];
       rewardSnapshot.forEach((d) => {
         const data = d.data();

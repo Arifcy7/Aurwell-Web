@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst } from "@/lib/firebase/logger";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -167,9 +168,9 @@ export default function MembershipsPage() {
             setCurrency(clinicCurr);
           }
 
-          // 2. Fetch Available Clinic Treatments for selection and name resolution
+          // 2. Fetch Available Clinic Treatments for selection and name resolution (Cache-First)
           const trQuery = query(collection(db, "clinics", cId, "treatments"));
-          const trSnap = await getDocs(trQuery);
+          const trSnap = await getDocsCacheFirst(trQuery);
           const trList: ClinicTreatmentOption[] = [];
           const trMap: Record<string, string> = {};
           trSnap.forEach((tDoc) => {
@@ -183,9 +184,9 @@ export default function MembershipsPage() {
           setAvailableTreatments(trList);
           setTreatmentsMap(trMap);
 
-          // 3. Fetch membership_tiers for price fallbacks if price is 0
+          // 3. Fetch membership_tiers for price fallbacks if price is 0 (Cache-First)
           const tiersQuery = query(collection(db, "clinics", cId, "membership_tiers"));
-          const tiersSnap = await getDocs(tiersQuery);
+          const tiersSnap = await getDocsCacheFirst(tiersQuery);
           const tierPricesMap = new Map<string, number>();
           tiersSnap.forEach((tDoc) => {
             const tData = tDoc.data();
@@ -193,9 +194,9 @@ export default function MembershipsPage() {
             tierPricesMap.set(tDoc.id, p);
           });
 
-          // 4. Fetch Active Memberships subcollection
+          // 4. Fetch Active Memberships subcollection (Cache-First)
           const q = query(collection(db, "clinics", cId, "active_memberships"));
-          const snapshot = await getDocs(q);
+          const snapshot = await getDocsCacheFirst(q);
           const loadedMemberships: ActiveMembership[] = [];
 
           for (const d of snapshot.docs) {

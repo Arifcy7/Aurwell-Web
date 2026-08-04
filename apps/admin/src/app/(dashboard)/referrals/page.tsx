@@ -14,6 +14,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 import {
   Share2,
   Copy,
@@ -89,7 +90,7 @@ export default function ReferralsPage() {
 
       // Check if user has already joined the referral program in /users/{uid}
       try {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const userDoc = await getDocCacheFirst(doc(db, "users", currentUser.uid));
         if (userDoc.exists() && userDoc.data().hasJoinedReferralProgram) {
           setHasJoinedProgram(true);
           await loadReferrals(currentUser.uid);
@@ -146,7 +147,7 @@ export default function ReferralsPage() {
         collection(db, "b2b_referrals"),
         where("referrerUid", "==", uid)
       );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocsCacheFirst(q);
 
       const list: B2BReferralItem[] = [];
       querySnapshot.forEach((docSnap) => {

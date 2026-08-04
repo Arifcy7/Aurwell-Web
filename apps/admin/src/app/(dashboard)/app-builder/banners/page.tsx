@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst } from "@/lib/firebase/logger";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -57,8 +58,8 @@ export default function BannersPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch treatments for dropdown selector
-      const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+      // 1. Fetch treatments for dropdown selector (Cache-First)
+      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: Treatment[] = [];
       treatSnapshot.forEach((d) => {
         loadedTreatments.push({ id: d.id, title: d.data().title } as Treatment);
@@ -68,12 +69,12 @@ export default function BannersPage() {
         setTargetId(loadedTreatments[0].id);
       }
 
-      // 2. Fetch banners subcollection
+      // 2. Fetch banners subcollection (Cache-First)
       const q = query(
         collection(db, "clinics", cId, "banners"),
         orderBy("createdAt", "desc")
       );
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocsCacheFirst(q);
       const loadedBanners: Banner[] = [];
       snapshot.forEach((d) => {
         const data = d.data();

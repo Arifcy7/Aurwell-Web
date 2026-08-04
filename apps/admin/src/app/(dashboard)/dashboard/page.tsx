@@ -10,6 +10,7 @@ import { StatCardSkeleton, PageSpinner } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
 import { Wallet, Users, DollarSign, Activity, CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 
 interface ActivityItem {
   id: string;
@@ -89,16 +90,16 @@ export default function DashboardPage() {
       }
 
       try {
-        // 1. Fetch user's clinicId
+        // 1. Fetch user's clinicId (Cache-First)
         let clinicId = "";
-        const userDoc = await getDocs(
+        const userDoc = await getDocsCacheFirst(
           query(collection(db, "users"), where("uid", "==", user.uid), limit(1))
         );
         if (!userDoc.empty) {
           clinicId = userDoc.docs[0].data().clinicId;
         } else {
           // Fallback check doc directly
-          const d = await getDoc(doc(db, "users", user.uid));
+          const d = await getDocCacheFirst(doc(db, "users", user.uid));
           if (d.exists()) {
             clinicId = d.data().clinicId;
           }
@@ -111,7 +112,7 @@ export default function DashboardPage() {
 
         // 2. Fetch Clinic Settings & Stripe status according to FIREBASE_SCHEMA.md
         let clinicCurr = "EUR";
-        const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
+        const clinicDoc = await getDocCacheFirst(doc(db, "clinics", clinicId));
         if (clinicDoc.exists()) {
           const cData = clinicDoc.data();
           clinicCurr = cData.currency || "EUR";
@@ -126,9 +127,9 @@ export default function DashboardPage() {
           setStripeConnected(hasStripe);
         }
 
-        // 3. Fetch Transactions for Financial Stats
+        // 3. Fetch Transactions for Financial Stats (Cache-First)
         const txQuery = query(collection(db, "clinics", clinicId, "transactions"));
-        const txSnapshot = await getDocs(txQuery);
+        const txSnapshot = await getDocsCacheFirst(txQuery);
 
         let totalEarnings = 0;
         let mtdEarnings = 0;
@@ -158,8 +159,8 @@ export default function DashboardPage() {
           }
         });
 
-        // 4. Fetch Active Customers count from patients collection
-        const patientsSnapshot = await getDocs(
+        // 4. Fetch Active Customers count from patients collection (Cache-First)
+        const patientsSnapshot = await getDocsCacheFirst(
           collection(db, "clinics", clinicId, "patients")
         );
         const customerCount = patientsSnapshot.size;

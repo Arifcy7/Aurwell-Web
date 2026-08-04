@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -57,18 +58,18 @@ export default function BlogsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch clinic config to get custom section title
-      const clinicDoc = await getDoc(doc(db, "clinics", cId));
+      // 1. Fetch clinic config to get custom section title (Cache-First)
+      const clinicDoc = await getDocCacheFirst(doc(db, "clinics", cId));
       if (clinicDoc.exists()) {
         setBlogSectionTitle(clinicDoc.data().blogSectionTitle || "Blogs");
       }
 
-      // 2. Fetch blogs subcollection
+      // 2. Fetch blogs subcollection (Cache-First)
       const q = query(
         collection(db, "clinics", cId, "blogs"),
         orderBy("createdAt", "desc")
       );
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocsCacheFirst(q);
       const loadedBlogs: Blog[] = [];
       snapshot.forEach((d) => {
         const data = d.data();

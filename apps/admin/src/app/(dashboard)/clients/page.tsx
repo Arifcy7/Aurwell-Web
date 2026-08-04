@@ -5,6 +5,7 @@ import { collection, query, getDocs, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, db, rtdb } from "@/lib/firebase/client";
+import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
 import { Search, Users, Phone, Mail, Award, Calendar } from "lucide-react";
 import { TableSkeleton } from "@/components/Loader";
 
@@ -81,12 +82,12 @@ export default function ClientsPage() {
       if (!user) return;
 
       try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userDoc = await getDocCacheFirst(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const clinicId = userDoc.data().clinicId;
 
           const q = query(collection(db, "clinics", clinicId, "patients"));
-          const snapshot = await getDocs(q);
+          const snapshot = await getDocsCacheFirst(q);
 
           const loyaltySnapshot = await get(ref(rtdb, `loyalty_points/${clinicId}`));
           const loyaltyMap = loyaltySnapshot.exists() ? loyaltySnapshot.val() || {} : {};

@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst } from "@/lib/firebase/logger";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -129,8 +130,8 @@ export default function AutomatedOffersPage() {
         setCurrency(clinicDoc.data().currency || "EUR");
       }
 
-      // 2. Fetch Treatments (Products) for scope selection
-      const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+      // 2. Fetch Treatments (Products) for scope selection (Cache-First)
+      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: TreatmentItem[] = [];
       treatSnapshot.forEach((d) => {
         const data = d.data();
@@ -144,8 +145,8 @@ export default function AutomatedOffersPage() {
       });
       setTreatments(loadedTreatments);
 
-      // 3. Fetch Automated Offers
-      const offersSnapshot = await getDocs(collection(db, "clinics", cId, "automated_offers"));
+      // 3. Fetch Automated Offers (Cache-First)
+      const offersSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "automated_offers"));
       let loadedOffersMap: Record<string, AutomatedOffer> = {};
 
       offersSnapshot.forEach((d) => {

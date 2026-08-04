@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc } from "firebase/firestore";
+import { getDocCacheFirst } from "@/lib/firebase/logger";
 import { auth, db } from "@/lib/firebase/client";
 import QRScannerModal from "@/components/QRScannerModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -61,8 +62,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   useEffect(() => {
+    // 1. Immediately hydrate from local profile cache if available
+    const CACHE_KEY = "aurwell_admin_profile";
+    try {
+      const cachedStr = localStorage.getItem(CACHE_KEY);
+      if (cachedStr) {
+        const cached = JSON.parse(cachedStr);
+        if (cached.clinicId) setClinicId(cached.clinicId);
+        if (cached.clinicName) setClinicName(cached.clinicName);
+        if (cached.logoUrl !== undefined) setLogoUrl(cached.logoUrl);
+        setLoading(false);
+      }
+    } catch (e) {
+      console.error("Failed to read cached profile", e);
+    }
+
+    // 2. Subscribe to Auth state changes and revalidate in background
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
+        localStorage.removeItem(CACHE_KEY);
         router.push("/login");
         return;
       }
@@ -70,19 +88,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUser(currentUser);
 
       try {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        const userDoc = await getDocCacheFirst(doc(db, "users", currentUser.uid));
+
         if (userDoc.exists()) {
           const uData = userDoc.data();
-          setClinicId(uData.clinicId);
-          const clinicDoc = await getDoc(doc(db, "clinics", uData.clinicId));
-          if (clinicDoc.exists()) {
-            const cData = clinicDoc.data();
-            setClinicName(cData.merchantName || "Aurwell Clinic");
-            setLogoUrl(cData.logoUrl || "");
-          } else {
-            setClinicName("Aurwell Clinic");
-            setLogoUrl("");
+          const freshClinicId = uData.clinicId || "";
+          setClinicId(freshClinicId);
+
+          let freshName = "Aurwell Clinic";
+          let freshLogo = "";
+
+          if (freshClinicId) {
+            const clinicDoc = await getDocCacheFirst(doc(db, "clinics", freshClinicId));
+
+            if (clinicDoc.exists()) {
+              const cData = clinicDoc.data();
+              freshName = cData.merchantName || "Aurwell Clinic";
+              freshLogo = cData.logoUrl || "";
+            }
           }
+
+          setClinicName(freshName);
+          setLogoUrl(freshLogo);
+
+          // Update local cache
+          localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+              clinicId: freshClinicId,
+              clinicName: freshName,
+              logoUrl: freshLogo,
+            })
+          );
         } else {
           setClinicName("Aurwell Clinic");
           setLogoUrl("");
@@ -104,6 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     try {
+      localStorage.removeItem("aurwell_admin_profile");
       await signOut(auth);
       router.push("/login");
     } catch (err) {

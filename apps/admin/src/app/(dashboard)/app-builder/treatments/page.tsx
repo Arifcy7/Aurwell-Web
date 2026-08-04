@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst } from "@/lib/firebase/logger";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -66,8 +67,8 @@ export default function TreatmentsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch treatments from Firestore
-      const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+      // Fetch treatments from Firestore (Cache-First)
+      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: Treatment[] = [];
 
       treatSnapshot.forEach((d) => {

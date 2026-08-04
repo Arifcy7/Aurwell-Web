@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
+import { getDocsCacheFirst } from "@/lib/firebase/logger";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -74,16 +75,16 @@ export default function MembershipPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch available treatments
-      const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+      // 1. Fetch available treatments (Cache-First)
+      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
       const loadedTreatments: Treatment[] = [];
       treatSnapshot.forEach((d) => {
         loadedTreatments.push({ id: d.id, title: d.data().title } as Treatment);
       });
       setTreatments(loadedTreatments);
 
-      // 2. Fetch membership tiers
-      const tierSnapshot = await getDocs(collection(db, "clinics", cId, "membership_tiers"));
+      // 2. Fetch membership tiers (Cache-First)
+      const tierSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "membership_tiers"));
       const loadedTiers: MembershipTier[] = [];
       tierSnapshot.forEach((d) => {
         const data = d.data();
