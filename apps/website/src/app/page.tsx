@@ -18,6 +18,8 @@ import {
   BarChart3,
   Lock,
   Star,
+  ChevronLeft,
+  ChevronRight,
   ChevronDown,
   LayoutDashboard,
   Tag,
@@ -28,6 +30,10 @@ import {
   Sliders,
   Rocket,
   Paintbrush,
+  Maximize2,
+  Pause,
+  Play,
+  X,
   SlidersHorizontal,
   Pencil,
 } from "lucide-react";
@@ -62,6 +68,21 @@ export default function Home() {
     { code: "GBP", symbol: "£" },
     { code: "AUD", symbol: "A$" },
   ];
+
+  const adminImages = ["/admin.png", "/admin1.png", "/admin2.png"];
+  const [stackIndex, setStackIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isModalHovered, setIsModalHovered] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setStackIndex((prev) => (prev + 1) % adminImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [adminImages.length, isPaused]);
 
   const [clinicName, setClinicName] = useState("Luxe Aesthetics");
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
@@ -910,237 +931,208 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              {/* Right Column: Dashboard + Mobile App Showcase */}
+              {/* Right Column: Clean Vertically Stacked Cards Showcase */}
               <motion.div
                 initial={{ opacity: 0, x: 30, filter: "blur(12px)" }}
                 whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="lg:col-span-7 relative flex justify-center items-center py-6 min-h-[380px]"
+                className="lg:col-span-7 relative flex flex-col items-center justify-center pt-6 pb-2 w-full"
               >
-                {/* Desktop Dashboard Preview Card */}
-                <div className="w-full bg-white rounded-2xl shadow-md border border-neutral-200/80 p-4 sm:p-5 space-y-4">
-                  {/* Dashboard Header */}
-                  <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src="/logo-black.png"
-                        alt="Aurwell"
-                        width={90}
-                        height={24}
-                        className="h-5 w-auto"
-                      />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right hidden sm:block">
-                        <div className="text-xs font-bold text-neutral-800">
-                          Welcome back, Clinic!
+                {/* Vertically Stacked Cards Container */}
+                <div
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  onClick={() => setIsLightboxOpen(true)}
+                  className="relative w-full h-[280px] sm:h-[380px] md:h-[420px] flex items-center justify-center cursor-pointer select-none group"
+                >
+                  {/* Centered Expand Icon on Card Hover (No Black Background) */}
+                  <AnimatePresence>
+                    {isHovered && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-white/90 text-neutral-900 flex items-center justify-center shadow-xl border border-neutral-200/80 backdrop-blur-md">
+                          <Maximize2 className="w-4.5 h-4.5 text-neutral-900" />
                         </div>
-                        <div className="text-[10px] text-neutral-400">
-                          Here's what's happening today.
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-[11px] text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded-md border border-neutral-200">
-                        <span>May 20 - May 26</span>
-                        <ChevronDown className="w-3 h-3 text-neutral-400" />
-                      </div>
-                    </div>
-                  </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                  {/* Main Dashboard Layout */}
-                  <div className="grid grid-cols-12 gap-3">
-                    {/* Side Nav mini */}
-                    <div className="col-span-3 hidden sm:flex flex-col gap-1 text-[11px] border-r border-neutral-100 pr-2">
-                      <div className="flex items-center gap-2 bg-neutral-900 text-white font-semibold px-2 py-1.5 rounded-lg">
-                        <LayoutDashboard className="w-3.5 h-3.5" />
-                        <span>Dashboard</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-neutral-500 px-2 py-1.5 rounded-lg hover:bg-neutral-50">
-                        <Users className="w-3.5 h-3.5" />
-                        <span>Members</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-neutral-500 px-2 py-1.5 rounded-lg hover:bg-neutral-50">
-                        <Gift className="w-3.5 h-3.5" />
-                        <span>Rewards</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-neutral-500 px-2 py-1.5 rounded-lg hover:bg-neutral-50">
-                        <Tag className="w-3.5 h-3.5" />
-                        <span>Offers</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-neutral-500 px-2 py-1.5 rounded-lg hover:bg-neutral-50">
-                        <CreditCard className="w-3.5 h-3.5" />
-                        <span>Transactions</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-neutral-500 px-2 py-1.5 rounded-lg hover:bg-neutral-50">
-                        <BarChart3 className="w-3.5 h-3.5" />
-                        <span>Analytics</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-neutral-500 px-2 py-1.5 rounded-lg hover:bg-neutral-50">
-                        <Settings className="w-3.5 h-3.5" />
-                        <span>Settings</span>
-                      </div>
-                    </div>
+                  {adminImages.map((src, idx) => {
+                    // Calculate position relative to active stack index (0 = front top, 1 = middle, 2 = back)
+                    const position = (idx - stackIndex + adminImages.length) % adminImages.length;
 
-                    {/* Stats & Charts */}
-                    <div className="col-span-12 sm:col-span-9 space-y-3">
-                      {/* Stat KPI Row */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-left">
-                        <div className="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
-                          <div className="text-[10px] text-neutral-500">
-                            Total Members
-                          </div>
-                          <div className="text-xs sm:text-sm font-bold text-neutral-900 mt-0.5">
-                            1,250
-                          </div>
-                          <div className="text-[9px] font-semibold text-emerald-600 mt-0.5">
-                            +12%
-                          </div>
-                        </div>
-                        <div className="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
-                          <div className="text-[10px] text-neutral-500">
-                            Active Members
-                          </div>
-                          <div className="text-xs sm:text-sm font-bold text-neutral-900 mt-0.5">
-                            980
-                          </div>
-                          <div className="text-[9px] font-semibold text-emerald-600 mt-0.5">
-                            +8%
-                          </div>
-                        </div>
-                        <div className="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
-                          <div className="text-[10px] text-neutral-500">
-                            Points Redeemed
-                          </div>
-                          <div className="text-xs sm:text-sm font-bold text-neutral-900 mt-0.5">
-                            4,560
-                          </div>
-                          <div className="text-[9px] font-semibold text-emerald-600 mt-0.5">
-                            +15%
-                          </div>
-                        </div>
-                        <div className="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
-                          <div className="text-[10px] text-neutral-500">
-                            Revenue Impact
-                          </div>
-                          <div className="text-xs sm:text-sm font-bold text-neutral-900 mt-0.5">
-                            ₹2,45,000
-                          </div>
-                          <div className="text-[9px] font-semibold text-emerald-600 mt-0.5">
-                            +18%
-                          </div>
-                        </div>
-                      </div>
+                    // Vertical Y offsets, reduced transparency, and gradual depth blur
+                    const yOffset = position === 0 ? 40 : position === 1 ? 20 : 0;
+                    const scale = position === 0 ? 1 : position === 1 ? 0.96 : 0.92;
+                    const opacity = position === 0 ? 1 : position === 1 ? 0.92 : 0.82;
+                    const blur = position === 0 ? "blur(0px)" : position === 1 ? "blur(2px)" : "blur(4px)";
+                    const zIndex = 30 - position * 10;
 
-                      {/* Chart + Top Rewards */}
-                      <div className="grid grid-cols-12 gap-3">
-                        {/* Line Chart box */}
-                        <div className="col-span-7 bg-neutral-50/60 p-3 rounded-xl border border-neutral-100">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-neutral-800">
-                              Member Activity
-                            </span>
-                            <span className="text-[9px] text-neutral-500 bg-white px-1.5 py-0.5 rounded border border-neutral-200 flex items-center gap-0.5">
-                              This Week <ChevronDown className="w-2.5 h-2.5" />
-                            </span>
-                          </div>
-                          {/* SVG Wave Line */}
-                          <div className="h-16 w-full flex items-end">
-                            <svg
-                              className="w-full h-full text-[#2563EB]"
-                              viewBox="0 0 200 60"
-                              fill="none"
-                              preserveAspectRatio="none"
-                            >
-                              <path
-                                d="M0,50 Q25,20 50,38 T100,25 T150,15 T200,35"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                              />
-                            </svg>
-                          </div>
-                          <div className="flex justify-between text-[8px] text-neutral-400 mt-1">
-                            <span>Mon</span>
-                            <span>Tue</span>
-                            <span>Wed</span>
-                            <span>Thu</span>
-                            <span>Fri</span>
-                            <span>Sat</span>
-                            <span>Sun</span>
-                          </div>
-                        </div>
-
-                        {/* Top Rewards box */}
-                        <div className="col-span-5 bg-neutral-50/60 p-3 rounded-xl border border-neutral-100 space-y-2">
-                          <span className="text-[10px] font-bold text-neutral-800 block">
-                            Top Rewards
-                          </span>
-                          <div className="space-y-1.5 text-[9px]">
-                            <div className="flex items-center justify-between bg-white p-1 rounded border border-neutral-100">
-                              <span className="font-semibold text-neutral-800">
-                                HydraFacial
-                              </span>
-                              <span className="text-neutral-500">520</span>
-                            </div>
-                            <div className="flex items-center justify-between bg-white p-1 rounded border border-neutral-100">
-                              <span className="font-semibold text-neutral-800">
-                                Laser Session
-                              </span>
-                              <span className="text-neutral-500">410</span>
-                            </div>
-                            <div className="flex items-center justify-between bg-white p-1 rounded border border-neutral-100">
-                              <span className="font-semibold text-neutral-800">
-                                Skincare Kit
-                              </span>
-                              <span className="text-neutral-500">320</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    return (
+                      <motion.div
+                        key={src}
+                        animate={{
+                          y: yOffset,
+                          scale,
+                          opacity,
+                          filter: blur,
+                          zIndex,
+                        }}
+                        transition={{
+                          duration: 0.7,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
+                        className="absolute inset-x-0 top-0 bg-white rounded-2xl sm:rounded-3xl border border-neutral-200/90 shadow-2xl overflow-hidden p-1.5 sm:p-2.5 origin-top"
+                      >
+                        <img
+                          src={src}
+                          alt={`Admin Dashboard View ${idx + 1}`}
+                          className="w-full h-auto object-contain rounded-xl sm:rounded-2xl"
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
-                {/* Overlapping Mobile App Card (Positioned to the left bottom) */}
-                <div className="absolute -left-3 sm:-left-6 bottom-2 w-44 sm:w-52 bg-white rounded-3xl shadow-md border-[5px] border-white p-3 space-y-2 z-20 hidden xs:block">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-neutral-900">
-                      aurwell
-                    </span>
-                    <Sparkles className="w-3 h-3 text-amber-500" />
-                  </div>
-                  <div className="bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-xl p-2.5 text-white space-y-1">
-                    <div className="text-[9px] opacity-80">Hi, Ananya 👋</div>
-                    <div className="text-[9px] font-medium">You have</div>
-                    <div className="text-sm font-extrabold">1,250 <span className="text-[9px] font-normal">Points</span></div>
-                    <div className="w-full bg-white/20 h-1 rounded-full mt-1.5 overflow-hidden">
-                      <div className="w-3/4 h-full bg-amber-400 rounded-full" />
-                    </div>
-                    <div className="text-[8px] opacity-90 flex justify-between pt-0.5">
-                      <span>Gold Member</span>
-                      <span>1,250 / 2,000 pts</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1 pt-1">
-                    <div className="text-[9px] font-bold text-neutral-800">
-                      Available Rewards
-                    </div>
-                    <div className="bg-neutral-50 p-1.5 rounded-lg border border-neutral-100 flex items-center justify-between">
-                      <div>
-                        <div className="text-[9px] font-bold text-neutral-900">
-                          HydraFacial
-                        </div>
-                        <div className="text-[8px] text-neutral-500">
-                          1,500 pts
-                        </div>
-                      </div>
-                      <div className="bg-neutral-900 text-white text-[8px] font-semibold px-2 py-0.5 rounded-md">
-                        Redeem
-                      </div>
-                    </div>
+                {/* Super Minimal Timer Bar (Reduced gap mt-3 / mt-4) */}
+                <div className="w-full max-w-[90px] sm:max-w-[110px] mx-auto mt-3 sm:mt-4">
+                  <div className="w-full h-[3px] bg-neutral-200/80 rounded-full overflow-hidden">
+                    <motion.div
+                      key={`${stackIndex}-${isPaused}`}
+                      initial={{ width: "0%" }}
+                      animate={{ width: isPaused ? "50%" : "100%" }}
+                      transition={isPaused ? { duration: 0 } : { duration: 5, ease: "linear" }}
+                      className="h-full bg-neutral-900 rounded-full"
+                    />
                   </div>
                 </div>
               </motion.div>
+
+              {/* Full-Screen Site-Matched Modal Lightbox Overlay */}
+              <AnimatePresence>
+                {isLightboxOpen && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    onClick={() => setIsLightboxOpen(false)}
+                    className="fixed inset-0 z-[200] bg-neutral-950/40 backdrop-blur-2xl flex flex-col items-center justify-center p-4 sm:p-8 select-none"
+                  >
+                    {/* Lightbox Modal Card Container */}
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="relative max-w-5xl w-full bg-white rounded-3xl border border-neutral-200/90 shadow-2xl overflow-hidden flex flex-col"
+                    >
+                      {/* Top Header Row */}
+                      <div className="w-full px-6 py-3.5 flex items-center justify-between border-b border-neutral-100 bg-white">
+                        <span className="text-sm font-black text-neutral-900 tracking-tight">
+                          Admin Panel
+                        </span>
+                        <button
+                          onClick={() => setIsLightboxOpen(false)}
+                          className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-800 flex items-center justify-center transition-colors border border-neutral-200/80"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Main Image Viewport with Integrated White Gradient Controls (Shown ONLY on Hover) */}
+                      <div
+                        onMouseEnter={() => setIsModalHovered(true)}
+                        onMouseLeave={() => setIsModalHovered(false)}
+                        className="relative w-full aspect-[16/9.5] sm:aspect-[16/9] bg-neutral-50 overflow-hidden group"
+                      >
+                        <AnimatePresence mode="wait">
+                          <motion.img
+                            key={adminImages[stackIndex]}
+                            src={adminImages[stackIndex]}
+                            alt="Admin Panel"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                            className="w-full h-full object-contain"
+                          />
+                        </AnimatePresence>
+
+                        {/* Integrated White Linear Gradient Controls (Gradient & Timer Bar Always Visible, Icons Hover-Only) */}
+                        <div className="absolute bottom-0 inset-x-0 p-4 pt-14 bg-gradient-to-t from-white/95 via-white/80 to-transparent flex flex-col items-center gap-2.5 z-20 pointer-events-auto">
+                          {/* 3 Small Minimal Icons (Fades in ONLY on Hover) */}
+                          <AnimatePresence>
+                            {isModalHovered && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 6 }}
+                                transition={{ duration: 0.18 }}
+                                className="flex items-center gap-4"
+                              >
+                                {/* 1. Prev Icon */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setStackIndex((prev) => (prev - 1 + adminImages.length) % adminImages.length);
+                                  }}
+                                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-900 flex items-center justify-center transition-all active:scale-95 shadow-2xs border border-neutral-200/80"
+                                  title="Previous Image"
+                                >
+                                  <ChevronLeft className="w-4 h-4" />
+                                </button>
+
+                                {/* 2. Pause / Play Icon */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsPaused((prev) => !prev);
+                                  }}
+                                  className="w-9 h-9 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white flex items-center justify-center transition-all active:scale-95 shadow-md"
+                                  title={isPaused ? "Play Timer" : "Pause Timer"}
+                                >
+                                  {isPaused ? (
+                                    <Play className="w-4 h-4 fill-white text-white ml-0.5" />
+                                  ) : (
+                                    <Pause className="w-4 h-4 fill-white text-white" />
+                                  )}
+                                </button>
+
+                                {/* 3. Next Icon */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setStackIndex((prev) => (prev + 1) % adminImages.length);
+                                  }}
+                                  className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-900 flex items-center justify-center transition-all active:scale-95 shadow-2xs border border-neutral-200/80"
+                                  title="Next Image"
+                                >
+                                  <ChevronRight className="w-4 h-4" />
+                                </button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          {/* Minimal Progress Timer Bar (Always Visible) */}
+                          <div className="w-full max-w-[110px] h-[3px] bg-neutral-200 rounded-full overflow-hidden">
+                            <motion.div
+                              key={`${stackIndex}-${isPaused}`}
+                              initial={{ width: "0%" }}
+                              animate={{ width: isPaused ? "50%" : "100%" }}
+                              transition={isPaused ? { duration: 0 } : { duration: 5, ease: "linear" }}
+                              className="h-full bg-neutral-900 rounded-full"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </section>

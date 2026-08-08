@@ -40,7 +40,7 @@ export default function AppDemoPhone({
     setShowPrototypeToast(true);
     toastTimeoutRef.current = setTimeout(() => {
       setShowPrototypeToast(false);
-    }, 3500);
+    }, 5000);
   };
 
   // Map active tab to bottom nav state
@@ -182,20 +182,15 @@ export default function AppDemoPhone({
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-12 left-3 right-3 z-[100] bg-neutral-900/95 text-white p-2.5 rounded-2xl shadow-2xl backdrop-blur-md border border-neutral-700/80 flex items-center justify-between gap-2 text-left select-none"
+            className="absolute bottom-12 left-3 right-3 z-[100] bg-neutral-900/65 text-white p-2.5 rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 flex items-center justify-between gap-2 text-left select-none"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-6 h-6 rounded-full bg-amber-400/20 border border-amber-400/30 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-extrabold text-white leading-tight">
-                  Interactive Prototype Demo
-                </p>
-                <p className="text-[8.5px] text-neutral-300 font-medium leading-tight mt-0.5 truncate">
-                  Click "Build my app" to create your live app!
-                </p>
-              </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold text-white leading-tight">
+                Interactive Prototype Demo
+              </p>
+              <p className="text-[8.5px] text-white/80 font-medium leading-tight mt-0.5 truncate">
+                Click "Build my app" to create your live app!
+              </p>
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -207,7 +202,7 @@ export default function AppDemoPhone({
               </Link>
               <button
                 onClick={() => setShowPrototypeToast(false)}
-                className="p-1 rounded-full text-neutral-400 hover:text-white transition-colors"
+                className="p-1 rounded-full text-white/60 hover:text-white transition-colors"
               >
                 <X className="w-3 h-3" />
               </button>
