@@ -286,12 +286,6 @@ export default function Home() {
                     >
                       How It Works
                     </Link>
-                    <Link
-                      href="#about"
-                      className="hover:text-neutral-600 transition-colors"
-                    >
-                      About
-                    </Link>
                   </nav>
                 </div>
 
@@ -1341,11 +1335,6 @@ export default function Home() {
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm text-neutral-500">
               <li>
-                <Link href="#about" className="hover:text-neutral-900 transition-colors">
-                  About Us
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="hover:text-neutral-900 transition-colors">
                   Contact
                 </Link>
@@ -1353,11 +1342,6 @@ export default function Home() {
               <li>
                 <Link href="/privacy" className="hover:text-neutral-900 transition-colors">
                   Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="hover:text-neutral-900 transition-colors">
-                  Terms of Service
                 </Link>
               </li>
             </ul>
