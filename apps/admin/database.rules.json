@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "activity_events": {
+      "$clinicId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".indexOn": ["timestamp"]
+      }
+    },
+    "loyalty_points": {
+      "$clinicId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$userId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}
