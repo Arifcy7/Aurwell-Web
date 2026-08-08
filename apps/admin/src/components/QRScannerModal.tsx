@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { ref, get, set } from "firebase/database";
+import { ref, get, set, push } from "firebase/database";
 import { db, rtdb } from "@/lib/firebase/client";
 
 interface QRScannerModalProps {
@@ -145,6 +145,22 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
 
       // 6. Write increments to RTDB & Firestore
       await set(loyaltyRef, newLoyaltyBalance);
+
+      // Log activity event in RTDB for live dashboard feed
+      try {
+        const activityRef = push(ref(rtdb, `activity_events/${clinicId}`));
+        await set(activityRef, {
+          id: activityRef.key,
+          type: "qr_checkin",
+          message: `${patientName} completed QR Verification check-in`,
+          timestamp: Date.now(),
+          userName: patientName,
+          userUid: userid,
+        });
+      } catch (actErr) {
+        console.error("Failed to log activity event to RTDB:", actErr);
+      }
+
       await setDoc(
         patientDocRef,
         {

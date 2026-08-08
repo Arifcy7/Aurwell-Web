@@ -192,39 +192,46 @@ export default function DashboardPage() {
         });
 
         // 5. Connect to Firebase Realtime Database for live Product Activity
-        rtdbRef = ref(rtdb, `activity_events/${clinicId}`);
-        onValue(
-          rtdbRef,
-          (snapshot) => {
-            setRtdbConnected(true);
-            const val = snapshot.val();
-            if (val) {
-              const eventList: ActivityItem[] = Object.keys(val).map((key) => {
-                const item = val[key];
-                return {
-                  id: item.id || key,
-                  type: item.type || "activity",
-                  message: item.message || "User activity recorded",
-                  timestamp: Number(item.timestamp || Date.now()),
-                  userName: item.userName,
-                  userUid: item.userUid,
-                };
-              });
+        try {
+          rtdbRef = ref(rtdb, `activity_events/${clinicId}`);
+          onValue(
+            rtdbRef,
+            (snapshot) => {
+              setRtdbConnected(true);
+              const val = snapshot.val();
+              if (val) {
+                const eventList: ActivityItem[] = Object.keys(val).map((key) => {
+                  const item = val[key];
+                  return {
+                    id: item.id || key,
+                    type: item.type || "activity",
+                    message: item.message || "User activity recorded",
+                    timestamp: Number(item.timestamp || Date.now()),
+                    userName: item.userName,
+                    userUid: item.userUid,
+                  };
+                });
 
-              // Sort newest first
-              eventList.sort((a, b) => b.timestamp - a.timestamp);
-              setActivities(eventList);
-            } else {
+                // Sort newest first
+                eventList.sort((a, b) => b.timestamp - a.timestamp);
+                setActivities(eventList);
+              } else {
+                setActivities([]);
+              }
+              setLoading(false);
+            },
+            (error) => {
+              // Silently handle permission or connection errors
+              setRtdbConnected(false);
               setActivities([]);
+              setLoading(false);
             }
-            setLoading(false);
-          },
-          (error) => {
-            console.error("RTDB Activity feed subscription error:", error);
-            setRtdbConnected(false);
-            setLoading(false);
-          }
-        );
+          );
+        } catch (e) {
+          setRtdbConnected(false);
+          setActivities([]);
+          setLoading(false);
+        }
       } catch (err) {
         console.error("Error loading dashboard data:", err);
         setLoading(false);
