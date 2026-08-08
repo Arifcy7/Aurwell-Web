@@ -31,7 +31,7 @@ export default function AppDemoPhone({
   currency = { symbol: "$", code: "USD" },
   onSelectTab,
 }: AppDemoPhoneProps) {
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
   const [showPrototypeToast, setShowPrototypeToast] = useState(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 

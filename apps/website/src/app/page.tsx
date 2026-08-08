@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
+  const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
   const [activeTab, setActiveTab] = useState("Membership");
   const [previousTab, setPreviousTab] = useState("Membership");
 
