@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import MotionButton from "@/components/ui/motion-button";
+import AppDemoPhone from "@/components/demo/AppDemoPhone";
 import stepImg1 from "@/assets/1.png";
 import stepImg2 from "@/assets/2.png";
 import stepImg3 from "@/assets/3.png";
@@ -26,15 +27,47 @@ import {
   Palette,
   Sliders,
   Rocket,
+  Paintbrush,
+  SlidersHorizontal,
+  Pencil,
 } from "lucide-react";
 
 export default function Home() {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001";
   const [activeTab, setActiveTab] = useState("Membership");
+  const [previousTab, setPreviousTab] = useState("Membership");
+
+  const handleTabClick = (tabName: string) => {
+    if (tabName !== "Configure") {
+      setPreviousTab(tabName);
+    }
+    setActiveTab(tabName);
+  };
   const [showSplash, setShowSplash] = useState(true);
   const [loadProgress, setLoadProgress] = useState(30);
   const [isMobile, setIsMobile] = useState(false);
   const [sliderOffset, setSliderOffset] = useState({ x: 0, y: 0 });
+
+  const colorOptions = [
+    { id: "obsidian", name: "Obsidian Black", hex: "#111827" },
+    { id: "emerald", name: "Emerald Sage", hex: "#059669" },
+    { id: "rose", name: "Blush Rose", hex: "#e11d48" },
+    { id: "royal", name: "Royal Blue", hex: "#2563eb" },
+    { id: "gold", name: "Champagne Gold", hex: "#d97706" },
+  ];
+
+  const currencyOptions = [
+    { code: "USD", symbol: "$" },
+    { code: "EUR", symbol: "€" },
+    { code: "GBP", symbol: "£" },
+    { code: "AUD", symbol: "A$" },
+  ];
+
+  const [clinicName, setClinicName] = useState("Luxe Aesthetics");
+  const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
+  const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions[0]);
+  const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
+  const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
 
   const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const trackEl = document.getElementById("outer-glass-track");
@@ -334,185 +367,387 @@ export default function Home() {
                       <path d="M 0,0.36 C 0,0.08 0.08,0 0.36,0 H 0.64 C 0.92,0 1,0.08 1,0.36 V 0.64 C 1,0.92 0.92,1 0.64,1 H 0.36 C 0.08,1 0,0.92 0,0.64 Z" />
                     </clipPath>
                   </defs>
-                </svg>                {/* Side-by-side Layout Container for Slider & Phone */}
-                <div className="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-10 sm:gap-12 lg:gap-14 w-full h-full max-w-3xl mx-auto pt-10 sm:pt-0">
+                </svg>                {/* Centered Hero Assembly: Phone is Fixed Center Anchor */}
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto pt-10 sm:pt-0">
                   
-                  {/* Left: Slider Assembly with "Try demo!" Annotation */}
-                  <div className="relative flex flex-col items-center flex-shrink-0">
-                    {/* "Try demo!" handwritten text with curved arch arrow */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
-                      animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-                      transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
-                      className="absolute -top-11 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
-                    >
-                      <span
-                        className="text-neutral-900 text-base sm:text-xl font-bold italic transform -rotate-12 translate-x-1"
-                        style={{ fontFamily: "'Caveat', 'Comic Sans MS', cursive, sans-serif" }}
-                      >
-                        Try demo!
-                      </span>
-                      {/* Curved Arch Arrow */}
-                      <svg
-                        className="w-10 h-8 sm:w-12 sm:h-10 text-neutral-900 -mt-1 ml-4 sm:ml-6 transform rotate-12"
-                        viewBox="0 0 50 40"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M 5 5 Q 28 10 38 28" />
-                        <path d="M 26 28 L 38 28 L 36 17" />
-                      </svg>
-                    </motion.div>
+                  {/* Phone Centered Anchor Container */}
+                  <div className="relative flex flex-col lg:flex-row items-center justify-center">
 
-                    {/* Interactive Feature Slider (Horizontal on mobile, Vertical on desktop) */}
-                    <motion.div
-                      id="outer-glass-track"
-                      initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-                      animate={{
-                        opacity: 1,
-                        scale: 1,
-                        filter: "blur(0px)",
-                        x: sliderOffset.x,
-                        y: sliderOffset.y,
-                      }}
-                      transition={{
-                        opacity: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                        scale: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                        filter: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                        x: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
-                        y: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
-                      }}
-                      style={{
-                        clipPath: "url(#squircle-track-clip)",
-                      }}
-                      className="relative z-20 flex flex-row sm:flex-col items-center p-1.5 sm:p-2 rounded-[28px] sm:rounded-[32px] w-[290px] sm:w-[115px] h-[82px] sm:h-auto gap-1 sm:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900"
-                    >
-                      {/* Animated Active Tab Indicator (Horizontal on mobile, Vertical on desktop) */}
+                    {/* Left: Feature Slider Assembly (Anchored to Left of Phone) */}
+                    <div className="relative lg:absolute lg:right-full lg:mr-8 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-center flex-shrink-0 z-20 mb-6 lg:mb-0">
+                      {/* "Try demo!" handwritten text with curved arch arrow */}
                       <motion.div
-                        className={`absolute rounded-[22px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${
-                          isMobile
-                            ? "top-1.5 bottom-1.5 w-[calc(33.333%-5px)] h-[calc(100%-12px)] left-1.5"
-                            : "left-2 right-2 aspect-square top-2"
-                        }`}
-                        style={{
-                          clipPath: "url(#squircle-pill-clip)",
-                        }}
+                        initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
+                        animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+                        transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute -top-11 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
+                      >
+                        <span
+                          className="text-neutral-900 text-base sm:text-xl font-bold italic transform -rotate-12 translate-x-1"
+                          style={{ fontFamily: "'Caveat', 'Comic Sans MS', cursive, sans-serif" }}
+                        >
+                          Try demo!
+                        </span>
+                        {/* Curved Arch Arrow */}
+                        <svg
+                          className="w-10 h-8 sm:w-12 sm:h-10 text-neutral-900 -mt-1 ml-4 sm:ml-6 transform rotate-12"
+                          viewBox="0 0 50 40"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M 5 5 Q 28 10 38 28" />
+                          <path d="M 26 28 L 38 28 L 36 17" />
+                        </svg>
+                      </motion.div>
+
+                      {/* Interactive Feature Slider */}
+                      <motion.div
+                        id="outer-glass-track"
+                        initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
                         animate={{
-                          x: isMobile
-                            ? activeTab === "Membership"
-                              ? "0%"
-                              : activeTab === "Rewards"
-                              ? "calc(100% + 4px)"
-                              : "calc(200% + 8px)"
-                            : 0,
-                          y: !isMobile
-                            ? activeTab === "Membership"
-                              ? "0%"
-                              : activeTab === "Rewards"
-                              ? "calc(100% + 6px)"
-                              : "calc(200% + 12px)"
-                            : 0,
+                          opacity: 1,
+                          scale: 1,
+                          filter: "blur(0px)",
+                          x: sliderOffset.x,
+                          y: sliderOffset.y,
                         }}
                         transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 30,
-                          mass: 0.8,
+                          opacity: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                          scale: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                          filter: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
+                          x: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
+                          y: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
                         }}
-                      />
-
-                      {/* Slider Item 1: Membership */}
-                      <div
-                        onClick={() => setActiveTab("Membership")}
-                        className="flex-1 sm:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
-                      >
-                        <Lock
-                          className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
-                            ? "text-white scale-110"
-                            : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
-                            }`}
-                        />
-                        <span
-                          className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
-                            ? "text-white font-semibold"
-                            : "text-neutral-600 group-hover:text-neutral-800 font-medium"
-                            }`}
-                        >
-                          Membership
-                        </span>
-                      </div>
-
-                      {/* Slider Item 2: Rewards */}
-                      <div
-                        onClick={() => setActiveTab("Rewards")}
-                        className="flex-1 sm:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
-                      >
-                        <Gift
-                          className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
-                            ? "text-white scale-110"
-                            : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
-                            }`}
-                        />
-                        <span
-                          className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
-                            ? "text-white font-semibold"
-                            : "text-neutral-600 group-hover:text-neutral-800 font-medium"
-                            }`}
-                        >
-                          Rewards
-                        </span>
-                      </div>
-
-                      {/* Slider Item 3: Smart Deals */}
-                      <div
-                        onClick={() => setActiveTab("Smart Deals")}
-                        className="flex-1 sm:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
-                      >
-                        <Star
-                          className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
-                            ? "text-white scale-110"
-                            : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
-                            }`}
-                        />
-                        <span
-                          className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
-                            ? "text-white font-semibold"
-                            : "text-neutral-600 group-hover:text-neutral-800 font-medium"
-                            }`}
-                        >
-                          Smart Deals
-                        </span>
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Right: Mobile Phone Mockup Frame */}
-                  <div
-                    className="relative z-10 h-[340px] sm:h-[480px] lg:h-[540px] bg-white rounded-[38px] sm:rounded-[46px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.12)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
-                    style={{ aspectRatio: "1170 / 2532" }}
-                  >
-                    {/* Side button detail */}
-                    <div className="absolute -right-[11px] top-32 w-[3px] h-16 bg-neutral-200 rounded-r-md" />
-
-                    {/* Screen Container with Dynamic Content */}
-                    <div className="w-full h-full bg-white rounded-[38px] flex flex-col items-center justify-center border border-neutral-100 relative overflow-hidden p-4">
-                      {/* Background Grid Pattern */}
-                      <div
-                        className="absolute inset-0 opacity-30"
                         style={{
-                          backgroundImage: `linear-gradient(#d1d5db 1px, transparent 1px), linear-gradient(90deg, #d1d5db 1px, transparent 1px)`,
-                          backgroundSize: "32px 32px",
+                          clipPath: "url(#squircle-track-clip)",
                         }}
-                      />
-                      <span className="relative z-10 text-neutral-900 font-bold text-lg sm:text-xl tracking-tight">
-                        App Demo
-                      </span>
-                    </div>
-                  </div>
+                        className="relative z-20 flex flex-row lg:flex-col items-center p-1.5 sm:p-2 rounded-[28px] sm:rounded-[32px] w-[340px] sm:w-[360px] lg:w-[115px] h-[82px] lg:h-auto gap-1 sm:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900"
+                      >
+                        {/* Animated Active Tab Indicator (4 Segments) */}
+                        <motion.div
+                          className={`absolute rounded-[22px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${
+                            isMobile
+                              ? "top-1.5 bottom-1.5 w-[calc(25%-5px)] h-[calc(100%-12px)] left-1.5"
+                              : "left-2 right-2 aspect-square top-2"
+                          }`}
+                          style={{
+                            clipPath: "url(#squircle-pill-clip)",
+                          }}
+                          animate={{
+                            x: isMobile
+                              ? activeTab === "Membership"
+                                ? "0%"
+                                : activeTab === "Rewards"
+                                ? "calc(100% + 4px)"
+                                : activeTab === "Smart Deals"
+                                ? "calc(200% + 8px)"
+                                : "calc(300% + 12px)"
+                              : 0,
+                            y: !isMobile
+                              ? activeTab === "Membership"
+                                ? "0%"
+                                : activeTab === "Rewards"
+                                ? "calc(100% + 6px)"
+                                : activeTab === "Smart Deals"
+                                ? "calc(200% + 12px)"
+                                : "calc(300% + 18px)"
+                              : 0,
+                          }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 30,
+                            mass: 0.8,
+                          }}
+                        />
 
+                        {/* Slider Item 1: Membership */}
+                        <div
+                          onClick={() => handleTabClick("Membership")}
+                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                        >
+                          <Lock
+                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
+                              ? "text-white scale-110"
+                              : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                              }`}
+                          />
+                          <span
+                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
+                              ? "text-white font-semibold"
+                              : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                              }`}
+                          >
+                            Membership
+                          </span>
+                        </div>
+
+                        {/* Slider Item 2: Rewards */}
+                        <div
+                          onClick={() => handleTabClick("Rewards")}
+                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                        >
+                          <Gift
+                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
+                              ? "text-white scale-110"
+                              : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                              }`}
+                          />
+                          <span
+                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
+                              ? "text-white font-semibold"
+                              : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                              }`}
+                          >
+                            Rewards
+                          </span>
+                        </div>
+
+                        {/* Slider Item 3: Smart Deals */}
+                        <div
+                          onClick={() => handleTabClick("Smart Deals")}
+                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                        >
+                          <Star
+                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
+                              ? "text-white scale-110"
+                              : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                              }`}
+                          />
+                          <span
+                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
+                              ? "text-white font-semibold"
+                              : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                              }`}
+                          >
+                            Smart Deals
+                          </span>
+                        </div>
+
+                        {/* Slider Item 4: Configure */}
+                        <div
+                          onClick={() => handleTabClick("Configure")}
+                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                        >
+                          <SlidersHorizontal
+                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Configure"
+                              ? "text-white scale-110"
+                              : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
+                              }`}
+                          />
+                          <span
+                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Configure"
+                              ? "text-white font-semibold"
+                              : "text-neutral-600 group-hover:text-neutral-800 font-medium"
+                              }`}
+                          >
+                            Configure
+                          </span>
+                        </div>
+                      </motion.div>
+                    </div>
+
+                    {/* Center: Mobile Phone Mockup Frame (PERFECTLY CENTERED ANCHOR) */}
+                    <div
+                      className="relative z-10 h-[390px] sm:h-[540px] lg:h-[610px] bg-white rounded-[38px] sm:rounded-[46px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.12)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
+                      style={{ aspectRatio: "1170 / 2532" }}
+                    >
+                      {/* Side button detail */}
+                      <div className="absolute -right-[11px] top-32 w-[3px] h-16 bg-neutral-200 rounded-r-md" />
+
+                      {/* Screen Container with Dynamic Content */}
+                      <div className="w-full h-full bg-white rounded-[32px] sm:rounded-[38px] relative overflow-hidden">
+                        <AppDemoPhone
+                          activeTab={activeTab === "Configure" ? previousTab : activeTab}
+                          clinicName={clinicName}
+                          brandColor={selectedColor.hex}
+                          currency={selectedCurrency}
+                          onSelectTab={(tab) => handleTabClick(tab)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Right: Floating App Configurator Card (Anchored to Right of Phone) */}
+                    <AnimatePresence>
+                      {activeTab === "Configure" && (
+                        <motion.div
+                          key="configure-card"
+                          initial={{ opacity: 0, scale: 0.92, x: -20, filter: "blur(10px)" }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            x: 0,
+                            filter: "blur(0px)",
+                          }}
+                          exit={{ opacity: 0, scale: 0.92, x: -20, filter: "blur(10px)" }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className="relative lg:absolute lg:left-full lg:ml-8 lg:top-1/2 lg:-translate-y-1/2 z-30 flex flex-col p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] w-[290px] sm:w-[220px] lg:w-[235px] bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 select-none flex-shrink-0 space-y-3.5 mt-6 lg:mt-0"
+                        >
+                          {/* Card Header with Configure / Edit Icon on the Right */}
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-extrabold text-xs sm:text-sm text-neutral-900 tracking-tight leading-snug">
+                                Configure App
+                              </h4>
+                              <p className="text-[10px] sm:text-xs font-normal text-neutral-500 mt-0.5">
+                                Personalize preview
+                              </p>
+                            </div>
+                            <SlidersHorizontal className="w-5 h-5 text-neutral-800 flex-shrink-0 mt-0.5" />
+                          </div>
+
+                          {/* 1. Clinic Name Input */}
+                          <div className="space-y-1">
+                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
+                              Clinic Name
+                            </label>
+                            <div className="w-full rounded-full bg-neutral-100/90 border border-neutral-200 px-3 py-1.5 focus-within:border-neutral-900 transition-colors shadow-2xs">
+                              <input
+                                type="text"
+                                value={clinicName}
+                                onChange={(e) => setClinicName(e.target.value)}
+                                placeholder="Clinic Name"
+                                className="w-full bg-transparent font-semibold text-xs text-neutral-900 placeholder:text-neutral-400 outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* 2. Color Dropdown with Larger Solid Pill Swatch */}
+                          <div className="space-y-1 relative z-30">
+                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
+                              Brand Color
+                            </label>
+                            <div
+                              onClick={() => {
+                                setIsColorMenuOpen(!isColorMenuOpen);
+                                setIsCurrencyMenuOpen(false);
+                              }}
+                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-3 py-1.5 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
+                            >
+                              <span className="text-xs font-semibold text-neutral-800 truncate pr-1">
+                                {selectedColor.name}
+                              </span>
+                              {/* Larger Solid Color Pill without white stroke */}
+                              <div
+                                className="w-10 h-4.5 rounded-full flex-shrink-0 shadow-2xs"
+                                style={{ backgroundColor: selectedColor.hex }}
+                              />
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                              {isColorMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1.5 z-[100] space-y-0.5"
+                                >
+                                  {colorOptions.map((color) => (
+                                    <div
+                                      key={color.id}
+                                      onClick={() => {
+                                        setSelectedColor(color);
+                                        setIsColorMenuOpen(false);
+                                      }}
+                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
+                                        selectedColor.id === color.id
+                                          ? "bg-neutral-100 font-bold text-neutral-900"
+                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
+                                      }`}
+                                    >
+                                      <span className="text-xs">{color.name}</span>
+                                      <div
+                                        className="w-7 h-3.5 rounded-full flex-shrink-0"
+                                        style={{ backgroundColor: color.hex }}
+                                      />
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 3. Currency Dropdown with Pill Shape */}
+                          <div className="space-y-1 relative z-20">
+                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
+                              Currency
+                            </label>
+                            <div
+                              onClick={() => {
+                                setIsCurrencyMenuOpen(!isCurrencyMenuOpen);
+                                setIsColorMenuOpen(false);
+                              }}
+                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-3.5 py-1.5 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
+                            >
+                              <span className="text-xs font-semibold text-neutral-800">
+                                {selectedCurrency.code} ({selectedCurrency.symbol})
+                              </span>
+                              <span className="text-[10px] font-bold text-neutral-400">▼</span>
+                            </div>
+
+                            {/* Dropdown Menu (Solid Opaque Background - Zero Bleed) */}
+                            <AnimatePresence>
+                              {isCurrencyMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1.5 z-[100] space-y-0.5"
+                                >
+                                  {currencyOptions.map((curr) => (
+                                    <div
+                                      key={curr.code}
+                                      onClick={() => {
+                                        setSelectedCurrency(curr);
+                                        setIsCurrencyMenuOpen(false);
+                                      }}
+                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
+                                        selectedCurrency.code === curr.code
+                                          ? "bg-neutral-100 font-bold text-neutral-900"
+                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
+                                      }`}
+                                    >
+                                      <span className="text-xs">{curr.code}</span>
+                                      <span className="text-xs font-bold text-neutral-600">
+                                        {curr.symbol}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 4. Build My App CTA Button */}
+                          <div className="pt-1">
+                            <Link
+                              href={`${adminUrl}/signup`}
+                              className="w-full py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center text-center"
+                            >
+                              Build my app
+                            </Link>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                  </div>
+                </div>
+
+                {/* Minimal Text Note Positioned at Absolute Bottom of Hero Container */}
+                <div className="absolute bottom-2 sm:bottom-3 left-0 right-0 z-20 text-center px-4 pointer-events-none">
+                  <p className="text-[10px] sm:text-[11px] text-white/80 font-medium tracking-tight select-none max-w-sm sm:max-w-md mx-auto leading-tight drop-shadow-sm opacity-90">
+                    * Interactive demo preview. The actual mobile app features complete booking, payments & live clinic management.
+                  </p>
                 </div>
               </div>
             </motion.div>
