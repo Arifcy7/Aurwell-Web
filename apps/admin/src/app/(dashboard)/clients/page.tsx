@@ -89,22 +89,49 @@ export default function ClientsPage() {
           const q = query(collection(db, "clinics", clinicId, "patients"));
           const snapshot = await getDocsCacheFirst(q);
 
-          const loyaltySnapshot = await get(ref(rtdb, `loyalty_points/${clinicId}`));
-          const loyaltyMap = loyaltySnapshot.exists() ? loyaltySnapshot.val() || {} : {};
-
           const loadedClients: ClientProfile[] = [];
           snapshot.forEach((d) => {
             const data = d.data();
-            const rtdbLoyalty = loyaltyMap[d.id] !== undefined ? loyaltyMap[d.id] : 0;
             const jDate = data.joinedAt || data.createdAt;
             loadedClients.push({
               id: d.id,
               ...data,
               joinedAt: jDate,
-              loyaltyBalance: rtdbLoyalty,
+              loyaltyBalance: data.loyaltyBalance || 0,
             } as ClientProfile);
           });
+
           setClients(loadedClients);
+          setLoading(false);
+
+          // Non-blocking background sync for live RTDB loyalty points
+          try {
+            const loyaltyRef = ref(rtdb, `loyalty_points/${clinicId}`);
+            get(loyaltyRef)
+              .then((loyaltySnapshot) => {
+                if (loyaltySnapshot.exists()) {
+                  const loyaltyMap = loyaltySnapshot.val() || {};
+                  setClients((prev) =>
+                    prev.map((c) => {
+                      const rtdbVal = loyaltyMap[c.id];
+                      const finalBalance =
+                        rtdbVal !== undefined && rtdbVal !== null
+                          ? Number(rtdbVal)
+                          : Number(c.loyaltyBalance || 0);
+                      return {
+                        ...c,
+                        loyaltyBalance: isNaN(finalBalance) ? 0 : finalBalance,
+                      };
+                    })
+                  );
+                }
+              })
+              .catch((err) => {
+                console.warn("RTDB loyalty fetch skipped or denied:", err);
+              });
+          } catch {
+            // Silently ignore
+          }
         }
       } catch (err) {
         console.error("Error fetching clients:", err);

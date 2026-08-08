@@ -75,25 +75,31 @@ export default function NotificationsPage() {
             orderBy("sentAt", "desc")
           );
 
-          const unsubHistory = onSnapshot(histQuery, (snapshot) => {
-            const loadedHistory: NotificationHistory[] = [];
-            snapshot.forEach((d) => {
-              const data = d.data();
-              loadedHistory.push({
-                id: d.id,
-                title: data.title,
-                body: data.body,
-                imageUrl: data.imageUrl || "",
-                sentAt: data.sentAt,
-                targetAudience: data.targetAudience,
-                visitsCriteria: data.visitsCriteria,
-                recipientCount: data.recipientCount || 0,
-                successCount: data.successCount || 0,
-                failureCount: data.failureCount || 0,
+          const unsubHistory = onSnapshot(
+            histQuery,
+            (snapshot) => {
+              const loadedHistory: NotificationHistory[] = [];
+              snapshot.forEach((d) => {
+                const data = d.data();
+                loadedHistory.push({
+                  id: d.id,
+                  title: data.title,
+                  body: data.body,
+                  imageUrl: data.imageUrl || "",
+                  sentAt: data.sentAt,
+                  targetAudience: data.targetAudience,
+                  visitsCriteria: data.visitsCriteria,
+                  recipientCount: data.recipientCount || 0,
+                  successCount: data.successCount || 0,
+                  failureCount: data.failureCount || 0,
+                });
               });
-            });
-            setHistory(loadedHistory);
-          });
+              setHistory(loadedHistory);
+            },
+            (err) => {
+              console.warn("Notifications listener warning:", err);
+            }
+          );
 
           return () => unsubHistory();
         }

@@ -2,9 +2,11 @@
   "rules": {
     "loyalty_points": {
       "$clinicId": {
+        ".read": "auth != null",
+        ".write": "auth != null",
         "$userId": {
-          ".read": "auth != null && (auth.uid === $userId || root.child('users').child(auth.uid).child('role').val() === 'clinic_admin')",
-          ".write": "auth != null && (auth.uid === $userId || root.child('users').child(auth.uid).child('role').val() === 'clinic_admin')"
+          ".read": "auth != null",
+          ".write": "auth != null"
         }
       }
     },
@@ -12,10 +14,7 @@
       "$clinicId": {
         ".read": "auth != null",
         ".write": "auth != null",
-        ".indexOn": ["timestamp"],
-        "$eventId": {
-          ".validate": "newData.hasChildren(['type', 'timestamp'])"
-        }
+        ".indexOn": ["timestamp"]
       }
     }
   }

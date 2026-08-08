@@ -5,22 +5,18 @@ service cloud.firestore {
 
     // ── HELPER FUNCTIONS ──────────────────────────────────────────────────
 
-    // Check if user is authenticated with Firebase Auth
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Check if the authenticated user matches a specific UID
     function isUser(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Safely get user profile data from /users/{uid}
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Check if user is a clinic admin via custom claim or Firestore user record
     function isAdmin() {
       return isSignedIn() && (
         (request.auth.token.keys().hasAll(['role']) && request.auth.token.role == 'clinic_admin') ||
@@ -28,7 +24,6 @@ service cloud.firestore {
       );
     }
 
-    // Check if the user is the authorized admin for the specified clinic
     function isClinicAdmin(clinicId) {
       return isAdmin() && (
         request.auth.uid == clinicId ||
@@ -39,7 +34,6 @@ service cloud.firestore {
     }
 
     // ── 1. USERS COLLECTION ──────────────────────────────────────────────
-    // Path: /users/{userId}
     match /users/{userId} {
       allow read: if isUser(userId) || isAdmin();
       allow create, update: if isUser(userId) || isAdmin();
@@ -47,62 +41,55 @@ service cloud.firestore {
     }
 
     // ── 2. CLINICS COLLECTION & SUBCOLLECTIONS ───────────────────────────
-    // Path: /clinics/{clinicId}
     match /clinics/{clinicId} {
-      // Public / Authenticated read so mobile app patients can view clinic details
       allow read: if isSignedIn();
-      // Clinic owner / admin can update branding, stripe settings, info
       allow write: if isClinicAdmin(clinicId);
 
-      // Treatments subcollection
       match /treatments/{treatmentId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Membership Tiers subcollection
       match /membership_tiers/{tierId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Rewards catalog subcollection
       match /rewards/{rewardId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Clinic settings subcollection (e.g. /settings/rewards_ratio)
       match /settings/{settingId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Blogs subcollection
       match /blogs/{blogId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Banners subcollection
       match /banners/{bannerId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Automated offers subcollection
       match /automated_offers/{offerId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
       }
 
-      // Patients subcollection
+      match /notifications/{notificationId} {
+        allow read: if isSignedIn();
+        allow write: if isClinicAdmin(clinicId);
+      }
+
       match /patients/{patientId} {
         allow read: if isClinicAdmin(clinicId) || isUser(patientId);
         allow create, update: if isClinicAdmin(clinicId) || isUser(patientId);
         allow delete: if isClinicAdmin(clinicId);
 
-        // Availed rewards (coupons redeemed / claimed by patient)
         match /availed_rewards/{availedRewardId} {
           allow read: if isClinicAdmin(clinicId) || isUser(patientId);
           allow create, update: if isClinicAdmin(clinicId) || isUser(patientId);
@@ -110,23 +97,25 @@ service cloud.firestore {
         }
       }
 
-      // Transactions subcollection
       match /transactions/{transactionId} {
         allow read: if isClinicAdmin(clinicId) || (isSignedIn() && resource.data.userUid == request.auth.uid);
         allow create: if isClinicAdmin(clinicId) || (isSignedIn() && request.resource.data.userUid == request.auth.uid);
         allow update, delete: if isClinicAdmin(clinicId);
       }
 
-      // Active Memberships subcollection
       match /active_memberships/{memberId} {
         allow read: if isClinicAdmin(clinicId) || (isSignedIn() && resource.data.userUid == request.auth.uid);
         allow create: if isClinicAdmin(clinicId) || (isSignedIn() && request.resource.data.userUid == request.auth.uid);
         allow update, delete: if isClinicAdmin(clinicId);
       }
+
+      // Recursive fallback for any subcollections under /clinics/{clinicId}
+      match /{subcollection=**} {
+        allow read, write: if isSignedIn();
+      }
     }
 
     // ── 3. REFERRALS COLLECTION ──────────────────────────────────────────
-    // Path: /referrals/{referralCode}
     match /referrals/{referralCode} {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && (isClinicAdmin(request.resource.data.clinicId) || request.auth.uid == request.resource.data.uid);
@@ -134,7 +123,6 @@ service cloud.firestore {
     }
 
     // ── 4. B2B REFERRALS COLLECTION ──────────────────────────────────────
-    // Path: /b2b_referrals/{referralId}
     match /b2b_referrals/{referralId} {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && (isAdmin() || request.auth.uid == request.resource.data.referrerUid);
