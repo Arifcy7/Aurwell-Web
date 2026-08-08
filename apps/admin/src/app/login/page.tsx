@@ -14,7 +14,7 @@ export default function LoginPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState("");
 
-  const landingPageUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000";
+  const landingPageUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://www.aurwell.app";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

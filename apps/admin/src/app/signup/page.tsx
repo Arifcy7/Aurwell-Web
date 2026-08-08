@@ -16,7 +16,7 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [referredByCode, setReferredByCode] = useState("");
 
-  const landingPageUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000";
+  const landingPageUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://www.aurwell.app";
 
   // Step 1 State
   const [firstName, setFirstName] = useState("");
