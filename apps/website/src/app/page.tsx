@@ -134,7 +134,7 @@ export default function Home() {
     let isMounted = true;
 
     const checkMobile = () => {
-      if (isMounted) setIsMobile(window.innerWidth < 640);
+      if (isMounted) setIsMobile(window.innerWidth < 1024);
     };
 
     checkMobile();
@@ -360,17 +360,19 @@ export default function Home() {
                 id="hero-glass-root"
                 onMouseMove={handleHeroMouseMove}
                 onMouseLeave={handleHeroMouseLeave}
-                className="relative w-full h-full min-h-[520px] sm:min-h-[600px] rounded-2xl sm:rounded-[24px] overflow-hidden flex items-center justify-center p-4 sm:p-5 lg:p-6"
+                className="relative w-full h-full min-h-[calc(100vh-32px)] sm:min-h-[750px] lg:min-h-[600px] rounded-2xl sm:rounded-[24px] overflow-visible lg:overflow-hidden flex items-center justify-center p-3.5 sm:p-5 lg:p-6 pb-10 sm:pb-5 lg:pb-6"
               >
-                {/* Background Hero Gradient Image (Full Height) */}
-                <Image
-                  src="/hero-image.png"
-                  alt="Gradient Hero Background"
-                  fill
-                  className="object-cover pointer-events-none select-none"
-                  draggable={false}
-                  priority
-                />
+                {/* Background Hero Gradient Image (Full Height & Rounded Clip) */}
+                <div className="absolute inset-0 rounded-2xl sm:rounded-[24px] overflow-hidden pointer-events-none select-none">
+                  <Image
+                    src="/hero-image.png"
+                    alt="Gradient Hero Background"
+                    fill
+                    className="object-cover pointer-events-none select-none"
+                    draggable={false}
+                    priority
+                  />
+                </div>
 
                 {/* SVG Squircle ClipPath Definitions */}
                 <svg className="absolute w-0 h-0 pointer-events-none opacity-0" aria-hidden="true">
@@ -382,14 +384,16 @@ export default function Home() {
                       <path d="M 0,0.36 C 0,0.08 0.08,0 0.36,0 H 0.64 C 0.92,0 1,0.08 1,0.36 V 0.64 C 1,0.92 0.92,1 0.64,1 H 0.36 C 0.08,1 0,0.92 0,0.64 Z" />
                     </clipPath>
                   </defs>
-                </svg>                {/* Centered Hero Assembly: Phone is Fixed Center Anchor */}
-                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto pt-10 sm:pt-0">
+                </svg>
+
+                {/* Centered Hero Assembly: Phone is Fixed Center Anchor */}
+                <div className="relative z-10 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto pt-1 sm:pt-0">
                   
                   {/* Phone Centered Anchor Container */}
-                  <div className="relative flex flex-col lg:flex-row items-center justify-center">
+                  <div className="relative flex flex-col lg:flex-row items-center justify-center w-full lg:w-auto">
 
-                    {/* Left: Feature Slider Assembly (Anchored to Left of Phone) */}
-                    <div className="relative lg:absolute lg:right-full lg:mr-8 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-center flex-shrink-0 z-20 mb-6 lg:mb-0">
+                    {/* Left: Feature Slider Assembly (Anchored to Left of Phone on Desktop, Top on Mobile) */}
+                    <div className="relative lg:absolute lg:right-full lg:mr-8 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-center flex-shrink-0 z-20 mb-5 sm:mb-6 lg:mb-0 w-full sm:max-w-[420px] lg:w-[115px] lg:max-w-none">
                       {/* "Try demo!" handwritten text with curved arch arrow */}
                       <motion.div
                         initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
@@ -398,8 +402,8 @@ export default function Home() {
                         className="absolute -top-11 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
                       >
                         <span
-                          className="text-neutral-900 text-base sm:text-xl font-bold italic transform -rotate-12 translate-x-1"
-                          style={{ fontFamily: "'Caveat', 'Comic Sans MS', cursive, sans-serif" }}
+                          className="text-neutral-900 text-lg sm:text-xl font-bold transform -rotate-12 translate-x-1"
+                          style={{ fontFamily: "var(--font-shadows-into-light), 'Shadows Into Light', cursive, sans-serif" }}
                         >
                           Try demo!
                         </span>
@@ -439,13 +443,13 @@ export default function Home() {
                         style={{
                           clipPath: "url(#squircle-track-clip)",
                         }}
-                        className="relative z-20 flex flex-row lg:flex-col items-center p-1.5 sm:p-2 rounded-[28px] sm:rounded-[32px] w-[340px] sm:w-[360px] lg:w-[115px] h-[82px] lg:h-auto gap-1 sm:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900"
+                        className="relative z-20 flex flex-row lg:flex-col items-center p-1.5 sm:p-2 lg:p-2 rounded-[28px] sm:rounded-[32px] w-full sm:max-w-[420px] lg:w-[115px] lg:max-w-none h-[82px] sm:h-[88px] lg:h-auto gap-1 sm:gap-1.5 lg:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 overflow-hidden"
                       >
                         {/* Animated Active Tab Indicator (4 Segments) */}
                         <motion.div
-                          className={`absolute rounded-[22px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${
+                          className={`absolute rounded-[20px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${
                             isMobile
-                              ? "top-1.5 bottom-1.5 w-[calc(25%-5px)] h-[calc(100%-12px)] left-1.5"
+                              ? "top-1.5 bottom-1.5 w-[calc(25%-4px)] h-[calc(100%-12px)] left-1.5"
                               : "left-2 right-2 aspect-square top-2"
                           }`}
                           style={{
@@ -456,10 +460,10 @@ export default function Home() {
                               ? activeTab === "Membership"
                                 ? "0%"
                                 : activeTab === "Rewards"
-                                ? "calc(100% + 4px)"
+                                ? "calc(100% + 2px)"
                                 : activeTab === "Smart Deals"
-                                ? "calc(200% + 8px)"
-                                : "calc(300% + 12px)"
+                                ? "calc(200% + 4px)"
+                                : "calc(300% + 6px)"
                               : 0,
                             y: !isMobile
                               ? activeTab === "Membership"
@@ -482,17 +486,17 @@ export default function Home() {
                         {/* Slider Item 1: Membership */}
                         <div
                           onClick={() => handleTabClick("Membership")}
-                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                          className="flex-1 h-full lg:w-full lg:aspect-square flex flex-col items-center justify-center gap-1 rounded-[22px] sm:rounded-[24px] relative z-20 cursor-pointer group select-none px-1 py-1"
                         >
                           <Lock
-                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Membership"
+                            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${activeTab === "Membership"
                               ? "text-white scale-110"
                               : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                               }`}
                           />
                           <span
-                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Membership"
-                              ? "text-white font-semibold"
+                            className={`font-bold lg:font-semibold text-[10px] sm:text-xs tracking-tight whitespace-nowrap transition-all duration-300 ${activeTab === "Membership"
+                              ? "text-white"
                               : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                               }`}
                           >
@@ -503,17 +507,17 @@ export default function Home() {
                         {/* Slider Item 2: Rewards */}
                         <div
                           onClick={() => handleTabClick("Rewards")}
-                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                          className="flex-1 h-full lg:w-full lg:aspect-square flex flex-col items-center justify-center gap-1 rounded-[22px] sm:rounded-[24px] relative z-20 cursor-pointer group select-none px-1 py-1"
                         >
                           <Gift
-                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Rewards"
+                            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${activeTab === "Rewards"
                               ? "text-white scale-110"
                               : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                               }`}
                           />
                           <span
-                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Rewards"
-                              ? "text-white font-semibold"
+                            className={`font-bold lg:font-semibold text-[10px] sm:text-xs tracking-tight whitespace-nowrap transition-all duration-300 ${activeTab === "Rewards"
+                              ? "text-white"
                               : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                               }`}
                           >
@@ -524,17 +528,17 @@ export default function Home() {
                         {/* Slider Item 3: Smart Deals */}
                         <div
                           onClick={() => handleTabClick("Smart Deals")}
-                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                          className="flex-1 h-full lg:w-full lg:aspect-square flex flex-col items-center justify-center gap-1 rounded-[22px] sm:rounded-[24px] relative z-20 cursor-pointer group select-none px-1 py-1"
                         >
                           <Star
-                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Smart Deals"
+                            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${activeTab === "Smart Deals"
                               ? "text-white scale-110"
                               : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                               }`}
                           />
                           <span
-                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Smart Deals"
-                              ? "text-white font-semibold"
+                            className={`font-bold lg:font-semibold text-[10px] sm:text-xs tracking-tight whitespace-nowrap transition-all duration-300 ${activeTab === "Smart Deals"
+                              ? "text-white"
                               : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                               }`}
                           >
@@ -545,17 +549,17 @@ export default function Home() {
                         {/* Slider Item 4: Configure */}
                         <div
                           onClick={() => handleTabClick("Configure")}
-                          className="flex-1 lg:w-full aspect-square flex flex-col items-center justify-center gap-0.5 sm:gap-1 rounded-[24px] relative z-20 cursor-pointer group select-none py-1"
+                          className="flex-1 h-full lg:w-full lg:aspect-square flex flex-col items-center justify-center gap-1 rounded-[22px] sm:rounded-[24px] relative z-20 cursor-pointer group select-none px-1 py-1"
                         >
                           <SlidersHorizontal
-                            className={`w-4 h-4 sm:w-6 sm:h-6 transition-all duration-300 ${activeTab === "Configure"
+                            className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-300 ${activeTab === "Configure"
                               ? "text-white scale-110"
                               : "text-neutral-500 group-hover:text-neutral-800 group-hover:scale-105"
                               }`}
                           />
                           <span
-                            className={`font-semibold text-[10px] sm:text-xs tracking-tight transition-all duration-300 ${activeTab === "Configure"
-                              ? "text-white font-semibold"
+                            className={`font-bold lg:font-semibold text-[10px] sm:text-xs tracking-tight whitespace-nowrap transition-all duration-300 ${activeTab === "Configure"
+                              ? "text-white"
                               : "text-neutral-600 group-hover:text-neutral-800 font-medium"
                               }`}
                           >
@@ -565,9 +569,9 @@ export default function Home() {
                       </motion.div>
                     </div>
 
-                    {/* Center: Mobile Phone Mockup Frame (PERFECTLY CENTERED ANCHOR) */}
+                    {/* Center: Mobile Phone Mockup Frame (PERFECT FIT ON MOBILE, PERFECT ON DESKTOP) */}
                     <div
-                      className="relative z-10 h-[390px] sm:h-[540px] lg:h-[610px] bg-white rounded-[38px] sm:rounded-[46px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.12)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
+                      className="relative z-10 h-[570px] xs:h-[610px] sm:h-[620px] lg:h-[610px] bg-white rounded-[36px] sm:rounded-[46px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.12)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
                       style={{ aspectRatio: "1170 / 2532" }}
                     >
                       {/* Side button detail */}
@@ -585,11 +589,11 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Right: Floating App Configurator Card (Anchored to Right of Phone) */}
+                    {/* Desktop App Configurator Card (lg only - exact original desktop layout & animation) */}
                     <AnimatePresence>
                       {activeTab === "Configure" && (
                         <motion.div
-                          key="configure-card"
+                          key="configure-card-desktop"
                           initial={{ opacity: 0, scale: 0.92, x: -20, filter: "blur(10px)" }}
                           animate={{
                             opacity: 1,
@@ -602,7 +606,7 @@ export default function Home() {
                             duration: 0.35,
                             ease: [0.16, 1, 0.3, 1],
                           }}
-                          className="relative lg:absolute lg:left-full lg:ml-8 lg:top-1/2 lg:-translate-y-1/2 z-30 flex flex-col p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] w-[290px] sm:w-[220px] lg:w-[235px] bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 select-none flex-shrink-0 space-y-3.5 mt-6 lg:mt-0"
+                          className="hidden lg:flex absolute left-full ml-8 top-1/2 -translate-y-1/2 z-30 flex-col p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] w-[290px] sm:w-[220px] lg:w-[235px] bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 select-none flex-shrink-0 space-y-3.5 mt-0"
                         >
                           {/* Card Header with Configure / Edit Icon on the Right */}
                           <div className="flex items-start justify-between">
@@ -648,7 +652,6 @@ export default function Home() {
                               <span className="text-xs font-semibold text-neutral-800 truncate pr-1">
                                 {selectedColor.name}
                               </span>
-                              {/* Larger Solid Color Pill without white stroke */}
                               <div
                                 className="w-10 h-4.5 rounded-full flex-shrink-0 shadow-2xs"
                                 style={{ backgroundColor: selectedColor.hex }}
@@ -708,7 +711,7 @@ export default function Home() {
                               <span className="text-[10px] font-bold text-neutral-400">▼</span>
                             </div>
 
-                            {/* Dropdown Menu (Solid Opaque Background - Zero Bleed) */}
+                            {/* Dropdown Menu */}
                             <AnimatePresence>
                               {isCurrencyMenuOpen && (
                                 <motion.div
@@ -742,7 +745,7 @@ export default function Home() {
                             </AnimatePresence>
                           </div>
 
-                          {/* 4. Build My App CTA Button */}
+                          {/* 4. Action Button */}
                           <div className="pt-1">
                             <Link
                               href={`${adminUrl}/signup`}
@@ -750,6 +753,176 @@ export default function Home() {
                             >
                               Build my app
                             </Link>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {/* Mobile App Configurator Overlay Card (< lg only) */}
+                    <AnimatePresence>
+                      {activeTab === "Configure" && (
+                        <motion.div
+                          key="configure-card-mobile"
+                          initial={{ opacity: 0, scale: 0.92, y: -10, filter: "blur(10px)" }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            y: 0,
+                            filter: "blur(0px)",
+                          }}
+                          exit={{ opacity: 0, scale: 0.92, y: -10, filter: "blur(10px)" }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className="flex lg:hidden absolute left-1/2 -translate-x-1/2 top-14 xs:top-16 sm:top-20 z-50 flex-col p-3 rounded-[22px] w-[calc(100%-32px)] max-w-[245px] bg-white/95 backdrop-blur-xl border border-neutral-200/90 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] text-neutral-900 select-none flex-shrink-0 space-y-2"
+                        >
+                          {/* Card Header with Configure / Edit Icon on the Right */}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-extrabold text-[11px] text-neutral-900 tracking-tight leading-none">
+                                Configure App
+                              </h4>
+                              <p className="text-[9.5px] font-normal text-neutral-500 mt-0.5">
+                                Personalize preview
+                              </p>
+                            </div>
+                            <SlidersHorizontal className="w-4 h-4 text-neutral-800 flex-shrink-0" />
+                          </div>
+
+                          {/* 1. Clinic Name Input */}
+                          <div className="space-y-0.5">
+                            <label className="text-[10px] font-bold text-neutral-800 tracking-tight block">
+                              Clinic Name
+                            </label>
+                            <div className="w-full rounded-full bg-neutral-100/90 border border-neutral-200 px-2.5 py-1 focus-within:border-neutral-900 transition-colors shadow-2xs">
+                              <input
+                                type="text"
+                                value={clinicName}
+                                onChange={(e) => setClinicName(e.target.value)}
+                                placeholder="Clinic Name"
+                                className="w-full bg-transparent font-semibold text-[11px] text-neutral-900 placeholder:text-neutral-400 outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* 2. Color Dropdown with Solid Pill Swatch */}
+                          <div className="space-y-0.5 relative z-30">
+                            <label className="text-[10px] font-bold text-neutral-800 tracking-tight block">
+                              Brand Color
+                            </label>
+                            <div
+                              onClick={() => {
+                                setIsColorMenuOpen(!isColorMenuOpen);
+                                setIsCurrencyMenuOpen(false);
+                              }}
+                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-2.5 py-1 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
+                            >
+                              <span className="text-[11px] font-semibold text-neutral-800 truncate pr-1">
+                                {selectedColor.name}
+                              </span>
+                              <div
+                                className="w-7 h-3.5 rounded-full flex-shrink-0 shadow-2xs"
+                                style={{ backgroundColor: selectedColor.hex }}
+                              />
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                              {isColorMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute left-0 right-0 top-full mt-1 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1 z-[100] space-y-0.5"
+                                >
+                                  {colorOptions.map((color) => (
+                                    <div
+                                      key={color.id}
+                                      onClick={() => {
+                                        setSelectedColor(color);
+                                        setIsColorMenuOpen(false);
+                                      }}
+                                      className={`flex items-center justify-between px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
+                                        selectedColor.id === color.id
+                                          ? "bg-neutral-100 font-bold text-neutral-900"
+                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
+                                      }`}
+                                    >
+                                      <span className="text-[11px]">{color.name}</span>
+                                      <div
+                                        className="w-6 h-3 rounded-full flex-shrink-0"
+                                        style={{ backgroundColor: color.hex }}
+                                      />
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 3. Currency Dropdown with Pill Shape */}
+                          <div className="space-y-0.5 relative z-20">
+                            <label className="text-[10px] font-bold text-neutral-800 tracking-tight block">
+                              Currency
+                            </label>
+                            <div
+                              onClick={() => {
+                                setIsCurrencyMenuOpen(!isCurrencyMenuOpen);
+                                setIsColorMenuOpen(false);
+                              }}
+                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-2.5 py-1 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
+                            >
+                              <span className="text-[11px] font-semibold text-neutral-800">
+                                {selectedCurrency.code} ({selectedCurrency.symbol})
+                              </span>
+                              <span className="text-[9px] font-bold text-neutral-400">▼</span>
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                              {isCurrencyMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute left-0 right-0 top-full mt-1 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1 z-[100] space-y-0.5"
+                                >
+                                  {currencyOptions.map((curr) => (
+                                    <div
+                                      key={curr.code}
+                                      onClick={() => {
+                                        setSelectedCurrency(curr);
+                                        setIsCurrencyMenuOpen(false);
+                                      }}
+                                      className={`flex items-center justify-between px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
+                                        selectedCurrency.code === curr.code
+                                          ? "bg-neutral-100 font-bold text-neutral-900"
+                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
+                                      }`}
+                                    >
+                                      <span className="text-[11px]">{curr.code}</span>
+                                      <span className="text-[11px] font-bold text-neutral-600">
+                                        {curr.symbol}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 4. Action Button: Done Only on Mobile */}
+                          <div className="pt-0.5">
+                            <button
+                              onClick={() => handleTabClick(previousTab || "Membership")}
+                              className="w-full py-1.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-[11px] font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <Check className="w-3.5 h-3.5 text-white" />
+                              Done
+                            </button>
                           </div>
                         </motion.div>
                       )}
