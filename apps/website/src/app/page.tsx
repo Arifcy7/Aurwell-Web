@@ -171,18 +171,18 @@ export default function Home() {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 1.03, filter: "blur(12px)" }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 bg-[#F3F4F6] flex flex-col items-center justify-center overflow-hidden select-none"
+            className="fixed inset-0 z-50 bg-[#F3F4F6] flex flex-col items-center justify-center overflow-hidden select-none px-4"
           >
             {/* Ambient Background Glow Aura */}
             <motion.div
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 0.7, scale: 1.2 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
-              className="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-blue-200/40 via-purple-200/30 to-amber-200/30 blur-3xl pointer-events-none"
+              className="absolute w-[260px] h-[260px] sm:w-[500px] sm:h-[500px] rounded-full bg-gradient-to-tr from-blue-200/40 via-purple-200/30 to-amber-200/30 blur-2xl sm:blur-3xl pointer-events-none"
             />
 
             {/* Brand Logo & Typography Lockup */}
-            <div className="relative z-10 flex items-center gap-4 sm:gap-6">
+            <div className="relative z-10 flex items-center gap-2.5 sm:gap-6">
               {/* Logo Icon Reveal */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.75, filter: "blur(16px)", y: 12 }}
@@ -195,18 +195,19 @@ export default function Home() {
                   alt="Aurwell Logo"
                   width={160}
                   height={44}
-                  className="h-12 sm:h-16 w-auto object-contain drop-shadow-sm"
+                  className="h-8 sm:h-14 w-auto object-contain drop-shadow-sm"
                   style={{ width: "auto" }}
                   priority
+                  loading="eager"
                 />
               </motion.div>
 
               {/* Vertical Shimmer Divider */}
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "40px", opacity: 0.3 }}
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: 1, opacity: 0.3 }}
                 transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
-                className="w-[1.5px] bg-neutral-900 rounded-full"
+                className="w-[1.5px] h-6 sm:h-10 bg-neutral-900 rounded-full origin-center"
               />
 
               {/* Typography Wordmark Reveal */}
@@ -220,9 +221,10 @@ export default function Home() {
                   alt="Aurwell Typography"
                   width={180}
                   height={48}
-                  className="h-9 sm:h-12 w-auto object-contain transform translate-y-[2px]"
+                  className="h-6 sm:h-11 w-auto object-contain transform translate-y-[1px] sm:translate-y-[2px]"
                   style={{ width: "auto" }}
                   priority
+                  loading="eager"
                 />
               </motion.div>
             </div>
@@ -232,9 +234,9 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.4 }}
-              className="absolute bottom-16 flex flex-col items-center"
+              className="absolute bottom-10 sm:bottom-16 flex flex-col items-center"
             >
-              <div className="w-40 sm:w-48 h-[3px] bg-neutral-200/80 rounded-full overflow-hidden p-[0.5px]">
+              <div className="w-32 sm:w-48 h-[3px] bg-neutral-200/80 rounded-full overflow-hidden p-[0.5px]">
                 <motion.div
                   initial={{ width: "30%" }}
                   animate={{ width: `${loadProgress}%` }}
@@ -270,6 +272,7 @@ export default function Home() {
                       className="h-6 sm:h-8 w-auto object-contain select-none"
                       draggable={false}
                       priority
+                      loading="eager"
                     />
                   </Link>
 
@@ -946,41 +949,41 @@ export default function Home() {
       {/* Remaining Sections Container (Centered with normal padding) */}
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20">
         {/* Built for Growth Section */}
-        <section id="features" className="py-12 scroll-mt-6">
-          <div className="bg-white/60 rounded-[36px] p-8 sm:p-14 border border-white/60 shadow-sm">
+        <section id="features" className="py-6 sm:py-12 scroll-mt-6">
+          <div className="bg-white/60 rounded-2xl sm:rounded-[36px] p-4 sm:p-14 border border-white/60 shadow-sm">
             {/* Header */}
             <motion.div
               initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center space-y-2 mb-12"
+              className="text-center space-y-1 sm:space-y-2 mb-6 sm:mb-12"
             >
-              <span className="text-neutral-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
+              <span className="text-neutral-600 text-[10px] sm:text-sm font-bold uppercase tracking-wider">
                 Built for Growth
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-neutral-900 max-w-2xl mx-auto tracking-tight">
+              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-neutral-900 max-w-2xl mx-auto tracking-tight">
                 Everything You Need to Build Stronger Relationships
               </h2>
             </motion.div>
 
             {/* Feature Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {/* Card 1 */}
               <motion.div
                 initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-4">
-                  <Users className="w-6 h-6" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
+                  <Users className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-base font-bold text-neutral-900 mb-2">
+                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
                   Boost Retention
                 </h3>
-                <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed">
+                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
                   Turn one-time visits into lasting relationships with loyalty programs that work.
                 </p>
               </motion.div>
@@ -991,15 +994,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-4">
-                  <Gift className="w-6 h-6" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
+                  <Gift className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-base font-bold text-neutral-900 mb-2">
+                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
                   Reward What Matters
                 </h3>
-                <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed">
+                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
                   Create points, tiers, and rewards that motivate your clients to engage more.
                 </p>
               </motion.div>
@@ -1010,15 +1013,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-4">
-                  <Send className="w-6 h-6" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
+                  <Send className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-base font-bold text-neutral-900 mb-2">
+                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
                   Smart Automation
                 </h3>
-                <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed">
+                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
                   Automate offers and reminders so you can focus on what you do best.
                 </p>
               </motion.div>
@@ -1029,15 +1032,15 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
+                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
               >
-                <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-4">
-                  <BarChart3 className="w-6 h-6" />
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
+                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6" />
                 </div>
-                <h3 className="text-base font-bold text-neutral-900 mb-2">
+                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
                   Track & Grow
                 </h3>
-                <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed">
+                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
                   Powerful analytics to understand client behavior and grow your business faster.
                 </p>
               </motion.div>
@@ -1309,10 +1312,10 @@ export default function Home() {
           <div className="relative rounded-[36px] bg-gradient-to-b from-white/40 via-white/60 to-white/80 p-8 sm:p-14 border border-white/60 shadow-sm">
             {/* Header */}
             <motion.div
-              initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className="text-center space-y-2 mb-12"
             >
               <span className="text-neutral-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
@@ -1330,10 +1333,10 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-5xl mx-auto">
               {/* Step 1 Card */}
               <motion.div
-                initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
                 className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
               >
                 <div className="space-y-4">
@@ -1358,10 +1361,10 @@ export default function Home() {
 
               {/* Step 2 Card */}
               <motion.div
-                initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
                 className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
               >
                 <div className="space-y-4">
@@ -1386,10 +1389,10 @@ export default function Home() {
 
               {/* Step 3 Card */}
               <motion.div
-                initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
                 className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
               >
                 <div className="space-y-4">
