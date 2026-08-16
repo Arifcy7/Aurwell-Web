@@ -63,9 +63,9 @@ export default function AppDemoPhone({
         <span className="font-black tracking-tight ml-0.5">9:41</span>
 
         {/* Improved Dynamic Island matching reference image */}
-        <div className="w-[84px] h-[22px] bg-black rounded-full absolute left-1/2 transform -translate-x-1/2 top-1.5 flex items-center justify-end pr-2 shadow-xs pointer-events-none">
+        <div className="w-[72px] xs:w-[78px] sm:w-[84px] h-[18px] xs:h-[20px] sm:h-[22px] bg-black rounded-full absolute left-1/2 transform -translate-x-1/2 top-1.5 flex items-center justify-end pr-1.5 sm:pr-2 shadow-xs pointer-events-none transition-all">
           {/* Front Camera Lens Detail */}
-          <div className="w-2.5 h-2.5 rounded-full bg-[#12161f] border border-[#2d3748] flex items-center justify-center shadow-inner">
+          <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#12161f] border border-[#2d3748] flex items-center justify-center shadow-inner">
             <div className="w-1 h-1 rounded-full bg-[#1e3a8a]/80" />
           </div>
         </div>

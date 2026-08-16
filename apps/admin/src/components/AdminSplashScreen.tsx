@@ -70,11 +70,11 @@ export default function AdminSplashScreen({
             initial={{ opacity: 0, scale: 0.6 }}
             animate={{ opacity: 0.7, scale: 1.2 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
-            className="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-emerald-200/40 via-purple-200/30 to-amber-200/30 blur-3xl pointer-events-none"
+            className="absolute w-[260px] h-[260px] sm:w-[500px] sm:h-[500px] rounded-full bg-gradient-to-tr from-emerald-200/40 via-purple-200/30 to-amber-200/30 blur-2xl sm:blur-3xl pointer-events-none"
           />
 
           {/* Brand Logo & Typography Lockup */}
-          <div className="relative z-10 flex items-center gap-4 sm:gap-6">
+          <div className="relative z-10 flex items-center gap-2.5 sm:gap-6 px-4">
             {/* Logo Icon Reveal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.75, filter: "blur(16px)", y: 12 }}
@@ -87,18 +87,19 @@ export default function AdminSplashScreen({
                 alt="Aurwell Logo"
                 width={160}
                 height={44}
-                className="h-12 sm:h-16 w-auto object-contain drop-shadow-sm"
+                className="h-8 sm:h-14 w-auto object-contain drop-shadow-sm"
                 style={{ width: "auto" }}
                 priority
+                loading="eager"
               />
             </motion.div>
 
             {/* Vertical Shimmer Divider */}
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "40px", opacity: 0.3 }}
+              initial={{ scaleY: 0, opacity: 0 }}
+              animate={{ scaleY: 1, opacity: 0.3 }}
               transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
-              className="w-[1.5px] bg-neutral-900 rounded-full"
+              className="w-[1.5px] h-6 sm:h-10 bg-neutral-900 rounded-full origin-center"
             />
 
             {/* Typography Wordmark Reveal */}
@@ -112,9 +113,10 @@ export default function AdminSplashScreen({
                 alt="Aurwell Typography"
                 width={180}
                 height={48}
-                className="h-9 sm:h-12 w-auto object-contain transform translate-y-[2px]"
+                className="h-6 sm:h-11 w-auto object-contain transform translate-y-[1px] sm:translate-y-[2px]"
                 style={{ width: "auto" }}
                 priority
+                loading="eager"
               />
             </motion.div>
           </div>
@@ -124,9 +126,9 @@ export default function AdminSplashScreen({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15, duration: 0.4 }}
-            className="absolute bottom-16 flex flex-col items-center gap-2.5"
+            className="absolute bottom-10 sm:bottom-16 flex flex-col items-center gap-2 sm:gap-2.5"
           >
-            <div className="w-40 sm:w-48 h-[3px] bg-neutral-200/80 rounded-full overflow-hidden p-[0.5px]">
+            <div className="w-32 sm:w-48 h-[3px] bg-neutral-200/80 rounded-full overflow-hidden p-[0.5px]">
               <motion.div
                 initial={{ width: "25%" }}
                 animate={{ width: `${loadProgress}%` }}
@@ -134,7 +136,7 @@ export default function AdminSplashScreen({
                 className="h-full bg-neutral-900 rounded-full shadow-sm"
               />
             </div>
-            <p className="text-[11px] font-semibold text-neutral-500 tracking-wide">
+            <p className="text-[10px] sm:text-[11px] font-semibold text-neutral-500 tracking-wide text-center px-4">
               {label}
             </p>
           </motion.div>
