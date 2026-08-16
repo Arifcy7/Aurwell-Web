@@ -20,7 +20,7 @@ import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Treatment {
@@ -61,7 +61,7 @@ export default function MembershipPage() {
   const [monthlyPrice, setMonthlyPrice] = useState("");
   const [annualPrice, setAnnualPrice] = useState("");
   const [minCommitmentMonths, setMinCommitmentMonths] = useState("");
-  const [benefitsInput, setBenefitsInput] = useState("");
+  const [benefitsList, setBenefitsList] = useState<string[]>([""]);
   const [imageUrl, setImageUrl] = useState("");
   const [originalImageUrl, setOriginalImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -122,6 +122,23 @@ export default function MembershipPage() {
     return () => unsubscribe();
   }, []);
 
+  const handleAddBenefit = () => {
+    setBenefitsList((prev) => [...prev, ""]);
+  };
+
+  const handleRemoveBenefit = (index: number) => {
+    setBenefitsList((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      return updated.length === 0 ? [""] : updated;
+    });
+  };
+
+  const handleBenefitChange = (index: number, value: string) => {
+    setBenefitsList((prev) =>
+      prev.map((item, i) => (i === index ? value : item))
+    );
+  };
+
   const handleAddTreatmentRow = () => {
     if (treatments.length === 0) return;
     setIncludedItems((prev) => [...prev, { treatmentId: treatments[0].id, sessionsCount: 1 }]);
@@ -147,8 +164,7 @@ export default function MembershipPage() {
         shouldDeleteOriginal = true;
       }
 
-      const benefitsList = benefitsInput
-        .split("\n")
+      const cleanBenefits = benefitsList
         .map((b) => b.trim())
         .filter(Boolean);
 
@@ -158,7 +174,7 @@ export default function MembershipPage() {
         monthlyPrice: Number(monthlyPrice),
         annualPrice: annualPrice ? Number(annualPrice) : null,
         minCommitmentMonths: minCommitmentMonths ? Number(minCommitmentMonths) : null,
-        benefits: benefitsList,
+        benefits: cleanBenefits,
         includedTreatments: includedItems,
         imageUrl: finalImageUrl || "",
         terms,
@@ -190,7 +206,7 @@ export default function MembershipPage() {
       setMonthlyPrice("");
       setAnnualPrice("");
       setMinCommitmentMonths("");
-      setBenefitsInput("");
+      setBenefitsList([""]);
       setIncludedItems([]);
       setImageUrl("");
       setOriginalImageUrl("");
@@ -212,7 +228,7 @@ export default function MembershipPage() {
     setMonthlyPrice(String(tier.monthlyPrice || ""));
     setAnnualPrice(tier.annualPrice ? String(tier.annualPrice) : "");
     setMinCommitmentMonths(tier.minCommitmentMonths ? String(tier.minCommitmentMonths) : "");
-    setBenefitsInput((tier.benefits || []).join("\n"));
+    setBenefitsList(tier.benefits && tier.benefits.length > 0 ? [...tier.benefits] : [""]);
     setIncludedItems(tier.includedTreatments || []);
     setImageUrl(tier.imageUrl || "");
     setOriginalImageUrl(tier.imageUrl || "");
@@ -269,7 +285,7 @@ export default function MembershipPage() {
             setMonthlyPrice("");
             setAnnualPrice("");
             setMinCommitmentMonths("");
-            setBenefitsInput("");
+            setBenefitsList([""]);
             setIncludedItems([]);
             setImageUrl("");
             setOriginalImageUrl("");
@@ -360,17 +376,53 @@ export default function MembershipPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                  Included Benefits (One per line)
-                </label>
-                <textarea
-                  rows={3}
-                  value={benefitsInput}
-                  onChange={(e) => setBenefitsInput(e.target.value)}
-                  className="textarea-modern"
-                  placeholder="10% Off all skincare products&#10;Priority booking window&#10;Free quarterly skin analysis"
-                />
+              {/* Dynamic Included Benefits Input Boxes */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-neutral-700">
+                    Included Benefits
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddBenefit}
+                    className="text-xs text-neutral-900 font-bold hover:underline cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Benefit</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {benefitsList.map((benefit, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={benefit}
+                        onChange={(e) => handleBenefitChange(index, e.target.value)}
+                        className="input-modern flex-1 text-xs"
+                        placeholder={
+                          index === 0
+                            ? "e.g. 10% Off all skincare products"
+                            : index === 1
+                            ? "e.g. Priority booking window"
+                            : index === 2
+                            ? "e.g. Free quarterly skin analysis"
+                            : "e.g. Additional member benefit"
+                        }
+                      />
+                      {benefitsList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBenefit(index)}
+                          className="p-2 rounded-xl text-neutral-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0"
+                          title="Remove benefit"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div>
