@@ -3,15 +3,60 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ── User files ─────────────────────────────────────────
-    // Users can read and write only their own folder
-    match /users/{userId}/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Default: deny everything else
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUnderMaxSize(maxSizeMB) {
+      return request.resource.size <= maxSizeMB * 1024 * 1024;
+    }
+
+    // ── Clinic / Admin Assets & App Content ──────────────────────────────────
+    // Folders containing clinic public branding, treatments, blogs, banners,
+    // offers, memberships, and notifications uploaded by clinic admins.
+    // - READ: Open to everyone (Guest, Google Sign-in, Apple Sign-in, Email).
+    // - WRITE / DELETE: Only the authenticated owner (clinic admin) uploading up to 10MB images.
+    match /users/{userId}/{folder}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage() && isUnderMaxSize(10);
+      allow delete: if isOwner(userId);
+    }
+
+    // Fallback for nested user paths
+    match /users/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isImage() && isUnderMaxSize(10);
+      allow delete: if isOwner(userId);
+    }
+
+    // ── Dedicated Clinic Assets (if storing directly under /clinics/{clinicId}) ──
+    match /clinics/{clinicId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn() && isImage() && isUnderMaxSize(10);
+      allow delete: if isSignedIn();
+    }
+
+    // ── Public / Shared Assets Folder ─────────────────────────────────────────
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn() && isImage() && isUnderMaxSize(10);
+      allow delete: if isSignedIn();
+    }
+
+    // ── Default Deny for everything else ─────────────────────────────────────
     match /{allPaths=**} {
-      allow read, write: if false;
+      allow read: if false;
+      allow write: if false;
     }
   }
 }
+

@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  query,
-  getDocs,
   doc,
   getDoc,
   setDoc,
@@ -19,6 +17,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
+import Modal from "@/components/Modal";
 import { formatCurrency } from "@/lib/utils/currency";
 import {
   Sparkles,
@@ -26,21 +25,18 @@ import {
   Check,
   X,
   Plus,
-  Edit2,
   Tag,
-  Percent,
   Gift,
   Calendar,
   CheckSquare,
   Square,
-  AlertCircle,
-  Sliders,
-  Layers,
   ChevronRight,
-  Filter,
-  ImageIcon,
+  Cake,
+  Heart,
+  Crown,
+  Flame,
+  PartyPopper,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export interface TreatmentItem {
   id: string;
@@ -281,7 +277,8 @@ export default function AutomatedOffersPage() {
   };
 
   // Save Edit Form
-  const handleSaveOffer = async () => {
+  const handleSaveOffer = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!clinicId || !selectedOffer) return;
 
     setIsSaving(true);
@@ -350,7 +347,8 @@ export default function AutomatedOffersPage() {
   };
 
   // Add Custom Occasion Offer
-  const handleCreateCustomOffer = async () => {
+  const handleCreateCustomOffer = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!clinicId || !customOccasionName.trim()) return;
 
     setIsSaving(true);
@@ -444,12 +442,12 @@ export default function AutomatedOffersPage() {
     t.title.toLowerCase().includes(productSearch.toLowerCase())
   );
 
-  // Occasion Banner / Graphic Renderer
+  // Occasion Badge Renderer (Sleek monochrome / luxury aesthetic matching Aurwell)
   const renderOccasionBadge = (offer: AutomatedOffer) => {
     // If offer has a custom uploaded square image banner
     if (offer.imageUrl) {
       return (
-        <div className="w-16 h-10 rounded-lg overflow-hidden border border-neutral-200 shadow-xs bg-neutral-100 shrink-0">
+        <div className="w-12 h-12 rounded-2xl overflow-hidden border border-neutral-200 shadow-xs bg-neutral-100 shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={offer.imageUrl}
@@ -461,84 +459,21 @@ export default function AutomatedOffersPage() {
     }
 
     const key = offer.id.toLowerCase();
-    if (key.includes("birthday")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white shadow-xs border border-rose-400/30 overflow-hidden relative group shrink-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent)]" />
-          <Gift className="w-5 h-5 relative z-10 text-white" />
-        </div>
-      );
-    }
-    if (key.includes("anniversary")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-amber-700 via-yellow-600 to-amber-800 flex items-center justify-center text-white shadow-xs border border-amber-500/30 overflow-hidden relative shrink-0">
-          <div className="absolute inset-0 bg-black/10" />
-          <span className="text-[10px] font-bold tracking-wider uppercase text-amber-100 z-10 border border-amber-200/40 px-1.5 py-0.5 rounded bg-black/20">
-            ★ VIP ★
-          </span>
-        </div>
-      );
-    }
-    if (key.includes("patricks")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-xs border border-emerald-500/30 overflow-hidden relative shrink-0">
-          <svg className="w-6 h-6 text-emerald-100 fill-current opacity-90" viewBox="0 0 24 24">
-            <path d="M12 2C9.5 2 7.5 4 7.5 6.5c0 1.6 1.1 3 2.5 3.7C8 9.5 6 11 6 13.5c0 2.5 2 4.5 4.5 4.5.7 0 1.4-.2 2-.5v4h3v-4c.6.3 1.3.5 2 .5 2.5 0 4.5-2 4.5-4.5 0-2.5-2-4-4-3.3 1.4-.7 2.5-2.1 2.5-3.7C20.5 4 18.5 2 16 2c-1.8 0-3.3 1.1-4 2.6C11.3 3.1 9.8 2 8 2z" />
-          </svg>
-        </div>
-      );
-    }
-    if (key.includes("christmas")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center text-white shadow-xs border border-red-500/30 overflow-hidden relative shrink-0">
-          <div className="absolute inset-x-0 h-1.5 bg-white/30 top-1/2 -translate-y-1/2" />
-          <div className="absolute inset-y-0 w-1.5 bg-white/30 left-1/2 -translate-x-1/2" />
-          <Gift className="w-5 h-5 text-white z-10 drop-shadow-xs" />
-        </div>
-      );
-    }
-    if (key.includes("halloween")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-purple-900 via-indigo-950 to-orange-600 flex items-center justify-center text-orange-400 shadow-xs border border-purple-700/40 overflow-hidden relative shrink-0">
-          <span className="text-base font-extrabold tracking-tighter text-orange-400 drop-shadow-xs">🎃</span>
-        </div>
-      );
-    }
-    if (key.includes("black_friday") || key.includes("friday")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-neutral-900 flex flex-col items-center justify-center text-white shadow-xs border border-neutral-700 relative overflow-hidden shrink-0">
-          <span className="text-[9px] font-black tracking-widest text-red-500 uppercase leading-none">BLACK</span>
-          <span className="text-[9px] font-black tracking-widest text-white uppercase leading-none">FRIDAY</span>
-        </div>
-      );
-    }
-    if (key.includes("valentine")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white shadow-xs border border-pink-400/40 relative overflow-hidden shrink-0">
-          <span className="text-sm">💖</span>
-        </div>
-      );
-    }
-    if (key.includes("easter")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-amber-400 via-teal-400 to-pink-400 flex items-center justify-center text-white shadow-xs border border-amber-200/50 relative overflow-hidden shrink-0">
-          <span className="text-sm drop-shadow-xs">🥚</span>
-        </div>
-      );
-    }
-    if (key.includes("new_year") || key.includes("year")) {
-      return (
-        <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-neutral-900 via-amber-950 to-neutral-950 flex flex-col items-center justify-center text-amber-400 border border-amber-600/40 shadow-xs relative overflow-hidden shrink-0">
-          <span className="text-[8px] font-bold text-amber-300 uppercase tracking-tighter">HAPPY NEW YEAR</span>
-          <span className="text-xs font-black tracking-widest text-amber-400">2027</span>
-        </div>
-      );
-    }
+    let IconComponent = Sparkles;
 
-    // Default Custom Badge
+    if (key.includes("birthday")) IconComponent = Cake;
+    else if (key.includes("anniversary")) IconComponent = Crown;
+    else if (key.includes("patricks")) IconComponent = Sparkles;
+    else if (key.includes("christmas")) IconComponent = Gift;
+    else if (key.includes("halloween")) IconComponent = Flame;
+    else if (key.includes("black_friday") || key.includes("friday")) IconComponent = Tag;
+    else if (key.includes("valentine")) IconComponent = Heart;
+    else if (key.includes("easter")) IconComponent = Sparkles;
+    else if (key.includes("new_year") || key.includes("year")) IconComponent = PartyPopper;
+
     return (
-      <div className="w-16 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-xs border border-indigo-400/30 shrink-0">
-        <Sparkles className="w-5 h-5 text-indigo-100" />
+      <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shadow-xs border border-neutral-800 shrink-0">
+        <IconComponent className="w-5 h-5 text-neutral-100" />
       </div>
     );
   };
@@ -546,7 +481,7 @@ export default function AutomatedOffersPage() {
   // Helper to format discount text in summary list
   const getDiscountSummaryText = (offer: AutomatedOffer) => {
     if (!offer.isActive || offer.discountValue === 0) {
-      return "No Discount";
+      return "No Discount Set";
     }
     const maxText = offer.maxDiscountAmount
       ? ` (Up to ${formatCurrency(offer.maxDiscountAmount, currency)})`
@@ -556,42 +491,42 @@ export default function AutomatedOffersPage() {
 
   if (loading) {
     return (
-      <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+      <div className="space-y-8 w-full">
         <div className="flex flex-col gap-2">
           <div className="h-8 w-64 bg-neutral-200 animate-pulse rounded-lg" />
           <div className="h-4 w-96 bg-neutral-200 animate-pulse rounded-lg" />
         </div>
-        <CardGridSkeleton count={6} />
+        <CardGridSkeleton count={4} />
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 min-h-[calc(100vh-80px)]">
+    <div className="space-y-8 w-full">
       {/* ── Top Header Section ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-neutral-200">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Automated Offers</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold tracking-tight text-neutral-900">Automated Offers</h2>
+            <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200/80">
               App Builder
             </span>
           </div>
-          <p className="text-sm text-neutral-500 mt-1">
-            Set automated discounts for special occasions and holidays. Configure discount rules, date ranges, and product inclusion.
+          <p className="text-sm text-neutral-500 mt-0.5">
+            Configure automated seasonal promotions, holiday offers, and scratch card discount campaigns for your patient app.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddCustomModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:bg-neutral-800 transition shadow-xs active:scale-95 self-start md:self-auto"
+          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition flex items-center gap-2 self-start cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
           Add Custom Occasion
         </button>
       </div>
 
-      {/* ── Search & Stats Bar ── */}
+      {/* ── Search & Metrics Bar ── */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -600,77 +535,76 @@ export default function AutomatedOffersPage() {
             placeholder="Search occasions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition shadow-2xs"
+            className="w-full pl-10 pr-8 py-2 bg-white border border-neutral-200 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 transition shadow-2xs font-medium text-neutral-800"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-medium text-neutral-500 self-end sm:self-auto">
-          <span className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-neutral-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="flex items-center gap-2.5 text-xs font-semibold text-neutral-600 self-end sm:self-auto">
+          <span className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-full border border-neutral-200 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             Active Offers: {offers.filter((o) => o.isActive).length}
           </span>
-          <span className="bg-white px-3 py-1.5 rounded-lg border border-neutral-200">
-            Total Occasions: {offers.length}
+          <span className="bg-white px-3.5 py-1.5 rounded-full border border-neutral-200 shadow-2xs text-neutral-500">
+            Total: {offers.length}
           </span>
         </div>
       </div>
 
-      {/* ── Occasions Offer List Table/Cards ── */}
-      <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-2xs overflow-hidden">
+      {/* ── Occasions Offer List ── */}
+      <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         {filteredOffers.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center gap-3">
             <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400">
               <Gift className="w-6 h-6" />
             </div>
-            <p className="text-base font-semibold text-neutral-700">No automated offers found</p>
-            <p className="text-sm text-neutral-500 max-w-sm">
-              Try searching with another keyword or create a custom occasion offer.
+            <p className="text-base font-bold text-neutral-800">No automated offers found</p>
+            <p className="text-xs text-neutral-400 max-w-sm">
+              Try searching with another keyword or create a new custom occasion offer.
             </p>
           </div>
         ) : (
           <div className="divide-y divide-neutral-100">
             {filteredOffers.map((offer) => {
-              const isHighlight = offer.isActive && offer.discountValue > 0;
+              const isLive = offer.isActive && offer.discountValue > 0;
 
               return (
                 <div
                   key={offer.id}
                   onClick={() => openEditModal(offer)}
-                  className={`group flex flex-col sm:flex-row sm:items-center justify-between p-4 md:px-6 md:py-4.5 gap-4 transition cursor-pointer ${isHighlight ? "bg-rose-50/30 hover:bg-rose-50/60" : "hover:bg-neutral-50/80"
-                    }`}
+                  className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:px-6 sm:py-4.5 gap-4 transition hover:bg-neutral-50/80 cursor-pointer"
                 >
-                  {/* Left: Graphic Badge & Title */}
+                  {/* Left: Emblem Badge & Title Info */}
                   <div className="flex items-center gap-4">
                     {renderOccasionBadge(offer)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-neutral-900 group-hover:text-black">
+                        <h3 className="text-sm sm:text-base font-bold text-neutral-900 group-hover:text-black transition">
                           {offer.title}
                         </h3>
                         {offer.isCustom && (
-                          <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">
+                          <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200">
                             Custom
                           </span>
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-neutral-500 mt-0.5">
-                        <span>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500 mt-1">
+                        <span className="font-medium">
                           {offer.allProductsIncluded
                             ? "All Products Included"
                             : `${offer.includedProductIds.length} Product(s) Included`}
                         </span>
 
                         {(offer.startDate || offer.endDate) && (
-                          <span className="inline-flex items-center gap-1 text-neutral-600 font-medium bg-neutral-100/70 px-2 py-0.5 rounded-md text-[11px] border border-neutral-200/60">
+                          <span className="inline-flex items-center gap-1.5 text-neutral-600 font-semibold bg-neutral-100 px-2.5 py-0.5 rounded-full text-[10px] border border-neutral-200/60">
                             <Calendar className="w-3 h-3 text-neutral-500" />
                             {offer.startDate ? offer.startDate : "Start"} → {offer.endDate ? offer.endDate : "End"}
                           </span>
@@ -679,13 +613,14 @@ export default function AutomatedOffersPage() {
                     </div>
                   </div>
 
-                  {/* Middle & Right: Discount Summary & Active Status Button */}
-                  <div className="flex items-center justify-between sm:justify-end gap-4 md:gap-6 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-neutral-100">
+                  {/* Right: Discount Summary & Status Button */}
+                  <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-neutral-100">
                     {/* Discount Summary */}
                     <div className="text-left sm:text-right min-w-[120px]">
                       <span
-                        className={`text-sm font-semibold ${isHighlight ? "text-rose-600 font-bold" : "text-neutral-500"
-                          }`}
+                        className={`text-xs sm:text-sm font-bold ${
+                          isLive ? "text-neutral-900" : "text-neutral-400 font-medium"
+                        }`}
                       >
                         {getDiscountSummaryText(offer)}
                       </span>
@@ -695,10 +630,11 @@ export default function AutomatedOffersPage() {
                     <button
                       type="button"
                       onClick={(e) => handleQuickToggleActive(offer, e)}
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition border ${offer.isActive
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
-                          : "bg-rose-50/80 text-rose-600 border-rose-200 hover:bg-rose-100"
-                        }`}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition border cursor-pointer ${
+                        offer.isActive
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100"
+                          : "bg-neutral-100 text-neutral-600 border-neutral-200 hover:bg-neutral-200/80"
+                      }`}
                     >
                       {offer.isActive ? (
                         <>
@@ -713,9 +649,9 @@ export default function AutomatedOffersPage() {
                       )}
                     </button>
 
-                    {/* Edit Arrow */}
-                    <div className="text-neutral-400 group-hover:text-neutral-700 group-hover:translate-x-0.5 transition">
-                      <ChevronRight className="w-5 h-5" />
+                    {/* Edit Arrow Indicator */}
+                    <div className="text-neutral-400 group-hover:text-neutral-800 group-hover:translate-x-0.5 transition">
+                      <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>
                 </div>
@@ -725,429 +661,388 @@ export default function AutomatedOffersPage() {
         )}
       </div>
 
-      {/* ── Edit Offer Modal ── */}
-      <AnimatePresence>
-        {isEditing && selectedOffer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              {/* Modal Header */}
-              <div className="px-6 py-4.5 border-b border-neutral-100 flex items-center justify-between bg-neutral-50/50">
-                <div className="flex items-center gap-3">
-                  {renderOccasionBadge(selectedOffer)}
-                  <div>
-                    <h2 className="text-lg font-bold text-neutral-900">
-                      Edit Automated Offer
-                    </h2>
-                    <p className="text-xs text-neutral-500">{selectedOffer.occasion}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="p-2 rounded-full hover:bg-neutral-200/60 text-neutral-400 hover:text-neutral-700 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+      {/* ── Edit Offer Modal (Unified with Aurwell Modal System) ── */}
+      <Modal
+        isOpen={isEditing && Boolean(selectedOffer)}
+        onClose={() => setIsEditing(false)}
+        title={selectedOffer?.title || "Edit Automated Offer"}
+        subtitle="Automated Campaign Settings"
+        maxWidth="max-w-3xl"
+      >
+        {selectedOffer && (
+          <form onSubmit={handleSaveOffer} className="space-y-6">
+            {/* Active / Inactive Status Switch */}
+            <div className="flex items-center justify-between p-4 rounded-2xl border border-neutral-200/80 bg-neutral-50/50">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                  Live Campaign Status
+                </label>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Activate or deactivate this automated offer for patient mobile app users.
+                </p>
               </div>
 
-              {/* Modal Body */}
-              <div className="p-6 overflow-y-auto space-y-6 flex-1">
-                {/* Active / Inactive Status Switch */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-neutral-200 bg-neutral-50/60">
-                  <div>
-                    <label className="text-sm font-semibold text-neutral-900">
-                      Offer Status
-                    </label>
-                    <p className="text-xs text-neutral-500">
-                      Turn this automated offer on or off for mobile clients.
-                    </p>
-                  </div>
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formIsActive}
+                  onChange={(e) => setFormIsActive(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neutral-900"></div>
+              </label>
+            </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setFormIsActive(!formIsActive)}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formIsActive ? "bg-emerald-500" : "bg-neutral-300"
-                      }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${formIsActive ? "translate-x-5" : "translate-x-0"
-                        }`}
+            {/* Offer Title Input */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                Offer Title
+              </label>
+              <input
+                type="text"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                placeholder="e.g. Birthday Special"
+                className="w-full px-4 py-2.5 rounded-2xl border border-neutral-200 text-sm font-medium text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900 transition bg-white"
+              />
+            </div>
+
+            {/* Custom Offer Square Image Upload (Only shown for Custom Offers) */}
+            {selectedOffer.isCustom && (
+              <div className="p-4 rounded-2xl border border-neutral-200/80 bg-neutral-50/50 space-y-2">
+                <ImageUploader
+                  label="Square Scratch Card Banner Image (1:1 Ratio)"
+                  file={formImageFile}
+                  onChange={(file) => setFormImageFile(file)}
+                  imageUrl={formImageUrl}
+                  onClearImage={() => {
+                    setFormImageUrl("");
+                    setFormImageFile(null);
+                  }}
+                  heightClass="h-44"
+                />
+                <p className="text-[11px] text-neutral-500 font-medium">
+                  Upload a 1:1 square artwork to be displayed on top of the scratch card in the mobile app.
+                </p>
+              </div>
+            )}
+
+            {/* Discount Rule Configuration */}
+            <div className="space-y-4 p-5 rounded-2xl border border-neutral-200/80 bg-neutral-50/50">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700">
+                Discount Rule
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1.5">
+                    Discount Percentage (%)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={formDiscountValue}
+                      onChange={(e) => setFormDiscountValue(e.target.value)}
+                      placeholder="0"
+                      className="w-full pl-4 pr-9 py-2.5 border border-neutral-200 rounded-2xl text-sm font-medium text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 transition"
                     />
-                  </button>
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400">
+                      %
+                    </span>
+                  </div>
                 </div>
 
-                {/* Offer Title Input */}
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                    Offer Title
+                  <label className="block text-xs font-medium text-neutral-600 mb-1.5">
+                    Max Discount Cap ({currency}) <span className="text-neutral-400 font-normal">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formMaxDiscountAmount}
+                      onChange={(e) => setFormMaxDiscountAmount(e.target.value)}
+                      placeholder="e.g. 50.00"
+                      className="w-full pl-4 pr-12 py-2.5 border border-neutral-200 rounded-2xl text-sm font-medium text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 transition"
+                    />
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400">
+                      {currency}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Validity Period / Date Range Section */}
+            <div className="space-y-4 p-5 rounded-2xl border border-neutral-200/80 bg-neutral-50/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-neutral-500" />
+                    Validity Date Range <span className="text-neutral-400 font-normal">(Optional)</span>
+                  </h4>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Restrict offer redemption to a specific active window. Leave empty for open ongoing validity.
+                  </p>
+                </div>
+
+                {(formStartDate || formEndDate) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormStartDate("");
+                      setFormEndDate("");
+                    }}
+                    className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 underline cursor-pointer"
+                  >
+                    Clear Dates
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1.5">
+                    Start Date
                   </label>
                   <input
-                    type="text"
-                    value={formTitle}
-                    onChange={(e) => setFormTitle(e.target.value)}
-                    placeholder="e.g. Birthday Special"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-black transition"
+                    type="date"
+                    value={formStartDate}
+                    onChange={(e) => setFormStartDate(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-neutral-200 rounded-2xl text-xs font-medium text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 transition"
                   />
                 </div>
 
-                {/* Custom Offer Square Image Upload (Only shown for Custom Offers) */}
-                {selectedOffer.isCustom && (
-                  <div className="p-4 rounded-xl border border-neutral-200 bg-neutral-50/50 space-y-2">
-                    <ImageUploader
-                      label="Square Scratch Card Banner Image (1:1 Ratio)"
-                      file={formImageFile}
-                      onChange={(file) => setFormImageFile(file)}
-                      imageUrl={formImageUrl}
-                      onClearImage={() => {
-                        setFormImageUrl("");
-                        setFormImageFile(null);
-                      }}
-                      heightClass="h-44"
-                    />
-                    <p className="text-[11px] text-neutral-500">
-                      Upload a square image (1:1 ratio) to be displayed as the top scratch card banner on the mobile app screen for this custom offer.
-                    </p>
-                  </div>
-                )}
-
-                {/* Validity Period / Date Range Section */}
-                <div className="space-y-3 p-4 rounded-xl border border-neutral-200 bg-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-neutral-500" />
-                        Validity Date Range <span className="text-neutral-400 font-normal">(Optional)</span>
-                      </h4>
-                      <p className="text-xs text-neutral-500">
-                        Specify start and end dates for when this offer applies. Leave blank for ongoing validity.
-                      </p>
-                    </div>
-
-                    {(formStartDate || formEndDate) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormStartDate("");
-                          setFormEndDate("");
-                        }}
-                        className="text-xs font-semibold text-rose-600 hover:text-rose-700 underline"
-                      >
-                        Clear Dates
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">
-                        Start Date
-                      </label>
-                      <input
-                        type="date"
-                        value={formStartDate}
-                        onChange={(e) => setFormStartDate(e.target.value)}
-                        className="w-full px-3.5 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black text-neutral-800"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">
-                        End Date
-                      </label>
-                      <input
-                        type="date"
-                        value={formEndDate}
-                        min={formStartDate || undefined}
-                        onChange={(e) => setFormEndDate(e.target.value)}
-                        className="w-full px-3.5 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black text-neutral-800"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-xs font-medium text-neutral-600 mb-1.5">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formEndDate}
+                    min={formStartDate || undefined}
+                    onChange={(e) => setFormEndDate(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-neutral-200 rounded-2xl text-xs font-medium text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 transition"
+                  />
                 </div>
+              </div>
+            </div>
 
-                {/* Discount Rule Configuration */}
-                <div className="space-y-4 p-4 rounded-xl border border-neutral-200 bg-white">
+            {/* Product Scope Section */}
+            <div className="space-y-4 p-5 rounded-2xl border border-neutral-200/80 bg-neutral-50/50">
+              <div className="flex items-center justify-between">
+                <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700">
-                    Discount Rule
+                    Product Scope
                   </h4>
-
-                  {/* Value Inputs */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">
-                        Discount Percentage (%)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="1"
-                          value={formDiscountValue}
-                          onChange={(e) => setFormDiscountValue(e.target.value)}
-                          placeholder="0"
-                          className="w-full pl-3.5 pr-8 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-neutral-400">
-                          %
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 mb-1">
-                        Up To Max Amount ({currency}) <span className="text-neutral-400 font-normal">(Optional)</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formMaxDiscountAmount}
-                          onChange={(e) => setFormMaxDiscountAmount(e.target.value)}
-                          placeholder="e.g. 50.00"
-                          className="w-full pl-3.5 pr-8 py-2 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-neutral-400">
-                          {currency}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-xs text-neutral-500 mt-0.5">
+                    Apply discount across the entire catalogue or select specific eligible treatments.
+                  </p>
                 </div>
 
-                {/* Product Scope Section */}
-                <div className="space-y-3 p-4 rounded-xl border border-neutral-200 bg-white">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-700">
-                        Products Scope
-                      </h4>
-                      <p className="text-xs text-neutral-500">
-                        Include all products or choose specific products for this offer.
-                      </p>
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={formAllProductsIncluded}
+                    onChange={(e) => setFormAllProductsIncluded(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neutral-900"></div>
+                </label>
+              </div>
+
+              {formAllProductsIncluded ? (
+                <div className="p-3.5 bg-emerald-50/80 border border-emerald-200/80 rounded-2xl flex items-center gap-2.5 text-xs text-emerald-800 font-semibold">
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                  All clinic treatments and products are eligible for this discount offer.
+                </div>
+              ) : (
+                <div className="space-y-3 pt-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                      <input
+                        type="text"
+                        placeholder="Filter products..."
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 border border-neutral-200 rounded-full text-xs font-medium text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                      />
                     </div>
 
                     <button
                       type="button"
-                      onClick={() => setFormAllProductsIncluded(!formAllProductsIncluded)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${formAllProductsIncluded ? "bg-black" : "bg-neutral-300"
-                        }`}
+                      onClick={handleSelectAllProducts}
+                      className="px-3.5 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 text-xs font-bold rounded-full transition cursor-pointer"
                     >
-                      <span
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${formAllProductsIncluded ? "translate-x-5" : "translate-x-0"
-                          }`}
-                      />
+                      {formIncludedProductIds.length === treatments.length
+                        ? "Deselect All"
+                        : "Select All"}
                     </button>
                   </div>
 
-                  {formAllProductsIncluded ? (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-800 font-medium">
-                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                      All clinic treatments and products are automatically included in this offer.
-                    </div>
-                  ) : (
-                    <div className="space-y-3 pt-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="relative flex-1">
-                          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-                          <input
-                            type="text"
-                            placeholder="Filter products..."
-                            value={productSearch}
-                            onChange={(e) => setProductSearch(e.target.value)}
-                            className="w-full pl-8 pr-3 py-1.5 border border-neutral-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-black"
-                          />
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={handleSelectAllProducts}
-                          className="px-2.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold rounded-lg transition"
-                        >
-                          {formIncludedProductIds.length === treatments.length
-                            ? "Deselect All"
-                            : "Select All"}
-                        </button>
+                  <div className="max-h-52 overflow-y-auto border border-neutral-200 rounded-2xl divide-y divide-neutral-100 bg-white">
+                    {filteredTreatments.length === 0 ? (
+                      <div className="p-4 text-center text-xs text-neutral-400">
+                        No products match your search.
                       </div>
-
-                      <div className="max-h-48 overflow-y-auto border border-neutral-200 rounded-xl divide-y divide-neutral-100">
-                        {filteredTreatments.length === 0 ? (
-                          <div className="p-4 text-center text-xs text-neutral-500">
-                            No products match your search.
+                    ) : (
+                      filteredTreatments.map((item) => {
+                        const isSelected = formIncludedProductIds.includes(item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => toggleProductSelection(item.id)}
+                            className={`flex items-center justify-between p-3 text-xs cursor-pointer hover:bg-neutral-50 transition ${
+                              isSelected ? "bg-neutral-50 font-bold" : "font-medium"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              {isSelected ? (
+                                <CheckSquare className="w-4 h-4 text-neutral-900 shrink-0" />
+                              ) : (
+                                <Square className="w-4 h-4 text-neutral-300 shrink-0" />
+                              )}
+                              <span className="text-neutral-800">{item.title}</span>
+                            </div>
+                            <span className="text-neutral-500 font-semibold font-mono">
+                              {formatCurrency(item.nonMemberPrice || 0, currency)}
+                            </span>
                           </div>
-                        ) : (
-                          filteredTreatments.map((item) => {
-                            const isSelected = formIncludedProductIds.includes(item.id);
-                            return (
-                              <div
-                                key={item.id}
-                                onClick={() => toggleProductSelection(item.id)}
-                                className={`flex items-center justify-between p-2.5 text-xs cursor-pointer hover:bg-neutral-50 transition ${isSelected ? "bg-neutral-50 font-medium" : ""
-                                  }`}
-                              >
-                                <div className="flex items-center gap-2">
-                                  {isSelected ? (
-                                    <CheckSquare className="w-4 h-4 text-black shrink-0" />
-                                  ) : (
-                                    <Square className="w-4 h-4 text-neutral-300 shrink-0" />
-                                  )}
-                                  <span className="text-neutral-800">{item.title}</span>
-                                </div>
-                                <span className="text-neutral-400 font-mono">
-                                  {formatCurrency(item.nonMemberPrice || 0, currency)}
-                                </span>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
-
-                      <div className="text-right text-[11px] text-neutral-500 font-medium">
-                        {formIncludedProductIds.length} of {treatments.length} product(s) selected
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="px-6 py-4 border-t border-neutral-100 flex items-center justify-between bg-neutral-50/50">
-                {selectedOffer.isCustom ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setDeleteTarget(selectedOffer);
-                    }}
-                    className="text-xs font-semibold text-rose-600 hover:text-rose-700 underline"
-                  >
-                    Delete Custom Offer
-                  </button>
-                ) : (
-                  <span />
-                )}
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(false)}
-                    className="px-4 py-2 border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveOffer}
-                    disabled={isSaving}
-                    className="px-5 py-2 bg-black hover:bg-neutral-800 text-white rounded-xl text-xs font-semibold transition disabled:opacity-50 flex items-center gap-2 shadow-xs"
-                  >
-                    {isSaving && (
-                      <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        );
+                      })
                     )}
-                    Save Changes
-                  </button>
+                  </div>
+
+                  <div className="text-right text-[11px] text-neutral-500 font-semibold">
+                    {formIncludedProductIds.length} of {treatments.length} product(s) selected
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              )}
+            </div>
 
-      {/* ── Add Custom Occasion Modal ── */}
-      <AnimatePresence>
-        {showAddCustomModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden p-6 space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-neutral-900">Add Custom Occasion</h3>
+            {/* Modal Actions Footer */}
+            <div className="pt-3 flex items-center justify-between border-t border-neutral-100 mt-6">
+              {selectedOffer.isCustom ? (
                 <button
+                  type="button"
                   onClick={() => {
-                    setShowAddCustomModal(false);
-                    setCustomImageFile(null);
+                    setIsEditing(false);
+                    setDeleteTarget(selectedOffer);
                   }}
-                  className="p-1 rounded-full text-neutral-400 hover:text-neutral-600"
+                  className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer shadow-2xs"
                 >
-                  <X className="w-5 h-5" />
+                  Delete Offer
                 </button>
-              </div>
+              ) : (
+                <span />
+              )}
 
-              <p className="text-xs text-neutral-500">
-                Enter the name for your custom occasion offer and upload a square scratch card banner image.
-              </p>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
-                  Occasion Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Mid-Summer Glow Festival"
-                  value={customOccasionName}
-                  onChange={(e) => setCustomOccasionName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-
-              {/* Custom Banner Image Upload */}
-              <div className="space-y-1">
-                <ImageUploader
-                  label="Square Scratch Card Banner Image (1:1 Ratio)"
-                  file={customImageFile}
-                  onChange={(file) => setCustomImageFile(file)}
-                  heightClass="h-36"
-                />
-                <p className="text-[11px] text-neutral-500">
-                  This image will be displayed as the top scratch card card banner on the app home screen.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-neutral-100">
+              <div className="flex items-center gap-3">
                 <button
-                  onClick={() => {
-                    setShowAddCustomModal(false);
-                    setCustomImageFile(null);
-                  }}
-                  className="px-4 py-2 border border-neutral-200 rounded-xl text-xs font-semibold text-neutral-700 hover:bg-neutral-100"
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleCreateCustomOffer}
-                  disabled={!customOccasionName.trim() || isSaving}
-                  className="px-4 py-2 bg-black hover:bg-neutral-800 text-white rounded-xl text-xs font-semibold transition disabled:opacity-50 flex items-center gap-2"
+                  type="submit"
+                  disabled={isSaving}
+                  className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm"
                 >
                   {isSaving && (
                     <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
                   )}
-                  Create & Configure
+                  Save Changes
                 </button>
               </div>
-            </motion.div>
-          </div>
+            </div>
+          </form>
         )}
-      </AnimatePresence>
+      </Modal>
+
+      {/* ── Add Custom Occasion Modal (Unified with Aurwell Modal System) ── */}
+      <Modal
+        isOpen={showAddCustomModal}
+        onClose={() => {
+          setShowAddCustomModal(false);
+          setCustomImageFile(null);
+        }}
+        title="Add Custom Occasion"
+        subtitle="Seasonal Campaigns"
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleCreateCustomOffer} className="space-y-5">
+          <p className="text-xs text-neutral-500 font-medium">
+            Create a custom occasion campaign for special clinic events, anniversaries, or seasonal festivals.
+          </p>
+
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Occasion Name
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Mid-Summer Glow Festival"
+              value={customOccasionName}
+              onChange={(e) => setCustomOccasionName(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-2xl border border-neutral-200 text-sm font-medium text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900 transition"
+            />
+          </div>
+
+          {/* Custom Banner Image Upload */}
+          <div className="space-y-2">
+            <ImageUploader
+              label="Square Scratch Card Banner Image (1:1 Ratio)"
+              file={customImageFile}
+              onChange={(file) => setCustomImageFile(file)}
+              heightClass="h-40"
+            />
+            <p className="text-[11px] text-neutral-500 font-medium">
+              This image will be displayed on the scratch card within the patient mobile app.
+            </p>
+          </div>
+
+          <div className="pt-3 flex items-center justify-end gap-3 border-t border-neutral-100">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddCustomModal(false);
+                setCustomImageFile(null);
+              }}
+              className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={!customOccasionName.trim() || isSaving}
+              className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              {isSaving && (
+                <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+              )}
+              Create & Configure
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* ── Delete Confirmation Modal ── */}
-      {deleteTarget && (
-        <DeleteConfirmModal
-          isOpen={Boolean(deleteTarget)}
-          onClose={() => setDeleteTarget(null)}
-          onConfirm={handleDeleteCustomOffer}
-          title="Delete Custom Offer?"
-          description={`Are you sure you want to delete "${deleteTarget.title}"? This action cannot be undone.`}
-          isDeleting={isDeleting}
-        />
-      )}
+      <DeleteConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteCustomOffer}
+        title="Delete Custom Offer?"
+        description={`Are you sure you want to delete "${deleteTarget?.title}"? This promotional campaign will be permanently removed.`}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }
