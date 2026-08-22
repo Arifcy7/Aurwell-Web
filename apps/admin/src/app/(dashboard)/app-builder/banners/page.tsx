@@ -35,7 +35,7 @@ interface Banner {
   targetType: "treatment" | "membership" | "custom_url";
   targetId: string;
   imageUrl: string;
-  order: number;
+  order?: number;
   isActive?: boolean;
 }
 
@@ -93,9 +93,11 @@ export default function BannersPage() {
               id: d.id,
               isActive: data.isActive !== false,
               title: data.title || "",
+              subtitle: data.subtitle || "",
               imageUrl: data.imageUrl || "",
               targetType: data.targetType || "treatment",
               targetId: data.targetId || "",
+              order: Number(data.order || 0),
             });
           });
           return list;
