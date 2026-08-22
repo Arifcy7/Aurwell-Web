@@ -12,7 +12,7 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { Wallet, Users, DollarSign, Activity, CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { fetchWithVersionCache } from "@/lib/firebase/versionCache";
+import { fetchCanonicalPatients } from "@/lib/firebase/versionCache";
 
 interface ActivityItem {
   id: string;
@@ -172,14 +172,7 @@ export default function DashboardPage() {
         });
 
         // 4. Fetch Active Customers count from patients collection with Version Cache
-        const patientsList = await fetchWithVersionCache<{ id: string }>(
-          clinicId,
-          "patients",
-          async () => {
-            const snap = await getDocs(collection(db, "clinics", clinicId, "patients"));
-            return snap.docs.map((d) => ({ id: d.id }));
-          }
-        );
+        const patientsList = await fetchCanonicalPatients(clinicId);
         const customerCount = patientsList.length;
 
         setStats({

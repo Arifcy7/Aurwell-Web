@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
+import { fetchCanonicalTreatments, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -30,6 +30,7 @@ interface Treatment {
   features: string[];
   types: TreatmentType[];
   isActive?: boolean;
+  createdAt?: any;
 }
 
 export default function TreatmentsPage() {
@@ -44,7 +45,7 @@ export default function TreatmentsPage() {
   const [filterCategorySearch, setFilterCategorySearch] = useState("");
 
   // Form Reference for Auto-Scroll
-  const formRef = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   // Treatment Creation / Edit Form State
   const [showTreatmentForm, setShowTreatmentForm] = useState(false);
@@ -71,40 +72,7 @@ export default function TreatmentsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      const loadedTreatments = await fetchWithVersionCache<Treatment>(
-        cId,
-        "treatments",
-        async () => {
-          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
-          const list: Treatment[] = [];
-
-          treatSnapshot.forEach((d) => {
-            const data = d.data();
-            const typesMapped = (data.types || []).map((t: any) => ({
-              title: t.title || "Standard",
-              nonMemberPrice: t.nonMemberPrice !== undefined ? t.nonMemberPrice : (t.originalPrice || 0),
-              memberPrice: t.memberPrice !== undefined ? t.memberPrice : (t.discountedPrice !== undefined ? t.discountedPrice : null),
-            }));
-
-            // Backwards compatibility: Map legacy categoryId or categories array
-            const catsMapped: string[] = Array.isArray(data.categories) && data.categories.length > 0
-              ? data.categories
-              : data.categoryId
-              ? [data.categoryId]
-              : ["Face"];
-
-            list.push({
-              id: d.id,
-              ...data,
-              categories: catsMapped,
-              types: typesMapped,
-            } as Treatment);
-          });
-
-          return list;
-        }
-      );
-
+      const loadedTreatments = await fetchCanonicalTreatments(cId);
       setTreatments(loadedTreatments);
     } catch (err) {
       console.error("Error loading treatments data:", err);
@@ -235,19 +203,19 @@ export default function TreatmentsPage() {
   const handleEditClick = (treatment: Treatment) => {
     setEditId(treatment.id);
     setSelectedCategories(treatment.categories || []);
-    setTitle(treatment.title);
-    setDescription(treatment.description);
-    setBannerUrl(treatment.bannerUrl);
-    setOriginalBannerUrl(treatment.bannerUrl);
+    setTitle(treatment.title || "");
+    setDescription(treatment.description || "");
+    setBannerUrl(treatment.bannerUrl || "");
+    setOriginalBannerUrl(treatment.bannerUrl || "");
     setBannerFile(null);
-    setFeaturesHeading(treatment.featuresHeading);
-    setFeaturesListInput(treatment.features.join(", "));
+    setFeaturesHeading(treatment.featuresHeading || "Key Benefits");
+    setFeaturesListInput(Array.isArray(treatment.features) ? treatment.features.join(", ") : "");
     setTypes(
-      treatment.types.length > 0
+      Array.isArray(treatment.types) && treatment.types.length > 0
         ? treatment.types.map((t) => ({
-            title: t.title,
-            nonMemberPrice: String(t.nonMemberPrice),
-            memberPrice: t.memberPrice ? String(t.memberPrice) : "",
+            title: t.title || "Standard",
+            nonMemberPrice: String(t.nonMemberPrice || 0),
+            memberPrice: t.memberPrice !== undefined && t.memberPrice !== null ? String(t.memberPrice) : "",
           }))
         : [{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]
     );
@@ -304,15 +272,19 @@ export default function TreatmentsPage() {
   };
 
   const filteredTreatments = treatments.filter((t) => {
+    const cats = Array.isArray(t.categories) ? t.categories : [];
+    const tTitle = t.title || "";
+    const tDesc = t.description || "";
+
     const matchesSearch =
       !searchTerm.trim() ||
-      t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.categories.some((c) => c.toLowerCase().includes(searchTerm.toLowerCase()));
+      tTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tDesc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cats.some((c) => c.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesCategory =
       selectedFilterCategories.length === 0 ||
-      t.categories.some((c) => selectedFilterCategories.includes(c));
+      cats.some((c) => selectedFilterCategories.includes(c));
 
     return matchesSearch && matchesCategory;
   });
@@ -787,10 +759,10 @@ export default function TreatmentsPage() {
               {/* Treatment Banner */}
               <div
                 className="h-36 bg-cover bg-center relative"
-                style={{ backgroundImage: `url(${t.bannerUrl})` }}
+                style={{ backgroundImage: `url(${t.bannerUrl || ""})` }}
               >
                 <div className="absolute top-3 right-3 flex flex-wrap gap-1 max-w-[80%] justify-end">
-                  {t.categories.slice(0, 2).map((cat) => (
+                  {(t.categories || []).slice(0, 2).map((cat) => (
                     <span
                       key={cat}
                       className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"
@@ -798,9 +770,9 @@ export default function TreatmentsPage() {
                       {cat}
                     </span>
                   ))}
-                  {t.categories.length > 2 && (
+                  {(t.categories || []).length > 2 && (
                     <span className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
-                      +{t.categories.length - 2}
+                      +{(t.categories || []).length - 2}
                     </span>
                   )}
                 </div>
@@ -808,11 +780,11 @@ export default function TreatmentsPage() {
 
               <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <h4 className="text-base font-bold tracking-tight mb-1 text-neutral-900">{t.title}</h4>
+                  <h4 className="text-base font-bold tracking-tight mb-1 text-neutral-900">{t.title || "Untitled"}</h4>
 
                   {/* Multi-category Pills */}
                   <div className="flex flex-wrap gap-1 mb-2">
-                    {t.categories.map((cat) => (
+                    {(t.categories || []).map((cat) => (
                       <span
                         key={cat}
                         className="bg-neutral-100 border border-neutral-200 text-neutral-700 text-[10px] font-semibold px-2 py-0.5 rounded-full"
@@ -822,12 +794,12 @@ export default function TreatmentsPage() {
                     ))}
                   </div>
 
-                  <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{t.description}</p>
+                  <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{t.description || ""}</p>
 
                   {t.features && t.features.length > 0 && (
                     <div className="space-y-1 mb-3">
                       <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">
-                        {t.featuresHeading}
+                        {t.featuresHeading || "Key Benefits"}
                       </span>
                       <ul className="space-y-0.5 text-xs text-neutral-600">
                         {t.features.slice(0, 3).map((f, i) => (
@@ -848,9 +820,9 @@ export default function TreatmentsPage() {
                       Pricing Tiers
                     </span>
                     <div className="space-y-1">
-                      {t.types.map((type, idx) => (
+                      {(t.types || []).map((type, idx) => (
                         <div key={idx} className="flex justify-between text-xs text-neutral-700">
-                          <span className="font-medium text-neutral-800">{type.title}</span>
+                          <span className="font-medium text-neutral-800">{type.title || "Standard"}</span>
                           <div className="space-x-1.5">
                             {type.memberPrice ? (
                               <>

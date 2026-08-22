@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache } from "@/lib/firebase/versionCache";
+import { fetchCanonicalRewards, fetchCanonicalPatients } from "@/lib/firebase/versionCache";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -101,34 +101,13 @@ export default function ShopSummaryPage() {
           }
 
           // 2. Fetch Rewards with Version Cache to count unlocked/available rewards
-          const rewardsList = await fetchWithVersionCache<{ id: string }>(
-            cId,
-            "rewards",
-            async () => {
-              const snap = await getDocs(collection(db, "clinics", cId, "rewards"));
-              return snap.docs.map((d) => ({ id: d.id }));
-            }
-          );
+          const rewardsList = await fetchCanonicalRewards(cId);
           const totalRewardsUnlocked = rewardsList.length;
 
           // 3. Fetch patients with Version Cache for fallback name & email lookup
-          const patientsList = await fetchWithVersionCache<{ id: string; name: string; email: string }>(
-            cId,
-            "patients",
-            async () => {
-              const snap = await getDocs(collection(db, "clinics", cId, "patients"));
-              return snap.docs.map((pDoc) => {
-                const pData = pDoc.data();
-                return {
-                  id: pDoc.id,
-                  name: pData.name || pData.clientName || "",
-                  email: pData.email || "",
-                };
-              });
-            }
-          );
+          const patientsList = await fetchCanonicalPatients(cId);
           const patientMap = new Map<string, { name: string; email: string }>();
-          patientsList.forEach((p) => patientMap.set(p.id, { name: p.name, email: p.email }));
+          patientsList.forEach((p) => patientMap.set(p.id, { name: p.name || "", email: p.email || "" }));
 
           // 4. Fetch Transactions collection
           const txQuery = query(collection(db, "clinics", cId, "transactions"));

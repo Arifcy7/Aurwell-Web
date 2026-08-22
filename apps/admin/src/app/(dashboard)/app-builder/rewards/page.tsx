@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
+import {
+  fetchCanonicalTreatments,
+  fetchWithVersionCache,
+  incrementCollectionVersion,
+  updateLocalCache,
+} from "@/lib/firebase/versionCache";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
@@ -203,19 +208,8 @@ export default function RewardsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch treatments with Version Cache
-      const loadedTreatments = await fetchWithVersionCache<Treatment>(
-        cId,
-        "treatments",
-        async () => {
-          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
-          const list: Treatment[] = [];
-          treatSnapshot.forEach((d) => {
-            list.push({ id: d.id, title: d.data().title } as Treatment);
-          });
-          return list;
-        }
-      );
+      // Fetch treatments with canonical Version Cache
+      const loadedTreatments = await fetchCanonicalTreatments(cId);
       setTreatments(loadedTreatments);
       if (loadedTreatments.length > 0) {
         setSelectedTreatmentId((prev) => prev || loadedTreatments[0].id);

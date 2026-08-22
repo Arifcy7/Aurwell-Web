@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache } from "@/lib/firebase/versionCache";
+import { fetchCanonicalTreatments, fetchCanonicalMembershipTiers } from "@/lib/firebase/versionCache";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -169,40 +169,20 @@ export default function MembershipsPage() {
           }
 
           // 2. Fetch Available Clinic Treatments with Version Cache
-          const trList = await fetchWithVersionCache<ClinicTreatmentOption>(
-            cId,
-            "treatments",
-            async () => {
-              const trSnap = await getDocs(collection(db, "clinics", cId, "treatments"));
-              const list: ClinicTreatmentOption[] = [];
-              trSnap.forEach((tDoc) => {
-                const title = tDoc.data().title || tDoc.data().name || tDoc.data().treatmentName || "Treatment";
-                list.push({ id: tDoc.id, title });
-              });
-              return list;
-            }
-          );
+          const rawTreatments = await fetchCanonicalTreatments(cId);
+          const trList: ClinicTreatmentOption[] = rawTreatments.map((t) => ({
+            id: t.id,
+            title: t.title || "Treatment",
+          }));
           const trMap: Record<string, string> = {};
           trList.forEach((t) => { trMap[t.id] = t.title; });
           setAvailableTreatments(trList);
           setTreatmentsMap(trMap);
 
           // 3. Fetch membership_tiers with Version Cache for price fallbacks
-          const tiersData = await fetchWithVersionCache<{ id: string; price: number }>(
-            cId,
-            "membership_tiers",
-            async () => {
-              const tiersSnap = await getDocs(collection(db, "clinics", cId, "membership_tiers"));
-              const list: { id: string; price: number }[] = [];
-              tiersSnap.forEach((tDoc) => {
-                const tData = tDoc.data();
-                list.push({ id: tDoc.id, price: Number(tData.monthlyPrice || tData.price || 0) });
-              });
-              return list;
-            }
-          );
+          const rawTiers = await fetchCanonicalMembershipTiers(cId);
           const tierPricesMap = new Map<string, number>();
-          tiersData.forEach((t) => tierPricesMap.set(t.id, t.price));
+          rawTiers.forEach((t) => tierPricesMap.set(t.id, Number(t.monthlyPrice || 0)));
 
           // 4. Fetch Active Memberships subcollection
           const q = query(collection(db, "clinics", cId, "active_memberships"));

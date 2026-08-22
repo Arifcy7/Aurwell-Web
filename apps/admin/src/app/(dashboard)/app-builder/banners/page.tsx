@@ -15,7 +15,12 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
+import {
+  fetchCanonicalTreatments,
+  fetchWithVersionCache,
+  incrementCollectionVersion,
+  updateLocalCache,
+} from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -23,35 +28,40 @@ import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
 import { motion, AnimatePresence } from "framer-motion";
 
+interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string;
+  targetType: "treatment" | "membership" | "custom_url";
+  targetId: string;
+  imageUrl: string;
+  order: number;
+  isActive?: boolean;
+}
+
 interface Treatment {
   id: string;
   title: string;
 }
 
-interface Banner {
-  id: string;
-  title: string;
-  imageUrl: string;
-  targetType: "treatment" | "link";
-  targetId: string;
-  isActive?: boolean;
-}
-
 export default function BannersPage() {
+  const [clinicId, setClinicId] = useState("");
   const [banners, setBanners] = useState<Banner[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [clinicId, setClinicId] = useState("");
 
   // Form State
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+  const [targetType, setTargetType] = useState<"treatment" | "membership" | "custom_url">("treatment");
+  const [targetId, setTargetId] = useState("");
+  const [order, setOrder] = useState(0);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [originalImageUrl, setOriginalImageUrl] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [targetType, setTargetType] = useState<"treatment" | "link">("treatment");
-  const [targetId, setTargetId] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Delete confirmation state
   const [deleteTarget, setDeleteTarget] = useState<Banner | null>(null);
@@ -59,19 +69,8 @@ export default function BannersPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch treatments with Version Cache
-      const loadedTreatments = await fetchWithVersionCache<Treatment>(
-        cId,
-        "treatments",
-        async () => {
-          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
-          const list: Treatment[] = [];
-          treatSnapshot.forEach((d) => {
-            list.push({ id: d.id, title: d.data().title } as Treatment);
-          });
-          return list;
-        }
-      );
+      // 1. Fetch treatments with canonical Version Cache
+      const loadedTreatments = await fetchCanonicalTreatments(cId);
       setTreatments(loadedTreatments);
       if (loadedTreatments.length > 0) {
         setTargetId((prev) => prev || loadedTreatments[0].id);

@@ -1,8 +1,29 @@
-import { doc, getDoc, setDoc, increment } from "firebase/firestore";
+import { doc, getDoc, setDoc, getDocs, collection, query, orderBy, increment } from "firebase/firestore";
 import { db } from "./client";
 
-const CACHE_PREFIX = "aurwell_vcache_";
-const VERSION_PREFIX = "aurwell_vnum_";
+const CACHE_PREFIX = "aurwell_v3cache_";
+const VERSION_PREFIX = "aurwell_v3num_";
+
+/**
+ * Clean up legacy corrupted cache keys from previous versions
+ */
+function cleanupLegacyCacheKeys(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("aurwell_vcache_") || key.startsWith("aurwell_vnum_"))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch {}
+}
+
+if (typeof window !== "undefined") {
+  cleanupLegacyCacheKeys();
+}
 
 /**
  * Safely get an item from browser localStorage
@@ -76,7 +97,9 @@ export async function fetchWithVersionCache<T>(
       if (cachedVersion === serverVersion && serverVersion > 0) {
         try {
           const parsed = JSON.parse(cachedDataStr) as T[];
-          return parsed;
+          if (Array.isArray(parsed)) {
+            return parsed;
+          }
         } catch {
           // JSON parse failed, proceed to fresh fetch
         }
@@ -102,12 +125,139 @@ export async function fetchWithVersionCache<T>(
     // If error occurs (e.g. offline), fallback to cached data if available
     if (cachedDataStr) {
       try {
-        return JSON.parse(cachedDataStr) as T[];
+        const parsed = JSON.parse(cachedDataStr) as T[];
+        if (Array.isArray(parsed)) return parsed;
       } catch {}
     }
     // Otherwise fallback to direct fetcher
     return await fetcher();
   }
+}
+
+/**
+ * Canonical Treatments Fetcher (Complete model representation)
+ */
+export async function fetchCanonicalTreatments(clinicId: string): Promise<any[]> {
+  return await fetchWithVersionCache(
+    clinicId,
+    "treatments",
+    async () => {
+      const snap = await getDocs(collection(db, "clinics", clinicId, "treatments"));
+      const list: any[] = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        const typesMapped = (data.types || []).map((t: any) => ({
+          title: t.title || "Standard",
+          nonMemberPrice: t.nonMemberPrice !== undefined ? Number(t.nonMemberPrice) : Number(t.originalPrice || 0),
+          memberPrice: t.memberPrice !== undefined && t.memberPrice !== null && t.memberPrice !== "" ? Number(t.memberPrice) : (t.discountedPrice !== undefined ? Number(t.discountedPrice) : null),
+        }));
+
+        const catsMapped: string[] = Array.isArray(data.categories) && data.categories.length > 0
+          ? data.categories
+          : data.categoryId
+          ? [data.categoryId]
+          : ["Face"];
+
+        list.push({
+          id: d.id,
+          categories: catsMapped,
+          title: data.title || "Untitled Treatment",
+          description: data.description || "",
+          bannerUrl: data.bannerUrl || "",
+          featuresHeading: data.featuresHeading || "Key Benefits",
+          features: Array.isArray(data.features) ? data.features : [],
+          types: typesMapped.length > 0 ? typesMapped : [{ title: "Standard", nonMemberPrice: 0, memberPrice: null }],
+          isActive: data.isActive !== false,
+          createdAt: data.createdAt || null,
+        });
+      });
+      return list;
+    }
+  );
+}
+
+/**
+ * Canonical Membership Tiers Fetcher (Complete model representation)
+ */
+export async function fetchCanonicalMembershipTiers(clinicId: string): Promise<any[]> {
+  return await fetchWithVersionCache(
+    clinicId,
+    "membership_tiers",
+    async () => {
+      const snap = await getDocs(collection(db, "clinics", clinicId, "membership_tiers"));
+      const list: any[] = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        list.push({
+          id: d.id,
+          title: data.title || "VIP Membership",
+          description: data.description || "",
+          monthlyPrice: Number(data.monthlyPrice || data.price || 0),
+          annualPrice: data.annualPrice ? Number(data.annualPrice) : null,
+          minCommitmentMonths: data.minCommitmentMonths ? Number(data.minCommitmentMonths) : null,
+          benefits: Array.isArray(data.benefits) ? data.benefits : [],
+          includedTreatments: Array.isArray(data.includedTreatments) ? data.includedTreatments : [],
+          imageUrl: data.imageUrl || "",
+          terms: data.terms || "",
+          isActive: data.isActive !== false,
+          createdAt: data.createdAt || null,
+        });
+      });
+      return list;
+    }
+  );
+}
+
+/**
+ * Canonical Rewards Fetcher (Complete model representation)
+ */
+export async function fetchCanonicalRewards(clinicId: string): Promise<any[]> {
+  return await fetchWithVersionCache(
+    clinicId,
+    "rewards",
+    async () => {
+      const snap = await getDocs(collection(db, "clinics", clinicId, "rewards"));
+      const list: any[] = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        list.push({
+          id: d.id,
+          isActive: data.isActive !== false,
+          ...data,
+        });
+      });
+      return list;
+    }
+  );
+}
+
+/**
+ * Canonical Patients Fetcher (Complete model representation)
+ */
+export async function fetchCanonicalPatients(clinicId: string): Promise<any[]> {
+  return await fetchWithVersionCache(
+    clinicId,
+    "patients",
+    async () => {
+      const snap = await getDocs(collection(db, "clinics", clinicId, "patients"));
+      const list: any[] = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        const jDate = data.joinedAt || data.createdAt;
+        list.push({
+          id: d.id,
+          name: data.name || data.clientName || "Unnamed Patient",
+          email: data.email || "",
+          phone: data.phone || "",
+          loyaltyBalance: Number(data.loyaltyBalance || 0),
+          visitsCount: Number(data.visitsCount || 0),
+          joinedAt: jDate || null,
+          ...data,
+        });
+      });
+      return list;
+    }
+  );
 }
 
 /**
@@ -154,8 +304,10 @@ export function updateLocalCache<T>(
   if (cachedDataStr) {
     try {
       const prev = JSON.parse(cachedDataStr) as T[];
-      const updated = updater(prev);
-      setStorageItem(cacheKey, JSON.stringify(updated));
+      if (Array.isArray(prev)) {
+        const updated = updater(prev);
+        setStorageItem(cacheKey, JSON.stringify(updated));
+      }
     } catch {}
   }
 }

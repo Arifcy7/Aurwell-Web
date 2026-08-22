@@ -14,7 +14,12 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
+import {
+  fetchCanonicalTreatments,
+  fetchCanonicalMembershipTiers,
+  incrementCollectionVersion,
+  updateLocalCache,
+} from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -23,12 +28,7 @@ import Modal from "@/components/Modal";
 import { Trash2, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface Treatment {
-  id: string;
-  title: string;
-}
-
-interface IncludedTreatment {
+interface IncludedItem {
   treatmentId: string;
   sessionsCount: number;
 }
@@ -41,17 +41,23 @@ interface MembershipTier {
   annualPrice?: number | null;
   minCommitmentMonths?: number | null;
   benefits: string[];
-  includedTreatments: IncludedTreatment[];
+  includedTreatments?: IncludedItem[];
   imageUrl?: string;
   terms?: string;
   isActive?: boolean;
+  createdAt?: any;
 }
 
-export default function MembershipPage() {
+interface Treatment {
+  id: string;
+  title: string;
+}
+
+export default function MembershipTiersPage() {
+  const [clinicId, setClinicId] = useState("");
   const [tiers, setTiers] = useState<MembershipTier[]>([]);
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [clinicId, setClinicId] = useState("");
 
   // Form State
   const [showForm, setShowForm] = useState(false);
@@ -60,12 +66,12 @@ export default function MembershipPage() {
   const [description, setDescription] = useState("");
   const [monthlyPrice, setMonthlyPrice] = useState("");
   const [annualPrice, setAnnualPrice] = useState("");
-  const [minCommitmentMonths, setMinCommitmentMonths] = useState("");
+  const [minCommitmentMonths, setMinCommitmentMonths] = useState<number | "">("");
   const [benefitsList, setBenefitsList] = useState<string[]>([""]);
+  const [terms, setTerms] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [originalImageUrl, setOriginalImageUrl] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [terms, setTerms] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Delete confirmation state
@@ -76,39 +82,12 @@ export default function MembershipPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch available treatments with Version Cache
-      const loadedTreatments = await fetchWithVersionCache<Treatment>(
-        cId,
-        "treatments",
-        async () => {
-          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
-          const list: Treatment[] = [];
-          treatSnapshot.forEach((d) => {
-            list.push({ id: d.id, title: d.data().title } as Treatment);
-          });
-          return list;
-        }
-      );
+      // 1. Fetch available treatments with canonical Version Cache
+      const loadedTreatments = await fetchCanonicalTreatments(cId);
       setTreatments(loadedTreatments);
 
-      // 2. Fetch membership tiers with Version Cache
-      const loadedTiers = await fetchWithVersionCache<MembershipTier>(
-        cId,
-        "membership_tiers",
-        async () => {
-          const tierSnapshot = await getDocs(collection(db, "clinics", cId, "membership_tiers"));
-          const list: MembershipTier[] = [];
-          tierSnapshot.forEach((d) => {
-            const data = d.data();
-            list.push({
-              id: d.id,
-              isActive: data.isActive !== false,
-              ...data,
-            } as MembershipTier);
-          });
-          return list;
-        }
-      );
+      // 2. Fetch membership tiers with canonical Version Cache
+      const loadedTiers = await fetchCanonicalMembershipTiers(cId);
       setTiers(loadedTiers);
     } catch (err) {
       console.error("Error loading membership page data:", err);

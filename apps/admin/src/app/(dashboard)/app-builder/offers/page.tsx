@@ -13,7 +13,12 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
+import {
+  fetchCanonicalTreatments,
+  fetchWithVersionCache,
+  incrementCollectionVersion,
+  updateLocalCache,
+} from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -125,26 +130,15 @@ export default function AutomatedOffersPage() {
         setCurrency(clinicDoc.data().currency || "EUR");
       }
 
-      // 2. Fetch Treatments with Version Cache
-      const loadedTreatments = await fetchWithVersionCache<TreatmentItem>(
-        cId,
-        "treatments",
-        async () => {
-          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
-          const list: TreatmentItem[] = [];
-          treatSnapshot.forEach((d) => {
-            const data = d.data();
-            list.push({
-              id: d.id,
-              title: data.title || "Untitled Product",
-              categories: data.categories || [],
-              bannerUrl: data.bannerUrl || "",
-              nonMemberPrice: data.types?.[0]?.nonMemberPrice || 0,
-            });
-          });
-          return list;
-        }
-      );
+      // 2. Fetch Treatments with canonical Version Cache
+      const rawTreatments = await fetchCanonicalTreatments(cId);
+      const loadedTreatments: TreatmentItem[] = rawTreatments.map((t) => ({
+        id: t.id,
+        title: t.title || "Untitled Product",
+        categories: t.categories || [],
+        bannerUrl: t.bannerUrl || "",
+        nonMemberPrice: t.types?.[0]?.nonMemberPrice || 0,
+      }));
       setTreatments(loadedTreatments);
 
       // 3. Fetch Automated Offers with Version Cache
