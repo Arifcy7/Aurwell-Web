@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache } from "@/lib/firebase/versionCache";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -168,35 +168,45 @@ export default function MembershipsPage() {
             setCurrency(clinicCurr);
           }
 
-          // 2. Fetch Available Clinic Treatments for selection and name resolution (Cache-First)
-          const trQuery = query(collection(db, "clinics", cId, "treatments"));
-          const trSnap = await getDocsCacheFirst(trQuery);
-          const trList: ClinicTreatmentOption[] = [];
+          // 2. Fetch Available Clinic Treatments with Version Cache
+          const trList = await fetchWithVersionCache<ClinicTreatmentOption>(
+            cId,
+            "treatments",
+            async () => {
+              const trSnap = await getDocs(collection(db, "clinics", cId, "treatments"));
+              const list: ClinicTreatmentOption[] = [];
+              trSnap.forEach((tDoc) => {
+                const title = tDoc.data().title || tDoc.data().name || tDoc.data().treatmentName || "Treatment";
+                list.push({ id: tDoc.id, title });
+              });
+              return list;
+            }
+          );
           const trMap: Record<string, string> = {};
-          trSnap.forEach((tDoc) => {
-            const title = tDoc.data().title || tDoc.data().name || tDoc.data().treatmentName || "Treatment";
-            trList.push({
-              id: tDoc.id,
-              title: title,
-            });
-            trMap[tDoc.id] = title;
-          });
+          trList.forEach((t) => { trMap[t.id] = t.title; });
           setAvailableTreatments(trList);
           setTreatmentsMap(trMap);
 
-          // 3. Fetch membership_tiers for price fallbacks if price is 0 (Cache-First)
-          const tiersQuery = query(collection(db, "clinics", cId, "membership_tiers"));
-          const tiersSnap = await getDocsCacheFirst(tiersQuery);
+          // 3. Fetch membership_tiers with Version Cache for price fallbacks
+          const tiersData = await fetchWithVersionCache<{ id: string; price: number }>(
+            cId,
+            "membership_tiers",
+            async () => {
+              const tiersSnap = await getDocs(collection(db, "clinics", cId, "membership_tiers"));
+              const list: { id: string; price: number }[] = [];
+              tiersSnap.forEach((tDoc) => {
+                const tData = tDoc.data();
+                list.push({ id: tDoc.id, price: Number(tData.monthlyPrice || tData.price || 0) });
+              });
+              return list;
+            }
+          );
           const tierPricesMap = new Map<string, number>();
-          tiersSnap.forEach((tDoc) => {
-            const tData = tDoc.data();
-            const p = Number(tData.monthlyPrice || tData.price || 0);
-            tierPricesMap.set(tDoc.id, p);
-          });
+          tiersData.forEach((t) => tierPricesMap.set(t.id, t.price));
 
-          // 4. Fetch Active Memberships subcollection (Cache-First)
+          // 4. Fetch Active Memberships subcollection
           const q = query(collection(db, "clinics", cId, "active_memberships"));
-          const snapshot = await getDocsCacheFirst(q);
+          const snapshot = await getDocs(q);
           const loadedMemberships: ActiveMembership[] = [];
 
           for (const d of snapshot.docs) {

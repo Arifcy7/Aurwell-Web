@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -59,30 +59,37 @@ export default function BlogsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch clinic config to get custom section title (Cache-First)
-      const clinicDoc = await getDocCacheFirst(doc(db, "clinics", cId));
+      // 1. Fetch clinic config to get custom section title
+      const clinicDoc = await getDoc(doc(db, "clinics", cId));
       if (clinicDoc.exists()) {
         setBlogSectionTitle(clinicDoc.data().blogSectionTitle || "Blogs");
       }
 
-      // 2. Fetch blogs subcollection (Cache-First)
-      const q = query(
-        collection(db, "clinics", cId, "blogs"),
-        orderBy("createdAt", "desc")
+      // 2. Fetch blogs with Version Cache
+      const loadedBlogs = await fetchWithVersionCache<Blog>(
+        cId,
+        "blogs",
+        async () => {
+          const q = query(
+            collection(db, "clinics", cId, "blogs"),
+            orderBy("createdAt", "desc")
+          );
+          const snapshot = await getDocs(q);
+          const list: Blog[] = [];
+          snapshot.forEach((d) => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              isActive: data.isActive !== false,
+              title: data.title || "",
+              description: data.description || "",
+              imageUrl: data.imageUrl || "",
+              articleUrl: data.articleUrl || "",
+            });
+          });
+          return list;
+        }
       );
-      const snapshot = await getDocsCacheFirst(q);
-      const loadedBlogs: Blog[] = [];
-      snapshot.forEach((d) => {
-        const data = d.data();
-        loadedBlogs.push({
-          id: d.id,
-          isActive: data.isActive !== false,
-          title: data.title || "",
-          description: data.description || "",
-          imageUrl: data.imageUrl || "",
-          articleUrl: data.articleUrl || "",
-        });
-      });
       setBlogs(loadedBlogs);
     } catch (err) {
       console.error("Error loading blogs page data:", err);
@@ -159,6 +166,9 @@ export default function BlogsPage() {
         setBlogs((prev) =>
           prev.map((b) => (b.id === editId ? { ...b, ...blogData } : b))
         );
+        updateLocalCache<Blog>(clinicId, "blogs", (prev) =>
+          prev.map((b) => (b.id === editId ? { ...b, ...blogData } : b))
+        );
       } else {
         // Create new blog
         const fullData = { ...blogData, isActive: true, createdAt: serverTimestamp() };
@@ -166,8 +176,12 @@ export default function BlogsPage() {
           collection(db, "clinics", clinicId, "blogs"),
           fullData
         );
-        setBlogs((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
+        const newBlog = { id: docRef.id, ...fullData } as any;
+        setBlogs((prev) => [newBlog, ...prev]);
+        updateLocalCache<Blog>(clinicId, "blogs", (prev) => [newBlog, ...prev]);
       }
+
+      await incrementCollectionVersion(clinicId, "blogs");
 
       if (shouldDeleteOriginal && originalImageUrl) {
         await deleteImageFile(originalImageUrl);
@@ -210,6 +224,10 @@ export default function BlogsPage() {
       setBlogs((prev) =>
         prev.map((b) => (b.id === blog.id ? { ...b, isActive: newStatus } : b))
       );
+      updateLocalCache<Blog>(clinicId, "blogs", (prev) =>
+        prev.map((b) => (b.id === blog.id ? { ...b, isActive: newStatus } : b))
+      );
+      await incrementCollectionVersion(clinicId, "blogs");
     } catch (err) {
       console.error("Error toggling active state:", err);
     }
@@ -224,6 +242,10 @@ export default function BlogsPage() {
       }
       await deleteDoc(doc(db, "clinics", clinicId, "blogs", deleteTarget.id));
       setBlogs((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      updateLocalCache<Blog>(clinicId, "blogs", (prev) =>
+        prev.filter((b) => b.id !== deleteTarget.id)
+      );
+      await incrementCollectionVersion(clinicId, "blogs");
       setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting blog:", err);

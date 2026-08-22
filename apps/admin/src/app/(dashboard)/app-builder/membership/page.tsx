@@ -14,7 +14,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -76,25 +76,39 @@ export default function MembershipPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch available treatments (Cache-First)
-      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
-      const loadedTreatments: Treatment[] = [];
-      treatSnapshot.forEach((d) => {
-        loadedTreatments.push({ id: d.id, title: d.data().title } as Treatment);
-      });
+      // 1. Fetch available treatments with Version Cache
+      const loadedTreatments = await fetchWithVersionCache<Treatment>(
+        cId,
+        "treatments",
+        async () => {
+          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+          const list: Treatment[] = [];
+          treatSnapshot.forEach((d) => {
+            list.push({ id: d.id, title: d.data().title } as Treatment);
+          });
+          return list;
+        }
+      );
       setTreatments(loadedTreatments);
 
-      // 2. Fetch membership tiers (Cache-First)
-      const tierSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "membership_tiers"));
-      const loadedTiers: MembershipTier[] = [];
-      tierSnapshot.forEach((d) => {
-        const data = d.data();
-        loadedTiers.push({
-          id: d.id,
-          isActive: data.isActive !== false,
-          ...data,
-        } as MembershipTier);
-      });
+      // 2. Fetch membership tiers with Version Cache
+      const loadedTiers = await fetchWithVersionCache<MembershipTier>(
+        cId,
+        "membership_tiers",
+        async () => {
+          const tierSnapshot = await getDocs(collection(db, "clinics", cId, "membership_tiers"));
+          const list: MembershipTier[] = [];
+          tierSnapshot.forEach((d) => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              isActive: data.isActive !== false,
+              ...data,
+            } as MembershipTier);
+          });
+          return list;
+        }
+      );
       setTiers(loadedTiers);
     } catch (err) {
       console.error("Error loading membership page data:", err);
@@ -186,6 +200,9 @@ export default function MembershipPage() {
         setTiers((prev) =>
           prev.map((t) => (t.id === editId ? { ...t, ...tierData } : t))
         );
+        updateLocalCache<MembershipTier>(clinicId, "membership_tiers", (prev) =>
+          prev.map((t) => (t.id === editId ? { ...t, ...tierData } : t))
+        );
       } else {
         // Create new tier
         const fullData = { ...tierData, isActive: true, createdAt: serverTimestamp() };
@@ -193,8 +210,12 @@ export default function MembershipPage() {
           collection(db, "clinics", clinicId, "membership_tiers"),
           fullData
         );
-        setTiers((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
+        const newTier = { id: docRef.id, ...fullData } as any;
+        setTiers((prev) => [newTier, ...prev]);
+        updateLocalCache<MembershipTier>(clinicId, "membership_tiers", (prev) => [newTier, ...prev]);
       }
+
+      await incrementCollectionVersion(clinicId, "membership_tiers");
 
       if (shouldDeleteOriginal && originalImageUrl) {
         await deleteImageFile(originalImageUrl);
@@ -247,6 +268,10 @@ export default function MembershipPage() {
       setTiers((prev) =>
         prev.map((t) => (t.id === tier.id ? { ...t, isActive: newStatus } : t))
       );
+      updateLocalCache<MembershipTier>(clinicId, "membership_tiers", (prev) =>
+        prev.map((t) => (t.id === tier.id ? { ...t, isActive: newStatus } : t))
+      );
+      await incrementCollectionVersion(clinicId, "membership_tiers");
     } catch (err) {
       console.error("Error toggling active state:", err);
     }
@@ -261,6 +286,10 @@ export default function MembershipPage() {
       }
       await deleteDoc(doc(db, "clinics", clinicId, "membership_tiers", deleteTarget.id));
       setTiers((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      updateLocalCache<MembershipTier>(clinicId, "membership_tiers", (prev) =>
+        prev.filter((t) => t.id !== deleteTarget.id)
+      );
+      await incrementCollectionVersion(clinicId, "membership_tiers");
       setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting membership tier:", err);

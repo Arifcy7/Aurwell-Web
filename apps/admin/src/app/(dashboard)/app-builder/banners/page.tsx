@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -59,35 +59,49 @@ export default function BannersPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // 1. Fetch treatments for dropdown selector (Cache-First)
-      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
-      const loadedTreatments: Treatment[] = [];
-      treatSnapshot.forEach((d) => {
-        loadedTreatments.push({ id: d.id, title: d.data().title } as Treatment);
-      });
+      // 1. Fetch treatments with Version Cache
+      const loadedTreatments = await fetchWithVersionCache<Treatment>(
+        cId,
+        "treatments",
+        async () => {
+          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+          const list: Treatment[] = [];
+          treatSnapshot.forEach((d) => {
+            list.push({ id: d.id, title: d.data().title } as Treatment);
+          });
+          return list;
+        }
+      );
       setTreatments(loadedTreatments);
       if (loadedTreatments.length > 0) {
-        setTargetId(loadedTreatments[0].id);
+        setTargetId((prev) => prev || loadedTreatments[0].id);
       }
 
-      // 2. Fetch banners subcollection (Cache-First)
-      const q = query(
-        collection(db, "clinics", cId, "banners"),
-        orderBy("createdAt", "desc")
+      // 2. Fetch banners with Version Cache
+      const loadedBanners = await fetchWithVersionCache<Banner>(
+        cId,
+        "banners",
+        async () => {
+          const q = query(
+            collection(db, "clinics", cId, "banners"),
+            orderBy("createdAt", "desc")
+          );
+          const snapshot = await getDocs(q);
+          const list: Banner[] = [];
+          snapshot.forEach((d) => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              isActive: data.isActive !== false,
+              title: data.title || "",
+              imageUrl: data.imageUrl || "",
+              targetType: data.targetType || "treatment",
+              targetId: data.targetId || "",
+            });
+          });
+          return list;
+        }
       );
-      const snapshot = await getDocsCacheFirst(q);
-      const loadedBanners: Banner[] = [];
-      snapshot.forEach((d) => {
-        const data = d.data();
-        loadedBanners.push({
-          id: d.id,
-          isActive: data.isActive !== false,
-          title: data.title || "",
-          imageUrl: data.imageUrl || "",
-          targetType: data.targetType || "treatment",
-          targetId: data.targetId || "",
-        });
-      });
       setBanners(loadedBanners);
     } catch (err) {
       console.error("Error loading banners page data:", err);
@@ -144,6 +158,9 @@ export default function BannersPage() {
         setBanners((prev) =>
           prev.map((b) => (b.id === editId ? { ...b, ...bannerData } : b))
         );
+        updateLocalCache<Banner>(clinicId, "banners", (prev) =>
+          prev.map((b) => (b.id === editId ? { ...b, ...bannerData } : b))
+        );
       } else {
         // Create new banner
         const fullData = { ...bannerData, isActive: true, createdAt: serverTimestamp() };
@@ -151,8 +168,12 @@ export default function BannersPage() {
           collection(db, "clinics", clinicId, "banners"),
           fullData
         );
-        setBanners((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
+        const newBanner = { id: docRef.id, ...fullData } as any;
+        setBanners((prev) => [newBanner, ...prev]);
+        updateLocalCache<Banner>(clinicId, "banners", (prev) => [newBanner, ...prev]);
       }
+
+      await incrementCollectionVersion(clinicId, "banners");
 
       if (shouldDeleteOriginal && originalImageUrl) {
         await deleteImageFile(originalImageUrl);
@@ -195,6 +216,10 @@ export default function BannersPage() {
       setBanners((prev) =>
         prev.map((b) => (b.id === banner.id ? { ...b, isActive: newStatus } : b))
       );
+      updateLocalCache<Banner>(clinicId, "banners", (prev) =>
+        prev.map((b) => (b.id === banner.id ? { ...b, isActive: newStatus } : b))
+      );
+      await incrementCollectionVersion(clinicId, "banners");
     } catch (err) {
       console.error("Error toggling active state:", err);
     }
@@ -209,6 +234,10 @@ export default function BannersPage() {
       }
       await deleteDoc(doc(db, "clinics", clinicId, "banners", deleteTarget.id));
       setBanners((prev) => prev.filter((b) => b.id !== deleteTarget.id));
+      updateLocalCache<Banner>(clinicId, "banners", (prev) =>
+        prev.filter((b) => b.id !== deleteTarget.id)
+      );
+      await incrementCollectionVersion(clinicId, "banners");
       setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting banner:", err);

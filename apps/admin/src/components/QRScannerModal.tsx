@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { ref, get, set, push } from "firebase/database";
 import { db, rtdb } from "@/lib/firebase/client";
+import { incrementCollectionVersion } from "@/lib/firebase/versionCache";
 
 interface QRScannerModalProps {
   isOpen: boolean;
@@ -172,6 +173,8 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
         },
         { merge: true }
       );
+
+      await incrementCollectionVersion(clinicId, "patients");
 
       // 7. Success state
       setSuccessResult({

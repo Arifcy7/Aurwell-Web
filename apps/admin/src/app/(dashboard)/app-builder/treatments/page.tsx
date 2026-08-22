@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -71,32 +71,39 @@ export default function TreatmentsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch treatments from Firestore (Cache-First)
-      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
-      const loadedTreatments: Treatment[] = [];
+      const loadedTreatments = await fetchWithVersionCache<Treatment>(
+        cId,
+        "treatments",
+        async () => {
+          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+          const list: Treatment[] = [];
 
-      treatSnapshot.forEach((d) => {
-        const data = d.data();
-        const typesMapped = (data.types || []).map((t: any) => ({
-          title: t.title || "Standard",
-          nonMemberPrice: t.nonMemberPrice !== undefined ? t.nonMemberPrice : (t.originalPrice || 0),
-          memberPrice: t.memberPrice !== undefined ? t.memberPrice : (t.discountedPrice !== undefined ? t.discountedPrice : null),
-        }));
+          treatSnapshot.forEach((d) => {
+            const data = d.data();
+            const typesMapped = (data.types || []).map((t: any) => ({
+              title: t.title || "Standard",
+              nonMemberPrice: t.nonMemberPrice !== undefined ? t.nonMemberPrice : (t.originalPrice || 0),
+              memberPrice: t.memberPrice !== undefined ? t.memberPrice : (t.discountedPrice !== undefined ? t.discountedPrice : null),
+            }));
 
-        // Backwards compatibility: Map legacy categoryId or categories array
-        const catsMapped: string[] = Array.isArray(data.categories) && data.categories.length > 0
-          ? data.categories
-          : data.categoryId
-          ? [data.categoryId]
-          : ["Face"];
+            // Backwards compatibility: Map legacy categoryId or categories array
+            const catsMapped: string[] = Array.isArray(data.categories) && data.categories.length > 0
+              ? data.categories
+              : data.categoryId
+              ? [data.categoryId]
+              : ["Face"];
 
-        loadedTreatments.push({
-          id: d.id,
-          ...data,
-          categories: catsMapped,
-          types: typesMapped,
-        } as Treatment);
-      });
+            list.push({
+              id: d.id,
+              ...data,
+              categories: catsMapped,
+              types: typesMapped,
+            } as Treatment);
+          });
+
+          return list;
+        }
+      );
 
       setTreatments(loadedTreatments);
     } catch (err) {
@@ -185,6 +192,9 @@ export default function TreatmentsPage() {
         setTreatments((prev) =>
           prev.map((t) => (t.id === editId ? { ...t, ...treatmentData } as any : t))
         );
+        updateLocalCache<Treatment>(clinicId, "treatments", (prev) =>
+          prev.map((t) => (t.id === editId ? { ...t, ...treatmentData } as any : t))
+        );
       } else {
         // Create new treatment
         const fullData = { ...treatmentData, isActive: true, createdAt: serverTimestamp() };
@@ -192,8 +202,12 @@ export default function TreatmentsPage() {
           collection(db, "clinics", clinicId, "treatments"),
           fullData
         );
-        setTreatments((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
+        const newTreatment = { id: docRef.id, ...fullData } as any;
+        setTreatments((prev) => [newTreatment, ...prev]);
+        updateLocalCache<Treatment>(clinicId, "treatments", (prev) => [newTreatment, ...prev]);
       }
+
+      await incrementCollectionVersion(clinicId, "treatments");
 
       if (shouldDeleteOriginal && originalBannerUrl) {
         await deleteImageFile(originalBannerUrl);
@@ -259,6 +273,10 @@ export default function TreatmentsPage() {
       setTreatments((prev) =>
         prev.map((t) => (t.id === treatment.id ? { ...t, isActive: newStatus } : t))
       );
+      updateLocalCache<Treatment>(clinicId, "treatments", (prev) =>
+        prev.map((t) => (t.id === treatment.id ? { ...t, isActive: newStatus } : t))
+      );
+      await incrementCollectionVersion(clinicId, "treatments");
     } catch (err) {
       console.error("Error toggling active state:", err);
     }
@@ -273,6 +291,10 @@ export default function TreatmentsPage() {
       }
       await deleteDoc(doc(db, "clinics", clinicId, "treatments", deleteTarget.id));
       setTreatments((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      updateLocalCache<Treatment>(clinicId, "treatments", (prev) =>
+        prev.filter((t) => t.id !== deleteTarget.id)
+      );
+      await incrementCollectionVersion(clinicId, "treatments");
       setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting treatment:", err);

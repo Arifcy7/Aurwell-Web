@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, query, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
@@ -203,19 +203,26 @@ export default function RewardsPage() {
 
   const loadData = async (cId: string) => {
     try {
-      // Fetch treatments for dropdown selector (Cache-First)
-      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
-      const loadedTreatments: Treatment[] = [];
-      treatSnapshot.forEach((d) => {
-        loadedTreatments.push({ id: d.id, title: d.data().title } as Treatment);
-      });
+      // Fetch treatments with Version Cache
+      const loadedTreatments = await fetchWithVersionCache<Treatment>(
+        cId,
+        "treatments",
+        async () => {
+          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+          const list: Treatment[] = [];
+          treatSnapshot.forEach((d) => {
+            list.push({ id: d.id, title: d.data().title } as Treatment);
+          });
+          return list;
+        }
+      );
       setTreatments(loadedTreatments);
       if (loadedTreatments.length > 0) {
-        setSelectedTreatmentId(loadedTreatments[0].id);
+        setSelectedTreatmentId((prev) => prev || loadedTreatments[0].id);
       }
 
-      // Fetch point ratio settings (Cache-First)
-      const ratioDoc = await getDocCacheFirst(doc(db, "clinics", cId, "settings", "rewards_ratio"));
+      // Fetch point ratio settings
+      const ratioDoc = await getDoc(doc(db, "clinics", cId, "settings", "rewards_ratio"));
       if (ratioDoc.exists()) {
         const data = ratioDoc.data();
         setSpendAmount(data.spendAmount || 10);
@@ -225,17 +232,24 @@ export default function RewardsPage() {
         setReferralPoints(data.referralPoints || 0);
       }
 
-      // Fetch rewards list (Cache-First)
-      const rewardSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "rewards"));
-      const loadedRewards: Reward[] = [];
-      rewardSnapshot.forEach((d) => {
-        const data = d.data();
-        loadedRewards.push({
-          id: d.id,
-          isActive: data.isActive !== false,
-          ...data,
-        } as Reward);
-      });
+      // Fetch rewards list with Version Cache
+      const loadedRewards = await fetchWithVersionCache<Reward>(
+        cId,
+        "rewards",
+        async () => {
+          const rewardSnapshot = await getDocs(collection(db, "clinics", cId, "rewards"));
+          const list: Reward[] = [];
+          rewardSnapshot.forEach((d) => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              isActive: data.isActive !== false,
+              ...data,
+            } as Reward);
+          });
+          return list;
+        }
+      );
       setRewards(loadedRewards);
       setIsLoaded(true);
     } catch (err) {
@@ -303,6 +317,9 @@ export default function RewardsPage() {
         setRewards((prev) =>
           prev.map((r) => (r.id === editId ? { ...r, ...rewardData } : r))
         );
+        updateLocalCache<Reward>(clinicId, "rewards", (prev) =>
+          prev.map((r) => (r.id === editId ? { ...r, ...rewardData } : r))
+        );
       } else {
         // Create new reward
         const fullData = { ...rewardData, isActive: true, createdAt: serverTimestamp() };
@@ -310,8 +327,12 @@ export default function RewardsPage() {
           collection(db, "clinics", clinicId, "rewards"),
           fullData
         );
-        setRewards((prev) => [{ id: docRef.id, ...fullData } as any, ...prev]);
+        const newReward = { id: docRef.id, ...fullData } as any;
+        setRewards((prev) => [newReward, ...prev]);
+        updateLocalCache<Reward>(clinicId, "rewards", (prev) => [newReward, ...prev]);
       }
+
+      await incrementCollectionVersion(clinicId, "rewards");
 
       // Reset
       setTitle("");
@@ -353,6 +374,10 @@ export default function RewardsPage() {
       setRewards((prev) =>
         prev.map((r) => (r.id === reward.id ? { ...r, isActive: newStatus } : r))
       );
+      updateLocalCache<Reward>(clinicId, "rewards", (prev) =>
+        prev.map((r) => (r.id === reward.id ? { ...r, isActive: newStatus } : r))
+      );
+      await incrementCollectionVersion(clinicId, "rewards");
     } catch (err) {
       console.error("Error toggling active state:", err);
     }
@@ -364,6 +389,10 @@ export default function RewardsPage() {
     try {
       await deleteDoc(doc(db, "clinics", clinicId, "rewards", deleteTarget.id));
       setRewards((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      updateLocalCache<Reward>(clinicId, "rewards", (prev) =>
+        prev.filter((r) => r.id !== deleteTarget.id)
+      );
+      await incrementCollectionVersion(clinicId, "rewards");
       setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting reward:", err);

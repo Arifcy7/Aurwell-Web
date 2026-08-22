@@ -5,7 +5,7 @@ import { collection, query, getDocs, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { ref, get } from "firebase/database";
 import { auth, db, rtdb } from "@/lib/firebase/client";
-import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache } from "@/lib/firebase/versionCache";
 import { Search, Users, Phone, Mail, Award, Calendar } from "lucide-react";
 import { TableSkeleton } from "@/components/Loader";
 
@@ -82,24 +82,30 @@ export default function ClientsPage() {
       if (!user) return;
 
       try {
-        const userDoc = await getDocCacheFirst(doc(db, "users", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const clinicId = userDoc.data().clinicId;
 
-          const q = query(collection(db, "clinics", clinicId, "patients"));
-          const snapshot = await getDocsCacheFirst(q);
-
-          const loadedClients: ClientProfile[] = [];
-          snapshot.forEach((d) => {
-            const data = d.data();
-            const jDate = data.joinedAt || data.createdAt;
-            loadedClients.push({
-              id: d.id,
-              ...data,
-              joinedAt: jDate,
-              loyaltyBalance: data.loyaltyBalance || 0,
-            } as ClientProfile);
-          });
+          const loadedClients = await fetchWithVersionCache<ClientProfile>(
+            clinicId,
+            "patients",
+            async () => {
+              const q = query(collection(db, "clinics", clinicId, "patients"));
+              const snapshot = await getDocs(q);
+              const list: ClientProfile[] = [];
+              snapshot.forEach((d) => {
+                const data = d.data();
+                const jDate = data.joinedAt || data.createdAt;
+                list.push({
+                  id: d.id,
+                  ...data,
+                  joinedAt: jDate,
+                  loyaltyBalance: data.loyaltyBalance || 0,
+                } as ClientProfile);
+              });
+              return list;
+            }
+          );
 
           setClients(loadedClients);
           setLoading(false);

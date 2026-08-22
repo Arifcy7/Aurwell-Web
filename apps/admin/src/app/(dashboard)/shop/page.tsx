@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst, getDocCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache } from "@/lib/firebase/versionCache";
 import StatCard from "@/components/StatCard";
 import { StatCardSkeleton } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -87,39 +87,52 @@ export default function ShopSummaryPage() {
       }
 
       try {
-        const userDoc = await getDocCacheFirst(doc(db, "users", user.uid));
+        const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const cId = userDoc.data().clinicId;
           setClinicId(cId);
 
           // 1. Fetch Clinic details for Currency
           let clinicCurr = "EUR";
-          const clinicDoc = await getDocCacheFirst(doc(db, "clinics", cId));
+          const clinicDoc = await getDoc(doc(db, "clinics", cId));
           if (clinicDoc.exists()) {
             clinicCurr = clinicDoc.data().currency || "EUR";
             setCurrency(clinicCurr);
           }
 
-          // 2. Fetch Rewards collection to count unlocked/available rewards
-          const rewardsSnapshot = await getDocsCacheFirst(
-            collection(db, "clinics", cId, "rewards")
+          // 2. Fetch Rewards with Version Cache to count unlocked/available rewards
+          const rewardsList = await fetchWithVersionCache<{ id: string }>(
+            cId,
+            "rewards",
+            async () => {
+              const snap = await getDocs(collection(db, "clinics", cId, "rewards"));
+              return snap.docs.map((d) => ({ id: d.id }));
+            }
           );
-          const totalRewardsUnlocked = rewardsSnapshot.size;
+          const totalRewardsUnlocked = rewardsList.length;
 
-          // 3. Fetch patients for fallback name & email lookup
-          const patientsSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "patients"));
+          // 3. Fetch patients with Version Cache for fallback name & email lookup
+          const patientsList = await fetchWithVersionCache<{ id: string; name: string; email: string }>(
+            cId,
+            "patients",
+            async () => {
+              const snap = await getDocs(collection(db, "clinics", cId, "patients"));
+              return snap.docs.map((pDoc) => {
+                const pData = pDoc.data();
+                return {
+                  id: pDoc.id,
+                  name: pData.name || pData.clientName || "",
+                  email: pData.email || "",
+                };
+              });
+            }
+          );
           const patientMap = new Map<string, { name: string; email: string }>();
-          patientsSnapshot.forEach((pDoc) => {
-            const pData = pDoc.data();
-            patientMap.set(pDoc.id, {
-              name: pData.name || pData.clientName || "",
-              email: pData.email || "",
-            });
-          });
+          patientsList.forEach((p) => patientMap.set(p.id, { name: p.name, email: p.email }));
 
           // 4. Fetch Transactions collection
           const txQuery = query(collection(db, "clinics", cId, "transactions"));
-          const txSnapshot = await getDocsCacheFirst(txQuery);
+          const txSnapshot = await getDocs(txQuery);
 
           const loadedTransactions: Transaction[] = [];
           let totalSalesVal = 0;

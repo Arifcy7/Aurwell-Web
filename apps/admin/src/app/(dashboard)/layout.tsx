@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
-import { doc } from "firebase/firestore";
-import { getDocCacheFirst } from "@/lib/firebase/logger";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import QRScannerModal from "@/components/QRScannerModal";
 import AdminSplashScreen from "@/components/AdminSplashScreen";
@@ -89,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUser(currentUser);
 
       try {
-        const userDoc = await getDocCacheFirst(doc(db, "users", currentUser.uid));
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
 
         if (userDoc.exists()) {
           const uData = userDoc.data();
@@ -100,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           let freshLogo = "";
 
           if (freshClinicId) {
-            const clinicDoc = await getDocCacheFirst(doc(db, "clinics", freshClinicId));
+            const clinicDoc = await getDoc(doc(db, "clinics", freshClinicId));
 
             if (clinicDoc.exists()) {
               const cData = clinicDoc.data();

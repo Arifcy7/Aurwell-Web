@@ -5,6 +5,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   setDoc,
   updateDoc,
   deleteDoc,
@@ -12,7 +13,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/client";
-import { getDocsCacheFirst } from "@/lib/firebase/logger";
+import { fetchWithVersionCache, incrementCollectionVersion, updateLocalCache } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
@@ -124,82 +125,97 @@ export default function AutomatedOffersPage() {
         setCurrency(clinicDoc.data().currency || "EUR");
       }
 
-      // 2. Fetch Treatments (Products) for scope selection (Cache-First)
-      const treatSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "treatments"));
-      const loadedTreatments: TreatmentItem[] = [];
-      treatSnapshot.forEach((d) => {
-        const data = d.data();
-        loadedTreatments.push({
-          id: d.id,
-          title: data.title || "Untitled Product",
-          categories: data.categories || [],
-          bannerUrl: data.bannerUrl || "",
-          nonMemberPrice: data.types?.[0]?.nonMemberPrice || 0,
-        });
-      });
+      // 2. Fetch Treatments with Version Cache
+      const loadedTreatments = await fetchWithVersionCache<TreatmentItem>(
+        cId,
+        "treatments",
+        async () => {
+          const treatSnapshot = await getDocs(collection(db, "clinics", cId, "treatments"));
+          const list: TreatmentItem[] = [];
+          treatSnapshot.forEach((d) => {
+            const data = d.data();
+            list.push({
+              id: d.id,
+              title: data.title || "Untitled Product",
+              categories: data.categories || [],
+              bannerUrl: data.bannerUrl || "",
+              nonMemberPrice: data.types?.[0]?.nonMemberPrice || 0,
+            });
+          });
+          return list;
+        }
+      );
       setTreatments(loadedTreatments);
 
-      // 3. Fetch Automated Offers (Cache-First)
-      const offersSnapshot = await getDocsCacheFirst(collection(db, "clinics", cId, "automated_offers"));
-      let loadedOffersMap: Record<string, AutomatedOffer> = {};
+      // 3. Fetch Automated Offers with Version Cache
+      const finalOffers = await fetchWithVersionCache<AutomatedOffer>(
+        cId,
+        "automated_offers",
+        async () => {
+          const offersSnapshot = await getDocs(collection(db, "clinics", cId, "automated_offers"));
+          let loadedOffersMap: Record<string, AutomatedOffer> = {};
 
-      offersSnapshot.forEach((d) => {
-        const data = d.data();
-        loadedOffersMap[d.id] = {
-          id: d.id,
-          occasion: data.occasion || data.title || "Special Occasion",
-          title: data.title || data.occasion || "Special Occasion",
-          isActive: Boolean(data.isActive),
-          discountType: "percentage",
-          discountValue: Number(data.discountValue || 0),
-          maxDiscountAmount: data.maxDiscountAmount ? Number(data.maxDiscountAmount) : null,
-          allProductsIncluded: data.allProductsIncluded !== false,
-          includedProductIds: Array.isArray(data.includedProductIds) ? data.includedProductIds : [],
-          startDate: data.startDate || null,
-          endDate: data.endDate || null,
-          imageUrl: data.imageUrl || null,
-          isCustom: Boolean(data.isCustom),
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-        };
-      });
-
-      // If no offers exist in database, seed default occasions into Firestore
-      const finalOffers: AutomatedOffer[] = [];
-      for (const preset of DEFAULT_OCCASIONS) {
-        if (loadedOffersMap[preset.id]) {
-          finalOffers.push(loadedOffersMap[preset.id]);
-          delete loadedOffersMap[preset.id];
-        } else {
-          // Seed default offer doc
-          const newOffer: AutomatedOffer = {
-            id: preset.id,
-            occasion: preset.occasion,
-            title: preset.title,
-            isActive: false,
-            discountType: "percentage",
-            discountValue: 0,
-            maxDiscountAmount: null,
-            allProductsIncluded: true,
-            includedProductIds: [],
-            startDate: null,
-            endDate: null,
-            imageUrl: null,
-            isCustom: false,
-          };
-          await setDoc(doc(db, "clinics", cId, "automated_offers", preset.id), {
-            ...newOffer,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+          offersSnapshot.forEach((d) => {
+            const data = d.data();
+            loadedOffersMap[d.id] = {
+              id: d.id,
+              occasion: data.occasion || data.title || "Special Occasion",
+              title: data.title || data.occasion || "Special Occasion",
+              isActive: Boolean(data.isActive),
+              discountType: "percentage",
+              discountValue: Number(data.discountValue || 0),
+              maxDiscountAmount: data.maxDiscountAmount ? Number(data.maxDiscountAmount) : null,
+              allProductsIncluded: data.allProductsIncluded !== false,
+              includedProductIds: Array.isArray(data.includedProductIds) ? data.includedProductIds : [],
+              startDate: data.startDate || null,
+              endDate: data.endDate || null,
+              imageUrl: data.imageUrl || null,
+              isCustom: Boolean(data.isCustom),
+              createdAt: data.createdAt,
+              updatedAt: data.updatedAt,
+            };
           });
-          finalOffers.push(newOffer);
-        }
-      }
 
-      // Add remaining custom offers from database
-      Object.values(loadedOffersMap).forEach((customOff) => {
-        finalOffers.push(customOff);
-      });
+          // Check defaults / presets and ensure seeded
+          const list: AutomatedOffer[] = [];
+          for (const preset of DEFAULT_OCCASIONS) {
+            if (loadedOffersMap[preset.id]) {
+              list.push(loadedOffersMap[preset.id]);
+              delete loadedOffersMap[preset.id];
+            } else {
+              // Seed default offer doc
+              const newOffer: AutomatedOffer = {
+                id: preset.id,
+                occasion: preset.occasion,
+                title: preset.title,
+                isActive: false,
+                discountType: "percentage",
+                discountValue: 0,
+                maxDiscountAmount: null,
+                allProductsIncluded: true,
+                includedProductIds: [],
+                startDate: null,
+                endDate: null,
+                imageUrl: null,
+                isCustom: false,
+              };
+              setDoc(doc(db, "clinics", cId, "automated_offers", preset.id), {
+                ...newOffer,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+              }).catch(() => {});
+              list.push(newOffer);
+            }
+          }
+
+          // Add remaining custom offers
+          Object.values(loadedOffersMap).forEach((customOff) => {
+            list.push(customOff);
+          });
+
+          return list;
+        }
+      );
 
       setOffers(finalOffers);
     } catch (err) {
@@ -243,12 +259,16 @@ export default function AutomatedOffersPage() {
     setOffers((prev) =>
       prev.map((o) => (o.id === offer.id ? { ...o, isActive: newActiveState } : o))
     );
+    updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
+      prev.map((o) => (o.id === offer.id ? { ...o, isActive: newActiveState } : o))
+    );
 
     try {
       await updateDoc(doc(db, "clinics", clinicId, "automated_offers", offer.id), {
         isActive: newActiveState,
         updatedAt: serverTimestamp(),
       });
+      await incrementCollectionVersion(clinicId, "automated_offers");
     } catch (err) {
       console.error("Error updating active status:", err);
       // Revert on error
@@ -336,6 +356,28 @@ export default function AutomatedOffersPage() {
         )
       );
 
+      updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
+        prev.map((o) =>
+          o.id === selectedOffer.id
+            ? {
+              ...o,
+              title: updatedData.title,
+              isActive: updatedData.isActive,
+              discountType: updatedData.discountType,
+              discountValue: updatedData.discountValue,
+              maxDiscountAmount: updatedData.maxDiscountAmount,
+              allProductsIncluded: updatedData.allProductsIncluded,
+              includedProductIds: updatedData.includedProductIds,
+              startDate: updatedData.startDate,
+              endDate: updatedData.endDate,
+              imageUrl: updatedData.imageUrl,
+            }
+            : o
+        )
+      );
+
+      await incrementCollectionVersion(clinicId, "automated_offers");
+
       setIsEditing(false);
       setSelectedOffer(null);
     } catch (err) {
@@ -382,6 +424,9 @@ export default function AutomatedOffersPage() {
       });
 
       setOffers((prev) => [...prev, newOffer]);
+      updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) => [...prev, newOffer]);
+      await incrementCollectionVersion(clinicId, "automated_offers");
+
       setShowAddCustomModal(false);
       setCustomOccasionName("");
       setCustomImageFile(null);
@@ -405,6 +450,10 @@ export default function AutomatedOffersPage() {
       }
       await deleteDoc(doc(db, "clinics", clinicId, "automated_offers", deleteTarget.id));
       setOffers((prev) => prev.filter((o) => o.id !== deleteTarget.id));
+      updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
+        prev.filter((o) => o.id !== deleteTarget.id)
+      );
+      await incrementCollectionVersion(clinicId, "automated_offers");
       setDeleteTarget(null);
     } catch (err) {
       console.error("Error deleting custom offer:", err);
