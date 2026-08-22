@@ -66,7 +66,7 @@ export default function MembershipTiersPage() {
   const [description, setDescription] = useState("");
   const [monthlyPrice, setMonthlyPrice] = useState("");
   const [annualPrice, setAnnualPrice] = useState("");
-  const [minCommitmentMonths, setMinCommitmentMonths] = useState<number | "">("");
+  const [minCommitmentMonths, setMinCommitmentMonths] = useState("");
   const [benefitsList, setBenefitsList] = useState<string[]>([""]);
   const [terms, setTerms] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
