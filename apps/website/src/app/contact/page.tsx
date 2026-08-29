@@ -14,10 +14,13 @@ import {
   HelpCircle,
   ChevronDown,
   ExternalLink,
+  Calendar,
 } from "lucide-react";
+import { useBookingModal } from "@/components/booking/BookingProvider";
 
 export default function ContactPage() {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
+  const { openBookingModal } = useBookingModal();
 
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -43,7 +46,7 @@ export default function ContactPage() {
     },
     {
       q: "How do I schedule a live walkthrough demo?",
-      a: "Email us directly at contact@aurwell.app with your clinic name and preferred time. Our product team will arrange a 1-on-1 personalized video walkthrough.",
+      a: "Click 'Schedule a Meeting' or book an appointment online to pick any open slot directly on our Google Calendar. Our product team will arrange a 1-on-1 personalized video walkthrough.",
     },
   ];
 
@@ -80,12 +83,12 @@ export default function ContactPage() {
             >
               Login
             </Link>
-            <Link
-              href={`${adminUrl}/signup`}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow-sm transition-all"
+            <button
+              onClick={openBookingModal}
+              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow-sm transition-all cursor-pointer"
             >
               Build App
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -110,7 +113,7 @@ export default function ContactPage() {
             </h1>
 
             <p className="text-neutral-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-normal">
-              Have questions about building your aesthetic clinic app, custom branding, enterprise partnerships, or support? Email us directly and our team will get right back to you.
+              Have questions about building your aesthetic clinic app, custom branding, enterprise partnerships, or support? Schedule a meeting or email us directly.
             </p>
           </motion.div>
         </div>
@@ -118,8 +121,8 @@ export default function ContactPage() {
 
       {/* Main Content Area */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex-1 space-y-12 w-full">
-        
-        {/* Direct Email Contact Box */}
+
+        {/* Direct Contact Box */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -127,36 +130,44 @@ export default function ContactPage() {
           className="bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 text-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-neutral-800 text-center space-y-6 relative overflow-hidden"
         >
           <div className="w-16 h-16 rounded-2xl bg-white/10 text-white flex items-center justify-center mx-auto shadow-inner">
-            <Mail className="w-8 h-8 text-white" />
+            <Calendar className="w-8 h-8 text-white" />
           </div>
 
           <div className="space-y-2 max-w-lg mx-auto">
-            <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">Official Contact Email</span>
-            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white font-mono">
-              contact@aurwell.app
+            <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">Appointment Scheduling</span>
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+              Schedule a Meeting
             </h2>
             <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal pt-1">
-              Reach out directly to our product, sales, and support team. We review all incoming emails promptly.
+              Book a live 1-on-1 demo walkthrough or email us at <span className="font-mono text-white font-bold">contact@aurwell.app</span>.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 max-w-md mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 max-w-xl mx-auto">
+            <button
+              onClick={openBookingModal}
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white hover:bg-neutral-100 text-neutral-950 font-black text-xs sm:text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4 text-neutral-950" />
+              <span>Schedule a Meeting</span>
+            </button>
+
             <a
               href="mailto:contact@aurwell.app"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white hover:bg-neutral-100 text-neutral-950 font-black text-xs sm:text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm transition-all border border-white/15 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Send Email Now</span>
-              <ExternalLink className="w-4 h-4 text-neutral-950" />
+              <Mail className="w-4 h-4 text-white" />
+              <span>Send Email</span>
             </a>
 
             <button
               onClick={handleCopyEmail}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm transition-all border border-white/15 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm transition-all border border-white/15 flex items-center justify-center gap-2 cursor-pointer"
             >
               {copiedEmail ? (
                 <>
                   <Check className="w-4 h-4 text-emerald-400" />
-                  <span>Email Address Copied!</span>
+                  <span>Copied!</span>
                 </>
               ) : (
                 <>
@@ -196,9 +207,8 @@ export default function ContactPage() {
                     {faq.q}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 text-neutral-500 shrink-0 transition-transform duration-200 ${
-                      openFaq === idx ? "rotate-180 text-neutral-900" : ""
-                    }`}
+                    className={`w-4 h-4 text-neutral-500 shrink-0 transition-transform duration-200 ${openFaq === idx ? "rotate-180 text-neutral-900" : ""
+                      }`}
                   />
                 </button>
 

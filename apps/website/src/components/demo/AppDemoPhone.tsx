@@ -12,6 +12,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { useBookingModal } from "@/components/booking/BookingProvider";
 import MembershipScreen from "./MembershipScreen";
 import RewardsScreen from "./RewardsScreen";
 import SmartDealsScreen from "./SmartDealsScreen";
@@ -32,6 +33,7 @@ export default function AppDemoPhone({
   onSelectTab,
 }: AppDemoPhoneProps) {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
+  const { openBookingModal } = useBookingModal();
   const [showPrototypeToast, setShowPrototypeToast] = useState(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -48,10 +50,10 @@ export default function AppDemoPhone({
     activeTab === "Smart Deals"
       ? "home"
       : activeTab === "Membership"
-      ? "shop"
-      : activeTab === "Rewards"
-      ? "rewards"
-      : "home";
+        ? "shop"
+        : activeTab === "Rewards"
+          ? "rewards"
+          : "home";
 
   return (
     <div
@@ -194,12 +196,16 @@ export default function AppDemoPhone({
             </div>
 
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Link
-                href={`${adminUrl}/signup`}
-                className="px-2.5 py-1 rounded-full bg-white hover:bg-neutral-100 text-neutral-900 text-[9px] font-black flex-shrink-0 transition-colors shadow-2xs"
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPrototypeToast(false);
+                  openBookingModal();
+                }}
+                className="px-2.5 py-1 rounded-full bg-white hover:bg-neutral-100 text-neutral-900 text-[9px] font-black flex-shrink-0 transition-colors shadow-2xs cursor-pointer"
               >
                 Build my app
-              </Link>
+              </button>
               <button
                 onClick={() => setShowPrototypeToast(false)}
                 className="p-1 rounded-full text-white/60 hover:text-white transition-colors"
@@ -226,11 +232,10 @@ export default function AppDemoPhone({
             style={{ color: navState === "home" ? brandColor : "#A3A3A3" }}
           />
           <span
-            className={`text-[8.5px] ${
-              navState === "home"
+            className={`text-[8.5px] ${navState === "home"
                 ? "font-extrabold text-neutral-900"
                 : "font-medium text-neutral-400"
-            }`}
+              }`}
           >
             Home
           </span>
@@ -249,11 +254,10 @@ export default function AppDemoPhone({
             style={{ color: navState === "shop" ? brandColor : "#A3A3A3" }}
           />
           <span
-            className={`text-[8.5px] ${
-              navState === "shop"
+            className={`text-[8.5px] ${navState === "shop"
                 ? "font-extrabold text-neutral-900"
                 : "font-medium text-neutral-400"
-            }`}
+              }`}
           >
             Shop
           </span>
@@ -272,11 +276,10 @@ export default function AppDemoPhone({
             style={{ color: navState === "rewards" ? brandColor : "#A3A3A3" }}
           />
           <span
-            className={`text-[8.5px] ${
-              navState === "rewards"
+            className={`text-[8.5px] ${navState === "rewards"
                 ? "font-extrabold text-neutral-900"
                 : "font-medium text-neutral-400"
-            }`}
+              }`}
           >
             Rewards
           </span>

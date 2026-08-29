@@ -20,9 +20,11 @@ import {
   ExternalLink,
   ChevronRight,
 } from "lucide-react";
+import { useBookingModal } from "@/components/booking/BookingProvider";
 
 export default function PrivacyPolicyPage() {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
+  const { openBookingModal } = useBookingModal();
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [activeSection, setActiveSection] = useState("interpretation");
 
@@ -97,12 +99,12 @@ export default function PrivacyPolicyPage() {
             >
               Login
             </Link>
-            <Link
-              href={`${adminUrl}/signup`}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow-sm transition-all"
+            <button
+              onClick={openBookingModal}
+              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow-sm transition-all cursor-pointer"
             >
               Build App
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -140,7 +142,7 @@ export default function PrivacyPolicyPage() {
       {/* Main Content Layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          
+
           {/* Left Sticky Table of Contents (Desktop) */}
           <aside className="hidden lg:block lg:col-span-4 sticky top-24 space-y-4">
             <div className="bg-white rounded-2xl border border-neutral-200/80 p-5 shadow-xs space-y-3">
@@ -154,11 +156,10 @@ export default function PrivacyPolicyPage() {
                     key={sec.id}
                     href={`#${sec.id}`}
                     onClick={() => setActiveSection(sec.id)}
-                    className={`block px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      activeSection === sec.id
+                    className={`block px-3 py-2 rounded-xl text-xs font-semibold transition-all ${activeSection === sec.id
                         ? "bg-neutral-900 text-white shadow-xs"
                         : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                    }`}
+                      }`}
                   >
                     {sec.label}
                   </a>
@@ -198,7 +199,7 @@ export default function PrivacyPolicyPage() {
 
           {/* Right Main Legal Text Article */}
           <main className="lg:col-span-8 space-y-10 bg-white rounded-3xl border border-neutral-200/80 p-6 sm:p-10 shadow-xs">
-            
+
             {/* Section 1: Interpretation and Definitions */}
             <section id="interpretation" className="space-y-6 scroll-mt-28">
               <div className="border-b border-neutral-100 pb-4">
@@ -293,7 +294,7 @@ export default function PrivacyPolicyPage() {
 
               <div className="space-y-4 text-sm text-neutral-700 leading-relaxed">
                 <h3 className="text-base font-bold text-neutral-900">Types of Data Collected</h3>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-bold text-neutral-900 text-sm flex items-center gap-2">
                     <UserCheck className="w-4 h-4 text-neutral-700" />
@@ -537,7 +538,7 @@ export default function PrivacyPolicyPage() {
 
               <div className="space-y-4 text-sm text-neutral-700 leading-relaxed">
                 <h3 className="text-base font-bold text-neutral-900">Disclosure of Your Personal Data</h3>
-                
+
                 <div className="space-y-3">
                   <p><strong>Business Transactions:</strong> If the Company is involved in a merger, acquisition or asset sale, Your Personal Data may be transferred. We will provide notice before Your Personal Data is transferred and becomes subject to a different Privacy Policy.</p>
 

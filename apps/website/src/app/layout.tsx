@@ -41,6 +41,8 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
+import { BookingProvider } from "@/components/booking/BookingProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -52,7 +54,7 @@ export default function RootLayout({
       className={`${inter.variable} ${shadowsIntoLight.variable} font-sans h-full antialiased scroll-smooth`}
     >
       <body className={`${inter.className} min-h-full flex flex-col font-sans`}>
-        {children}
+        <BookingProvider>{children}</BookingProvider>
       </body>
     </html>
   );

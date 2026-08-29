@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import MotionButton from "@/components/ui/motion-button";
 import AppDemoPhone from "@/components/demo/AppDemoPhone";
+import { useBookingModal } from "@/components/booking/BookingProvider";
 import stepImg1 from "@/assets/1.png";
 import stepImg2 from "@/assets/2.png";
 import stepImg3 from "@/assets/3.png";
@@ -40,6 +41,7 @@ import {
 
 export default function Home() {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
+  const { openBookingModal } = useBookingModal();
   const [activeTab, setActiveTab] = useState("Membership");
   const [previousTab, setPreviousTab] = useState("Membership");
 
@@ -300,12 +302,12 @@ export default function Home() {
                   >
                     Login
                   </Link>
-                  <Link
-                    href={`${adminUrl}/signup`}
-                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs shadow-sm transition-all flex items-center gap-1"
+                  <button
+                    onClick={openBookingModal}
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs shadow-sm transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <span>Build app</span>
-                  </Link>
+                  </button>
                 </div>
               </motion.header>
 
@@ -335,12 +337,12 @@ export default function Home() {
                   transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="flex flex-wrap items-center gap-3 pt-2"
                 >
-                  <Link
-                    href={`${adminUrl}/signup`}
-                    className="px-5 py-2.5 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors shadow-sm"
+                  <button
+                    onClick={openBookingModal}
+                    className="px-5 py-2.5 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors shadow-sm cursor-pointer"
                   >
-                    Get Started
-                  </Link>
+                    Schedule a Meeting
+                  </button>
                   <MotionButton
                     label="See it in action!"
                     href="#features"
@@ -391,7 +393,7 @@ export default function Home() {
 
                 {/* Centered Hero Assembly: Phone is Fixed Center Anchor */}
                 <div className="relative z-10 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto pt-1 sm:pt-0">
-                  
+
                   {/* Phone Centered Anchor Container */}
                   <div className="relative flex flex-col lg:flex-row items-center justify-center w-full lg:w-auto">
 
@@ -450,11 +452,10 @@ export default function Home() {
                       >
                         {/* Animated Active Tab Indicator (4 Segments) */}
                         <motion.div
-                          className={`absolute rounded-[20px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${
-                            isMobile
+                          className={`absolute rounded-[20px] sm:rounded-[24px] pointer-events-none z-10 bg-[#242426] shadow-[0_4px_14px_rgba(0,0,0,0.15)] ${isMobile
                               ? "top-1.5 bottom-1.5 w-[calc(25%-4px)] h-[calc(100%-12px)] left-1.5"
                               : "left-2 right-2 aspect-square top-2"
-                          }`}
+                            }`}
                           style={{
                             clipPath: "url(#squircle-pill-clip)",
                           }}
@@ -463,19 +464,19 @@ export default function Home() {
                               ? activeTab === "Membership"
                                 ? "0%"
                                 : activeTab === "Rewards"
-                                ? "calc(100% + 2px)"
-                                : activeTab === "Smart Deals"
-                                ? "calc(200% + 4px)"
-                                : "calc(300% + 6px)"
+                                  ? "calc(100% + 2px)"
+                                  : activeTab === "Smart Deals"
+                                    ? "calc(200% + 4px)"
+                                    : "calc(300% + 6px)"
                               : 0,
                             y: !isMobile
                               ? activeTab === "Membership"
                                 ? "0%"
                                 : activeTab === "Rewards"
-                                ? "calc(100% + 6px)"
-                                : activeTab === "Smart Deals"
-                                ? "calc(200% + 12px)"
-                                : "calc(300% + 18px)"
+                                  ? "calc(100% + 6px)"
+                                  : activeTab === "Smart Deals"
+                                    ? "calc(200% + 12px)"
+                                    : "calc(300% + 18px)"
                               : 0,
                           }}
                           transition={{
@@ -678,11 +679,10 @@ export default function Home() {
                                         setSelectedColor(color);
                                         setIsColorMenuOpen(false);
                                       }}
-                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
-                                        selectedColor.id === color.id
+                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${selectedColor.id === color.id
                                           ? "bg-neutral-100 font-bold text-neutral-900"
                                           : "hover:bg-neutral-50 font-medium text-neutral-800"
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-xs">{color.name}</span>
                                       <div
@@ -731,11 +731,10 @@ export default function Home() {
                                         setSelectedCurrency(curr);
                                         setIsCurrencyMenuOpen(false);
                                       }}
-                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
-                                        selectedCurrency.code === curr.code
+                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${selectedCurrency.code === curr.code
                                           ? "bg-neutral-100 font-bold text-neutral-900"
                                           : "hover:bg-neutral-50 font-medium text-neutral-800"
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-xs">{curr.code}</span>
                                       <span className="text-xs font-bold text-neutral-600">
@@ -750,12 +749,12 @@ export default function Home() {
 
                           {/* 4. Action Button */}
                           <div className="pt-1">
-                            <Link
-                              href={`${adminUrl}/signup`}
-                              className="w-full py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center text-center"
+                            <button
+                              onClick={openBookingModal}
+                              className="w-full py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center text-center cursor-pointer"
                             >
                               Build my app
-                            </Link>
+                            </button>
                           </div>
                         </motion.div>
                       )}
@@ -847,11 +846,10 @@ export default function Home() {
                                         setSelectedColor(color);
                                         setIsColorMenuOpen(false);
                                       }}
-                                      className={`flex items-center justify-between px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
-                                        selectedColor.id === color.id
+                                      className={`flex items-center justify-between px-2.5 py-1 rounded-full cursor-pointer transition-colors ${selectedColor.id === color.id
                                           ? "bg-neutral-100 font-bold text-neutral-900"
                                           : "hover:bg-neutral-50 font-medium text-neutral-800"
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-[11px]">{color.name}</span>
                                       <div
@@ -900,11 +898,10 @@ export default function Home() {
                                         setSelectedCurrency(curr);
                                         setIsCurrencyMenuOpen(false);
                                       }}
-                                      className={`flex items-center justify-between px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
-                                        selectedCurrency.code === curr.code
+                                      className={`flex items-center justify-between px-2.5 py-1 rounded-full cursor-pointer transition-colors ${selectedCurrency.code === curr.code
                                           ? "bg-neutral-100 font-bold text-neutral-900"
                                           : "hover:bg-neutral-50 font-medium text-neutral-800"
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-[11px]">{curr.code}</span>
                                       <span className="text-[11px] font-bold text-neutral-600">
@@ -1437,15 +1434,15 @@ export default function Home() {
               </p>
             </div>
             <div>
-              <Link
-                href={`${adminUrl}/signup`}
-                className="inline-flex items-center gap-3 bg-white text-neutral-900 font-bold pl-6 pr-2 py-2.5 rounded-full text-xs sm:text-sm shadow-lg hover:bg-slate-100 transition-all duration-200 group whitespace-nowrap"
+              <button
+                onClick={openBookingModal}
+                className="inline-flex items-center gap-3 bg-white text-neutral-900 font-bold pl-6 pr-2 py-2.5 rounded-full text-xs sm:text-sm shadow-lg hover:bg-slate-100 transition-all duration-200 group whitespace-nowrap cursor-pointer"
               >
-                <span>Get Started for Free</span>
+                <span>Schedule a Meeting</span>
                 <span className="w-8 h-8 rounded-full bg-neutral-900 text-white flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
                   <ArrowRight className="w-4 h-4" />
                 </span>
-              </Link>
+              </button>
             </div>
           </motion.div>
         </section>
