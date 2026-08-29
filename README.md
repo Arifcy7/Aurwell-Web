@@ -6,6 +6,7 @@
 ---
 
 ## 🏗️ System Architecture & Data Isolation
+//done
 
 Aurwell operates on a **"Clinic-First" multi-tenant architecture**. All assets, patients, transactions, and configurations are securely isolated at the database level using a single-database, multi-tenant hierarchy in Firebase/Firestore. The frontend client integrates directly with the Firebase client SDK (and access controls are fully enforced at the database level by Firestore Security Rules). 
 
