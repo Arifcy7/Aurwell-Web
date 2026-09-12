@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +44,6 @@ export default function Home() {
   const { openBookingModal } = useBookingModal();
   const [activeTab, setActiveTab] = useState("Membership");
   const [previousTab, setPreviousTab] = useState("Membership");
-
   const handleTabClick = (tabName: string) => {
     if (tabName !== "Configure") {
       setPreviousTab(tabName);
@@ -58,9 +57,9 @@ export default function Home() {
 
   const colorOptions = [
     { id: "obsidian", name: "Obsidian Black", hex: "#111827" },
-    { id: "emerald", name: "Emerald Sage", hex: "#059669" },
+    { id: "emerald", name: "Olive Sage", hex: "#4a6035" },
     { id: "rose", name: "Blush Rose", hex: "#e11d48" },
-    { id: "royal", name: "Royal Blue", hex: "#2563eb" },
+    { id: "forest", name: "Forest Green", hex: "#15803d" },
     { id: "gold", name: "Champagne Gold", hex: "#d97706" },
   ];
 
@@ -78,32 +77,56 @@ export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
   const [isModalHovered, setIsModalHovered] = useState(false);
 
+  // Performance optimizations: IntersectionObserver for Admin Carousel & cached mouse tracking
+  const adminSectionRef = useRef<HTMLDivElement>(null);
+  const [isAdminVisible, setIsAdminVisible] = useState(false);
+  const trackRectRef = useRef<DOMRect | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+
   useEffect(() => {
-    if (isPaused) return;
+    const el = adminSectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsAdminVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (isPaused || !isAdminVisible) return;
     const timer = setInterval(() => {
       setStackIndex((prev) => (prev + 1) % adminImages.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, [adminImages.length, isPaused]);
+  }, [adminImages.length, isPaused, isAdminVisible]);
 
   const [clinicName, setClinicName] = useState("Luxe Aesthetics");
-  const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
+  const [selectedColor, setSelectedColor] = useState(colorOptions[1]);
   const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions[0]);
   const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
   const [isCurrencyMenuOpen, setIsCurrencyMenuOpen] = useState(false);
 
-  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const trackEl = document.getElementById("outer-glass-track");
-    if (!trackEl) return;
-
-    const trackRect = trackEl.getBoundingClientRect();
+  const updateSliderOffset = useCallback((clientX: number, clientY: number) => {
+    if (!trackRectRef.current) {
+      const trackEl = document.getElementById("outer-glass-track");
+      if (trackEl) {
+        trackRectRef.current = trackEl.getBoundingClientRect();
+      } else {
+        return;
+      }
+    }
+    const trackRect = trackRectRef.current;
 
     // Stop slider floating when mouse is directly hovering over or near the track
     if (
-      e.clientX >= trackRect.left - 6 &&
-      e.clientX <= trackRect.right + 6 &&
-      e.clientY >= trackRect.top - 6 &&
-      e.clientY <= trackRect.bottom + 6
+      clientX >= trackRect.left - 6 &&
+      clientX <= trackRect.right + 6 &&
+      clientY >= trackRect.top - 6 &&
+      clientY <= trackRect.bottom + 6
     ) {
       setSliderOffset({ x: 0, y: 0 });
       return;
@@ -112,8 +135,8 @@ export default function Home() {
     const trackCenterX = trackRect.left + trackRect.width / 2;
     const trackCenterY = trackRect.top + trackRect.height / 2;
 
-    const dx = e.clientX - trackCenterX;
-    const dy = e.clientY - trackCenterY;
+    const dx = clientX - trackCenterX;
+    const dy = clientY - trackCenterY;
     const distance = Math.sqrt(dx * dx + dy * dy);
     const maxRadius = 500;
 
@@ -126,9 +149,25 @@ export default function Home() {
     } else {
       setSliderOffset({ x: 0, y: 0 });
     }
+  }, []);
+
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { clientX, clientY } = e;
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+    rafIdRef.current = requestAnimationFrame(() => {
+      updateSliderOffset(clientX, clientY);
+      rafIdRef.current = null;
+    });
   };
 
   const handleHeroMouseLeave = () => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    trackRectRef.current = null;
     setSliderOffset({ x: 0, y: 0 });
   };
 
@@ -171,7 +210,7 @@ export default function Home() {
           <motion.div
             key="splash"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.03, filter: "blur(12px)" }}
+            exit={{ opacity: 0, scale: 1.03 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-50 bg-[#F3F4F6] flex flex-col items-center justify-center overflow-hidden select-none px-4"
           >
@@ -180,15 +219,15 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.6 }}
               animate={{ opacity: 0.7, scale: 1.2 }}
               transition={{ duration: 1.2, ease: "easeOut" }}
-              className="absolute w-[260px] h-[260px] sm:w-[500px] sm:h-[500px] rounded-full bg-gradient-to-tr from-blue-200/40 via-purple-200/30 to-amber-200/30 blur-2xl sm:blur-3xl pointer-events-none"
+              className="absolute w-[260px] h-[260px] sm:w-[500px] sm:h-[500px] rounded-full bg-gradient-to-tr from-emerald-200/40 via-teal-200/30 to-amber-200/30 blur-2xl sm:blur-3xl pointer-events-none"
             />
 
             {/* Brand Logo & Typography Lockup */}
             <div className="relative z-10 flex items-center gap-2.5 sm:gap-6">
               {/* Logo Icon Reveal */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.75, filter: "blur(16px)", y: 12 }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)", y: 0 }}
+                initial={{ opacity: 0, scale: 0.75, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 className="relative"
               >
@@ -214,8 +253,8 @@ export default function Home() {
 
               {/* Typography Wordmark Reveal */}
               <motion.div
-                initial={{ opacity: 0, x: -18, filter: "blur(12px)" }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, x: -18 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Image
@@ -258,8 +297,8 @@ export default function Home() {
             <div className="lg:col-span-4 flex flex-col justify-between pt-2 sm:pt-3 lg:pt-3 pb-6 px-4 sm:px-6 lg:px-7 bg-white sm:rounded-2xl lg:rounded-[24px]">
               {/* Header / Navbar on Left Side (Moved closer to top & mobile responsive) */}
               <motion.header
-                initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
                 className="flex items-center justify-between gap-1.5 sm:gap-2.5 w-full flex-wrap sm:flex-nowrap py-0.5"
               >
@@ -314,16 +353,16 @@ export default function Home() {
               {/* Center Group: Hero Heading, Subheading & CTAs */}
               <div className="my-auto py-6 sm:py-10 space-y-5 max-w-md">
                 <motion.h1
-                  initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="text-3xl sm:text-4xl lg:text-[40px] font-extrabold text-neutral-900 tracking-tight leading-[1.14]"
                 >
                   Loyalty That Keeps Clients Coming Back
                 </motion.h1>
                 <motion.p
-                  initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, y: 25 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                   className="text-neutral-600 text-sm sm:text-base leading-relaxed font-normal"
                 >
@@ -332,8 +371,8 @@ export default function Home() {
 
                 {/* Action Buttons */}
                 <motion.div
-                  initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                   className="flex flex-wrap items-center gap-3 pt-2"
                 >
@@ -356,8 +395,8 @@ export default function Home() {
 
             {/* Right Visual Hero Container (Extended to Left ~67% width, Minimal Padding) */}
             <motion.div
-              initial={{ opacity: 0, y: 35, filter: "blur(12px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              initial={{ opacity: 0, y: 35 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-8 h-full min-h-[520px] lg:min-h-0"
             >
@@ -370,9 +409,11 @@ export default function Home() {
                 {/* Background Hero Gradient Image (Full Height & Rounded Clip) */}
                 <div className="absolute inset-0 rounded-2xl sm:rounded-[24px] overflow-hidden pointer-events-none select-none">
                   <Image
-                    src="/hero-image.png"
+                    src="/green-hero-image.png"
                     alt="Gradient Hero Background"
                     fill
+                    sizes="(max-width: 1024px) 100vw, 67vw"
+                    decoding="async"
                     className="object-cover pointer-events-none select-none"
                     draggable={false}
                     priority
@@ -401,8 +442,8 @@ export default function Home() {
                     <div className="relative lg:absolute lg:right-full lg:mr-8 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-center flex-shrink-0 z-20 mb-5 sm:mb-6 lg:mb-0 w-full sm:max-w-[420px] lg:w-[115px] lg:max-w-none">
                       {/* "Try demo!" handwritten text with curved arch arrow */}
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.7, y: -10, filter: "blur(8px)" }}
-                        animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+                        initial={{ opacity: 0, scale: 0.7, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
                         className="absolute -top-11 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
                       >
@@ -430,18 +471,16 @@ export default function Home() {
                       {/* Interactive Feature Slider */}
                       <motion.div
                         id="outer-glass-track"
-                        initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={{
                           opacity: 1,
                           scale: 1,
-                          filter: "blur(0px)",
                           x: sliderOffset.x,
                           y: sliderOffset.y,
                         }}
                         transition={{
                           opacity: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
                           scale: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
-                          filter: { duration: 0.8, delay: 0.95, ease: [0.16, 1, 0.3, 1] },
                           x: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
                           y: { type: "spring", stiffness: 140, damping: 16, mass: 0.4 },
                         }}
@@ -573,23 +612,32 @@ export default function Home() {
                       </motion.div>
                     </div>
 
-                    {/* Center: Mobile Phone Mockup Frame (PERFECT FIT ON MOBILE, PERFECT ON DESKTOP) */}
+                    {/* Center: Mobile Phone Mockup Frame (Ultra-Thin iPhone Bezel & Titanium Edge) */}
                     <div
-                      className="relative z-10 h-[570px] xs:h-[610px] sm:h-[620px] lg:h-[610px] bg-white rounded-[36px] sm:rounded-[46px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.12)] border-[6px] sm:border-[8px] border-white flex flex-col items-center justify-center overflow-hidden select-none flex-shrink-0"
+                      className="relative z-10 h-[570px] xs:h-[610px] sm:h-[620px] lg:h-[610px] flex flex-col items-center justify-center select-none flex-shrink-0"
                       style={{ aspectRatio: "1170 / 2532" }}
                     >
-                      {/* Side button detail */}
-                      <div className="absolute -right-[11px] top-32 w-[3px] h-16 bg-neutral-200 rounded-r-md" />
+                      {/* Hardware Buttons (Outside the clipped bezel) */}
+                      {/* Left: Action Button & Volume Buttons */}
+                      <div className="absolute -left-[3px] top-24 w-[3px] h-6 bg-[#2a2b30] rounded-l-xs pointer-events-none" />
+                      <div className="absolute -left-[3px] top-34 w-[3px] h-11 bg-[#2a2b30] rounded-l-xs pointer-events-none" />
+                      <div className="absolute -left-[3px] top-48 w-[3px] h-11 bg-[#2a2b30] rounded-l-xs pointer-events-none" />
 
-                      {/* Screen Container with Dynamic Content */}
-                      <div className="w-full h-full bg-white rounded-[32px] sm:rounded-[38px] relative overflow-hidden">
-                        <AppDemoPhone
-                          activeTab={activeTab === "Configure" ? previousTab : activeTab}
-                          clinicName={clinicName}
-                          brandColor={selectedColor.hex}
-                          currency={selectedCurrency}
-                          onSelectTab={(tab) => handleTabClick(tab)}
-                        />
+                      {/* Right: Power / Side Button */}
+                      <div className="absolute -right-[3px] top-30 w-[3px] h-14 bg-[#2a2b30] rounded-r-xs pointer-events-none" />
+
+                      {/* Ultra-Thin iPhone Bezel Frame with strict overflow clip */}
+                      <div className="w-full h-full bg-[#0a0a0c] p-[3px] sm:p-[4px] rounded-[40px] sm:rounded-[44px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35),0_10px_25px_-8px_rgba(0,0,0,0.25)] ring-1 ring-white/10 border-[2px] border-[#2a2b30] overflow-hidden flex flex-col">
+                        {/* Screen Container with Dynamic Content */}
+                        <div className="w-full h-full bg-white rounded-[36px] sm:rounded-[40px] relative overflow-hidden isolate ring-1 ring-black/30">
+                          <AppDemoPhone
+                            activeTab={activeTab === "Configure" ? previousTab : activeTab}
+                            clinicName={clinicName}
+                            brandColor={selectedColor.hex}
+                            currency={selectedCurrency}
+                            onSelectTab={(tab) => handleTabClick(tab)}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -598,14 +646,13 @@ export default function Home() {
                       {activeTab === "Configure" && (
                         <motion.div
                           key="configure-card-desktop"
-                          initial={{ opacity: 0, scale: 0.92, x: -20, filter: "blur(10px)" }}
+                          initial={{ opacity: 0, scale: 0.92, x: -20 }}
                           animate={{
                             opacity: 1,
                             scale: 1,
                             x: 0,
-                            filter: "blur(0px)",
                           }}
-                          exit={{ opacity: 0, scale: 0.92, x: -20, filter: "blur(10px)" }}
+                          exit={{ opacity: 0, scale: 0.92, x: -20 }}
                           transition={{
                             duration: 0.35,
                             ease: [0.16, 1, 0.3, 1],
@@ -765,14 +812,13 @@ export default function Home() {
                       {activeTab === "Configure" && (
                         <motion.div
                           key="configure-card-mobile"
-                          initial={{ opacity: 0, scale: 0.92, y: -10, filter: "blur(10px)" }}
+                          initial={{ opacity: 0, scale: 0.92, y: -10 }}
                           animate={{
                             opacity: 1,
                             scale: 1,
                             y: 0,
-                            filter: "blur(0px)",
                           }}
-                          exit={{ opacity: 0, scale: 0.92, y: -10, filter: "blur(10px)" }}
+                          exit={{ opacity: 0, scale: 0.92, y: -10 }}
                           transition={{
                             duration: 0.35,
                             ease: [0.16, 1, 0.3, 1],
@@ -950,8 +996,8 @@ export default function Home() {
           <div className="bg-white/60 rounded-2xl sm:rounded-[36px] p-4 sm:p-14 border border-white/60 shadow-sm">
             {/* Header */}
             <motion.div
-              initial={{ opacity: 0, y: 25, filter: "blur(10px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
               className="text-center space-y-1 sm:space-y-2 mb-6 sm:mb-12"
@@ -968,8 +1014,8 @@ export default function Home() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {/* Card 1 */}
               <motion.div
-                initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                 className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
@@ -987,8 +1033,8 @@ export default function Home() {
 
               {/* Card 2 */}
               <motion.div
-                initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
@@ -1006,8 +1052,8 @@ export default function Home() {
 
               {/* Card 3 */}
               <motion.div
-                initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
@@ -1025,8 +1071,8 @@ export default function Home() {
 
               {/* Card 4 */}
               <motion.div
-                initial={{ opacity: 0, y: 30, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
@@ -1051,8 +1097,8 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
               {/* Left Column */}
               <motion.div
-                initial={{ opacity: 0, x: -30, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="lg:col-span-5 space-y-6"
@@ -1100,44 +1146,25 @@ export default function Home() {
 
               {/* Right Column: Clean Vertically Stacked Cards Showcase */}
               <motion.div
-                initial={{ opacity: 0, x: 30, filter: "blur(12px)" }}
-                whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="lg:col-span-7 relative flex flex-col items-center justify-center pt-6 pb-2 w-full"
+                className="lg:col-span-7 relative flex flex-col items-center justify-center -mt-4 lg:-mt-8 pb-2 w-full"
               >
-                {/* Vertically Stacked Cards Container */}
+                {/* Vertically Stacked Cards Container (Zoom disabled for now) */}
                 <div
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  onClick={() => setIsLightboxOpen(true)}
-                  className="relative w-full h-[280px] sm:h-[380px] md:h-[420px] flex items-center justify-center cursor-pointer select-none group"
+                  ref={adminSectionRef}
+                  className="relative w-full h-[280px] sm:h-[380px] md:h-[430px] flex items-center justify-center select-none"
                 >
-                  {/* Centered Expand Icon on Card Hover (No Black Background) */}
-                  <AnimatePresence>
-                    {isHovered && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-white/90 text-neutral-900 flex items-center justify-center shadow-xl border border-neutral-200/80 backdrop-blur-md">
-                          <Maximize2 className="w-4.5 h-4.5 text-neutral-900" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
                   {adminImages.map((src, idx) => {
                     // Calculate position relative to active stack index (0 = front top, 1 = middle, 2 = back)
                     const position = (idx - stackIndex + adminImages.length) % adminImages.length;
 
-                    // Vertical Y offsets, reduced transparency, and gradual depth blur
-                    const yOffset = position === 0 ? 40 : position === 1 ? 20 : 0;
+                    // Vertical Y offsets, reduced transparency, and gradual depth blur (increased offset)
+                    const yOffset = position === 0 ? 30 : position === 1 ? 15 : 0;
                     const scale = position === 0 ? 1 : position === 1 ? 0.96 : 0.92;
-                    const opacity = position === 0 ? 1 : position === 1 ? 0.92 : 0.82;
+                    const opacity = position === 0 ? 1 : position === 1 ? 0.94 : 0.85;
                     const blur = position === 0 ? "blur(0px)" : position === 1 ? "blur(2px)" : "blur(4px)";
                     const zIndex = 30 - position * 10;
 
@@ -1160,6 +1187,8 @@ export default function Home() {
                         <img
                           src={src}
                           alt={`Admin Dashboard View ${idx + 1}`}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-auto object-contain rounded-xl sm:rounded-2xl"
                         />
                       </motion.div>
@@ -1342,7 +1371,9 @@ export default function Home() {
                       src={stepImg1}
                       alt="Website Brand Import"
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      decoding="async"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 [filter:hue-rotate(-115deg)]"
                     />
                   </div>
                   <div>
@@ -1370,7 +1401,9 @@ export default function Home() {
                       src={stepImg2}
                       alt="Customize & Configure"
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      decoding="async"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 [filter:hue-rotate(-115deg)]"
                     />
                   </div>
                   <div>
@@ -1398,7 +1431,9 @@ export default function Home() {
                       src={stepImg3}
                       alt="Start Passive Earning"
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      decoding="async"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 [filter:hue-rotate(-115deg)]"
                     />
                   </div>
                   <div>
@@ -1419,11 +1454,11 @@ export default function Home() {
         {/* Bottom Call to Action Banner */}
         <section className="py-8">
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, filter: "blur(12px)" }}
-            whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-gradient-to-r from-[#1D4ED8] via-[#2563EB] to-[#06B6D4] text-white rounded-[32px] p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md"
+            className="bg-gradient-to-r from-[#242E18] via-[#3C4E28] to-[#5B753F] text-white rounded-[32px] p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md"
           >
             <div className="space-y-2 text-center md:text-left">
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
@@ -1451,8 +1486,8 @@ export default function Home() {
       {/* Footer Section (Full Width, with centered links and edge-to-edge typography inside) */}
       <footer id="about" className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 overflow-hidden scroll-mt-6">
         <motion.div
-          initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-0"
@@ -1563,8 +1598,8 @@ export default function Home() {
 
         {/* Section-Width Typography Inside Footer Section (With Bottom Fade Gradient) */}
         <motion.div
-          initial={{ opacity: 0, y: 40, filter: "blur(15px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
           className="relative max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 -mt-4 sm:-mt-6 lg:-mt-10 pb-2 sm:pb-4 overflow-hidden flex items-center justify-center select-none pointer-events-none"
@@ -1574,6 +1609,8 @@ export default function Home() {
             alt="Aurwell Typography Wordmark"
             width={1200}
             height={300}
+            loading="lazy"
+            decoding="async"
             className="w-full h-auto object-contain object-center opacity-95 select-none"
             draggable={false}
           />

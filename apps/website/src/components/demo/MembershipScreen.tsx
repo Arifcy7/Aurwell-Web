@@ -28,8 +28,10 @@ export default function MembershipScreen({
         {/* Top Banner Image Header */}
         <div className="relative w-full h-[135px] overflow-hidden">
           <img
-            src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=1000&q=80"
+            src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=480&q=75"
             alt="VIP Membership"
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />
 
@@ -155,8 +157,10 @@ export default function MembershipScreen({
               <div className="bg-white rounded-xl border border-neutral-200/90 p-2 flex items-center gap-2 shadow-2xs">
                 <div className="w-9 h-9 rounded-lg bg-neutral-100 overflow-hidden flex-shrink-0">
                   <img
-                    src="https://images.unsplash.com/photo-1608248597263-0057e05b3b13?auto=format&fit=crop&w=200&q=80"
+                    src="https://images.unsplash.com/photo-1608248597263-0057e05b3b13?auto=format&fit=crop&w=120&q=75"
                     alt="Botox"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -252,8 +256,10 @@ export default function MembershipScreen({
           {/* Real Facial Treatment Cover Image */}
           <div className="w-full h-[125px] bg-neutral-100 relative overflow-hidden border-b border-neutral-100">
             <img
-              src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80"
+              src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=400&q=75"
               alt="Botox Anti-Wrinkle Injections"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
           </div>
@@ -299,8 +305,10 @@ export default function MembershipScreen({
         >
           <div className="w-full h-[125px] bg-neutral-100 relative overflow-hidden border-b border-neutral-100">
             <img
-              src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80"
+              src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=75"
               alt="Hydrafacial Glow"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover"
             />
           </div>

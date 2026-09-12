@@ -58,7 +58,7 @@ export default function AppDemoPhone({
   return (
     <div
       onClick={triggerPrototypeToast}
-      className="w-full h-full bg-white flex flex-col relative overflow-hidden select-none cursor-pointer"
+      className="w-full h-full bg-white flex flex-col relative overflow-hidden rounded-[inherit] select-none cursor-pointer isolate"
     >
       {/* 1. Top Phone Status Bar with Realistic Dynamic Island & Full Battery */}
       <div className="w-full h-8 bg-white px-5 flex items-center justify-between z-40 flex-shrink-0 text-neutral-900 font-semibold text-[10.5px] select-none pt-1.5 relative">
@@ -218,7 +218,7 @@ export default function AppDemoPhone({
       </AnimatePresence>
 
       {/* 4. Interactive Bottom Navigation Bar (Synchronized with Feature Slider) */}
-      <div className="w-full bg-white/95 backdrop-blur-md border-t border-neutral-200/80 px-2 py-1.5 flex items-center justify-around z-30 flex-shrink-0">
+      <div className="w-full bg-white border-t border-neutral-100 px-2 py-1.5 flex items-center justify-around z-30 flex-shrink-0">
         {/* Home Tab */}
         <div
           onClick={(e) => {
@@ -299,7 +299,7 @@ export default function AppDemoPhone({
       </div>
 
       {/* 5. Fixed iOS Home Indicator Bar */}
-      <div className="w-full h-3.5 bg-white flex items-center justify-center z-40 flex-shrink-0 pb-0.5 pointer-events-none">
+      <div className="w-full h-4 bg-white flex items-center justify-center z-40 flex-shrink-0 pb-1 pointer-events-none rounded-b-[inherit]">
         <div className="w-24 h-1 bg-neutral-900/40 rounded-full" />
       </div>
     </div>

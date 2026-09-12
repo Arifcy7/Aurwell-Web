@@ -30,8 +30,10 @@ export default function SmartDealsScreen({
         <div className="relative w-full h-[170px] rounded-t-none rounded-b-[24px] overflow-hidden p-3.5 flex flex-col justify-between shadow-md">
           {/* Ultra-Aesthetic Luxury Spa Treatment Photo */}
           <img
-            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80"
+            src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=480&q=75"
             alt="Hero Banner"
+            loading="lazy"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />
 
@@ -82,8 +84,10 @@ export default function SmartDealsScreen({
           <div className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-2xs">
             <div className="w-full h-[90px] bg-neutral-100 relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80"
+                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=240&q=75"
                 alt="Botox Anti-Wrinkle Injections"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -101,8 +105,10 @@ export default function SmartDealsScreen({
           <div className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-2xs">
             <div className="w-full h-[90px] bg-neutral-100 relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80"
+                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=240&q=75"
                 alt="PRP Hair Restoration"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -152,8 +158,10 @@ export default function SmartDealsScreen({
           <div className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-2xs">
             <div className="w-full h-[90px] bg-neutral-100 relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=400&q=80"
+                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=240&q=75"
                 alt="$50 Off Treatment"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -171,8 +179,10 @@ export default function SmartDealsScreen({
           <div className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-2xs">
             <div className="w-full h-[90px] bg-neutral-100 relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=400&q=80"
+                src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=240&q=75"
                 alt="Free LED Session"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -203,8 +213,10 @@ export default function SmartDealsScreen({
           <div className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-2xs">
             <div className="w-full h-[90px] bg-neutral-100 relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=600&q=80"
+                src="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=240&q=75"
                 alt="Botox Anti-Wrinkle Injections"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -222,8 +234,10 @@ export default function SmartDealsScreen({
           <div className="bg-white rounded-xl border border-neutral-200/90 overflow-hidden shadow-2xs">
             <div className="w-full h-[90px] bg-neutral-100 relative overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80"
+                src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=240&q=75"
                 alt="PRP Hair Restoration"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             </div>
