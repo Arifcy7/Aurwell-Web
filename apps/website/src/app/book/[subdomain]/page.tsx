@@ -75,8 +75,17 @@ function formatTime12Hour(time24: string): string {
   const h = parseInt(hStr, 10);
   const m = parseInt(mStr || "0", 10);
   const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${m.toString().padStart(2, "0")} ${period}`;
+  const hour12 = h % 12 || 12;
+  return `${hour12}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
+function formatDoctorName(name?: string | null, fallback = "Any Available Specialist"): string {
+  if (!name || name === "Any Specialist" || name === "any" || name === "all") return fallback;
+  const clean = name.trim();
+  if (clean.toLowerCase().startsWith("dr.") || clean.toLowerCase().startsWith("dr ")) {
+    return clean;
+  }
+  return `Dr. ${clean}`;
 }
 
 interface ClinicData {
@@ -802,11 +811,16 @@ export default function ClinicBookingPage() {
 
     if (!daySchedule.isOpen) return [];
 
-    const interval = clinic?.bookingConfig?.settings?.slotIntervalMinutes || 30;
+    const interval = Number(clinic?.bookingConfig?.settings?.slotIntervalMinutes || 30);
     const duration = Number(selectedTreatment?.durationMinutes || 30);
     const slots: string[] = [];
 
-    daySchedule.slots?.forEach((slotRange: any) => {
+    const ranges =
+      daySchedule.slots && daySchedule.slots.length > 0
+        ? daySchedule.slots
+        : [{ start: "09:00", end: "17:00" }];
+
+    ranges.forEach((slotRange: any) => {
       const [startHour, startMin] = (slotRange.start || "09:00").split(":").map(Number);
       const [endHour, endMin] = (slotRange.end || "17:00").split(":").map(Number);
 
@@ -822,24 +836,7 @@ export default function ClinicBookingPage() {
       }
     });
 
-    return slots.length > 0
-      ? slots
-      : [
-          "09:00",
-          "09:30",
-          "10:00",
-          "10:30",
-          "11:00",
-          "11:30",
-          "12:00",
-          "12:30",
-          "14:00",
-          "14:30",
-          "15:00",
-          "15:30",
-          "16:00",
-          "16:30",
-        ];
+    return slots;
   };
 
   const operatingSlots = generateOperatingSlots();
@@ -852,7 +849,22 @@ export default function ClinicBookingPage() {
 
   // Helper to determine exact availability of a slot
   const isSlotAvailable = (slot: string) => {
-    // If backend slots API returned results, respect calculated availability
+    // 1. Min notice & same-day past time checking
+    const minNoticeHours = Number(clinic?.bookingConfig?.settings?.minNoticeHours ?? 2);
+    if (selectedDate) {
+      const [slotH, slotM] = slot.split(":").map(Number);
+      const [y, m, d] = selectedDate.split("-").map(Number);
+      const slotTime = new Date(y, m - 1, d, slotH, slotM, 0, 0);
+      const now = new Date();
+
+      // If slot is in past or within minNoticeHours window from now
+      const diffHours = (slotTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      if (diffHours < minNoticeHours) {
+        return false;
+      }
+    }
+
+    // 2. If backend slots API returned results, respect calculated availability
     if (backendSlotsLoaded) {
       return availableSet.has(slot);
     }
@@ -883,6 +895,11 @@ export default function ClinicBookingPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const maxAdvanceDays = Number(clinic?.bookingConfig?.settings?.maxAdvanceDays ?? 60);
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + maxAdvanceDays);
+    maxDate.setHours(23, 59, 59, 999);
+
     const base = new Date();
     base.setDate(base.getDate() + weekOffsetDays);
 
@@ -893,6 +910,7 @@ export default function ClinicBookingPage() {
       d.setHours(0, 0, 0, 0);
 
       const isPast = d < today;
+      const isFutureDisabled = d > maxDate;
       const isToday = toISODateString(d) === toISODateString(new Date());
       const isSelected = toISODateString(d) === selectedDate;
 
@@ -902,13 +920,14 @@ export default function ClinicBookingPage() {
         dayName: d.toLocaleDateString("en-US", { weekday: "short" }),
         dayNum: d.getDate(),
         monthName: d.toLocaleDateString("en-US", { month: "short" }),
-        isPast,
+        isPast: isPast || isFutureDisabled,
+        isFutureDisabled,
         isToday,
         isSelected,
       });
     }
     return days;
-  }, [weekOffsetDays, selectedDate]);
+  }, [weekOffsetDays, selectedDate, clinic]);
 
   // Month Calendar matrix generator
   const monthDays = React.useMemo(() => {
@@ -924,18 +943,26 @@ export default function ClinicBookingPage() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const maxAdvanceDays = Number(clinic?.bookingConfig?.settings?.maxAdvanceDays ?? 60);
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + maxAdvanceDays);
+    maxDate.setHours(23, 59, 59, 999);
+
     const days = [];
     const prevMonthLastDay = new Date(year, month, 0).getDate();
 
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
       const d = new Date(year, month - 1, prevMonthLastDay - i);
       d.setHours(0, 0, 0, 0);
+      const isPast = d < today;
+      const isFutureDisabled = d > maxDate;
       days.push({
         date: d,
         dateStr: toISODateString(d),
         dayNum: d.getDate(),
         isCurrentMonth: false,
-        isPast: d < today,
+        isPast: isPast || isFutureDisabled,
+        isFutureDisabled,
         isSelected: toISODateString(d) === selectedDate,
         isToday: toISODateString(d) === toISODateString(new Date()),
       });
@@ -944,12 +971,15 @@ export default function ClinicBookingPage() {
     for (let i = 1; i <= lastDay.getDate(); i++) {
       const d = new Date(year, month, i);
       d.setHours(0, 0, 0, 0);
+      const isPast = d < today;
+      const isFutureDisabled = d > maxDate;
       days.push({
         date: d,
         dateStr: toISODateString(d),
         dayNum: i,
         isCurrentMonth: true,
-        isPast: d < today,
+        isPast: isPast || isFutureDisabled,
+        isFutureDisabled,
         isSelected: toISODateString(d) === selectedDate,
         isToday: toISODateString(d) === toISODateString(new Date()),
       });
@@ -959,24 +989,33 @@ export default function ClinicBookingPage() {
     for (let i = 1; i <= remaining; i++) {
       const d = new Date(year, month + 1, i);
       d.setHours(0, 0, 0, 0);
+      const isPast = d < today;
+      const isFutureDisabled = d > maxDate;
       days.push({
         date: d,
         dateStr: toISODateString(d),
         dayNum: d.getDate(),
         isCurrentMonth: false,
-        isPast: d < today,
+        isPast: isPast || isFutureDisabled,
+        isFutureDisabled,
         isSelected: toISODateString(d) === selectedDate,
         isToday: toISODateString(d) === toISODateString(new Date()),
       });
     }
 
     return days;
-  }, [calendarMonth, selectedDate]);
+  }, [calendarMonth, selectedDate, clinic]);
 
   // Jump to next available day
   const handleJumpNextDay = () => {
     const current = new Date(selectedDate || Date.now());
     current.setDate(current.getDate() + 1);
+
+    const maxAdvanceDays = Number(clinic?.bookingConfig?.settings?.maxAdvanceDays ?? 60);
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
+    if (current > maxDate) return;
+
     const nextStr = toISODateString(current);
     setSelectedDate(nextStr);
     setSelectedTimeSlot("");
@@ -1168,10 +1207,7 @@ export default function ClinicBookingPage() {
 
       // Construct canonical ISO startDateTime based strictly on the user's selected date and time slot
       const [hours, mins] = (selectedTimeSlot || "09:00").split(":");
-      const dateParts = selectedDate.split("-").map(Number);
-      const startDateTime = new Date(
-        Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2], Number(hours), Number(mins), 0)
-      ).toISOString();
+      const startDateTime = `${selectedDate}T${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:00.000Z`;
 
       const patientPayload: any = {
         name: finalName,
@@ -1664,25 +1700,38 @@ export default function ClinicBookingPage() {
                       <div className="flex items-center gap-2">
                         <CalendarIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                         <span className="font-bold text-neutral-800">
-                          {cancelAppointmentData?.schedule?.startDateTime
-                            ? new Date(cancelAppointmentData.schedule.startDateTime).toLocaleDateString("en-GB", {
+                          {(() => {
+                            const sched = cancelAppointmentData?.schedule;
+                            if (!sched) return "Scheduled Date";
+                            const dateStr = sched.date || (sched.startDateTime?.includes("T") ? sched.startDateTime.split("T")[0] : "");
+                            if (dateStr) {
+                              const [y, m, d] = dateStr.split("-").map(Number);
+                              return new Date(y, m - 1, d).toLocaleDateString("en-GB", {
                                 weekday: "short",
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",
-                              })
-                            : "Scheduled Date"}
+                              });
+                            }
+                            return new Date(sched.startDateTime).toLocaleDateString("en-GB");
+                          })()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 sm:justify-end">
                         <Clock className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                         <span className="font-bold text-neutral-800">
-                          {cancelAppointmentData?.schedule?.startDateTime
-                            ? new Date(cancelAppointmentData.schedule.startDateTime).toLocaleTimeString("en-GB", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : ""}{" "}
+                          {(() => {
+                            const sched = cancelAppointmentData?.schedule;
+                            const timeStr = sched?.timeSlot || (sched?.startDateTime?.includes("T") ? sched.startDateTime.split("T")[1].substring(0, 5) : "");
+                            if (timeStr) {
+                              const [h, min] = timeStr.split(":");
+                              const hNum = parseInt(h, 10);
+                              const ampm = hNum >= 12 ? "pm" : "am";
+                              const h12 = hNum % 12 || 12;
+                              return `${String(h12).padStart(2, "0")}:${min} ${ampm}`;
+                            }
+                            return "";
+                          })()}{" "}
                           ({cancelAppointmentData?.treatment?.durationMinutes || 30} mins)
                         </span>
                       </div>
@@ -2169,7 +2218,7 @@ export default function ClinicBookingPage() {
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-800 bg-white border border-neutral-200/80 hover:bg-neutral-50 px-3.5 py-2 rounded-xl transition shadow-2xs cursor-pointer shrink-0"
                 >
                   <User className="w-3.5 h-3.5 text-neutral-500" />
-                  <span>Practitioner: <strong>{selectedDoctor ? selectedDoctor.name : "Any Specialist"}</strong></span>
+                  <span>Practitioner: <strong>{formatDoctorName(selectedDoctor?.name, "Any Available Specialist")}</strong></span>
                   <span className="text-[10px] text-amber-700 underline ml-1">Change</span>
                 </button>
               </div>
@@ -2462,7 +2511,7 @@ export default function ClinicBookingPage() {
                   <p className="text-[10px] sm:text-[11px] text-neutral-500 mt-0.5">
                     For {new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })} • Specialist:{" "}
                     <span className="font-semibold text-neutral-700">
-                      {selectedDoctor?.name || "Any Specialist"}
+                      {formatDoctorName(selectedDoctor?.name, "Any Available Specialist")}
                     </span>
                   </p>
                 </div>
@@ -2520,7 +2569,7 @@ export default function ClinicBookingPage() {
                       <span className="font-bold text-xs sm:text-sm block">No Available Slots on This Date</span>
                       <p className="text-[10px] sm:text-[11px] text-amber-700/90 mt-0.5">
                         {selectedDoctor
-                          ? `${selectedDoctor.name} is fully booked or unavailable on this day. Try another date or choose "Any Specialist".`
+                          ? `${formatDoctorName(selectedDoctor.name)} is fully booked or unavailable on this day. Try another date or choose "Any Available Specialist".`
                           : "All specialist slots are booked on this date. Click below to check the next day."}
                       </p>
                     </div>
@@ -2821,8 +2870,8 @@ export default function ClinicBookingPage() {
                   {selectedTreatment?.title} {selectedVariant ? `• ${selectedVariant.title}` : ""}
                 </span>
                 <p className="text-neutral-600 mt-0.5">
-                  {selectedDate} at {selectedTimeSlot} • {selectedTreatment?.durationMinutes || 30} mins • Dr.{" "}
-                  {selectedDoctor?.name || "Any Specialist"}
+                  {selectedDate} at {selectedTimeSlot} • {selectedTreatment?.durationMinutes || 30} mins •{" "}
+                  {formatDoctorName(selectedDoctor?.name, "Any Available Specialist")}
                 </p>
               </div>
               <span className="text-lg font-black" style={{ color: brandColor }}>
@@ -2960,7 +3009,7 @@ export default function ClinicBookingPage() {
                   <div className="flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                     <span className="truncate font-medium">
-                      {selectedDoctor ? selectedDoctor.name : "Any Specialist"}
+                      {formatDoctorName(selectedDoctor?.name, "Any Available Specialist")}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 justify-end">
@@ -3107,7 +3156,7 @@ export default function ClinicBookingPage() {
               <div className="flex justify-between">
                 <span className="text-neutral-500">Practitioner:</span>
                 <span className="font-bold text-neutral-900">
-                  Dr. {selectedDoctor?.name || "Clinic Specialist"}
+                  {formatDoctorName(selectedDoctor?.name || (heldReservation as any)?.doctorName, "Clinic Specialist")}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -3122,7 +3171,7 @@ export default function ClinicBookingPage() {
                 href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
                   `${selectedTreatment?.title || "Treatment"} at ${clinic.merchantName || "Clinic"}`
                 )}&dates=${selectedDate.replace(/-/g, "")}T${selectedTimeSlot.replace(/:/g, "")}00Z/${selectedDate.replace(/-/g, "")}T${selectedTimeSlot.replace(/:/g, "")}00Z&details=${encodeURIComponent(
-                  `Booking Reference: ${bookingRef}\nPractitioner: Dr. ${selectedDoctor?.name || "Specialist"}\nPatient: ${patientName}`
+                  `Booking Reference: ${bookingRef}\nPractitioner: ${formatDoctorName(selectedDoctor?.name || (heldReservation as any)?.doctorName, "Specialist")}\nPatient: ${patientName}`
                 )}&location=${encodeURIComponent(clinic.address || "")}`}
                 target="_blank"
                 rel="noopener noreferrer"

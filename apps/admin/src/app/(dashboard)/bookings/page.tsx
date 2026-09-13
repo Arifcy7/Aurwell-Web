@@ -74,6 +74,54 @@ function formatDateHeader(dateStr: string): string {
   });
 }
 
+function formatAppointmentDateTime(schedule: any, fallbackTime?: string): string {
+  if (!schedule && !fallbackTime) return "N/A";
+  
+  let datePart = schedule?.date || "";
+  let timePart = schedule?.timeSlot || fallbackTime || "";
+
+  if (schedule?.startDateTime && (!datePart || !timePart)) {
+    const str = String(schedule.startDateTime);
+    if (str.includes("T")) {
+      const parts = str.split("T");
+      if (!datePart) datePart = parts[0];
+      if (!timePart) timePart = parts[1].substring(0, 5);
+    }
+  }
+
+  if (datePart && timePart) {
+    const [y, m, d] = datePart.split("-").map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    const dateFormatted = dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    const [h, min] = timePart.split(":");
+    const hNum = parseInt(h, 10);
+    const ampm = hNum >= 12 ? "pm" : "am";
+    const h12 = hNum % 12 || 12;
+    return `${dateFormatted}, ${String(h12).padStart(2, "0")}:${min} ${ampm}`;
+  }
+
+  if (schedule?.startDateTime) {
+    const dt = new Date(schedule.startDateTime);
+    if (!isNaN(dt.getTime())) {
+      return dt.toLocaleString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+  }
+
+  return "N/A";
+}
+
 function getWeekDays(dateStr: string): { dateStr: string; dayName: string; dayNumber: number; isToday: boolean }[] {
   const [y, m, d] = dateStr.split("-").map(Number);
   const current = new Date(y, m - 1, d);
@@ -125,6 +173,55 @@ function formatTimeSlot(time24: string): string {
   const period = h >= 12 ? "PM" : "AM";
   const hour12 = h % 12 || 12;
   return `${hour12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+function isDoctorMatch(apt: any, doc: any, allVisibleDocs: any[] = []): boolean {
+  if (!doc || doc.id === "all" || doc.doctorId === "all") return true;
+  const docIds = [doc.id, doc.doctorId].filter(Boolean);
+  const docName = (doc.name || "").trim().toLowerCase().replace(/^dr\.?\s*/i, "");
+
+  // 1. Match by ID
+  const aptDocId = apt.doctorId || apt.doctor?.id;
+  if (aptDocId && docIds.includes(aptDocId)) return true;
+
+  // 2. Match by Name
+  const aptDocName = (apt.doctorName || apt.doctor?.name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/^dr\.?\s*/i, "");
+  if (aptDocName && docName && (aptDocName === docName || aptDocName.includes(docName) || docName.includes(aptDocName))) {
+    return true;
+  }
+
+  // 3. Fallback: If appointment has no doctor assigned or unmatched, only place it in the first visible column
+  if (!aptDocId && !aptDocName) {
+    return allVisibleDocs.length > 0 && (allVisibleDocs[0]?.doctorId || allVisibleDocs[0]?.id) === (doc.doctorId || doc.id);
+  }
+
+  return false;
+}
+
+function getPractitionerDisplayName(apt: any, doctorsList: any[] = []): string {
+  const directName = apt?.doctorName || apt?.doctor?.name;
+  if (directName) {
+    const clean = String(directName).trim();
+    if (clean.toLowerCase().startsWith("dr.") || clean.toLowerCase().startsWith("dr ")) {
+      return clean;
+    }
+    return `Dr. ${clean}`;
+  }
+  const aptDocId = apt?.doctorId || apt?.doctor?.id;
+  if (aptDocId && doctorsList.length > 0) {
+    const matched = doctorsList.find((d) => d.id === aptDocId || d.doctorId === aptDocId);
+    if (matched?.name) {
+      const clean = String(matched.name).trim();
+      if (clean.toLowerCase().startsWith("dr.") || clean.toLowerCase().startsWith("dr ")) {
+        return clean;
+      }
+      return `Dr. ${clean}`;
+    }
+  }
+  return "Practitioner";
 }
 
 export default function AppointmentsPage() {
@@ -432,11 +529,15 @@ export default function AppointmentsPage() {
       const durationMinutes = Number(selectedTreatmentObj?.durationMinutes || 30);
       const bufferMinutes = Number(selectedTreatmentObj?.bufferMinutes || 15);
 
-      const startDateTime = new Date(`${selectedDate}T${formStartTime}:00Z`).toISOString();
-      const endDateTimeObj = new Date(new Date(startDateTime).getTime() + durationMinutes * 60000);
-      const bufferEndDateTimeObj = new Date(
-        new Date(startDateTime).getTime() + (durationMinutes + bufferMinutes) * 60000
-      );
+      const [sh, sm] = formStartTime.split(":").map(Number);
+      const [sy, smo, sd] = selectedDate.split("-").map(Number);
+      const startDt = new Date(sy, smo - 1, sd, sh, sm);
+      const endDt = new Date(startDt.getTime() + durationMinutes * 60000);
+      const bufferEndDt = new Date(startDt.getTime() + (durationMinutes + bufferMinutes) * 60000);
+
+      const startDateTime = `${selectedDate}T${formStartTime}:00.000Z`;
+      const endDateTime = `${selectedDate}T${String(endDt.getHours()).padStart(2, "0")}:${String(endDt.getMinutes()).padStart(2, "0")}:00.000Z`;
+      const bufferEndDateTime = `${selectedDate}T${String(bufferEndDt.getHours()).padStart(2, "0")}:${String(bufferEndDt.getMinutes()).padStart(2, "0")}:00.000Z`;
 
       const aptId = `apt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
@@ -462,9 +563,11 @@ export default function AppointmentsPage() {
         },
         schedule: {
           startDateTime,
-          endDateTime: endDateTimeObj.toISOString(),
-          slotEndDateTimeWithBuffer: bufferEndDateTimeObj.toISOString(),
-          timezone: "UTC",
+          date: selectedDate,
+          timeSlot: formStartTime,
+          endDateTime,
+          slotEndDateTimeWithBuffer: bufferEndDateTime,
+          timezone: "Europe/London",
         },
         status: "confirmed",
         bookingSource: "admin_staff",
@@ -496,10 +599,19 @@ export default function AppointmentsPage() {
     setIsNewModalOpen(true);
   };
 
+  // Visible Practitioners for Calendar View
+  const visibleDoctors = useMemo(() => {
+    if (selectedDoctor === "all") return doctors;
+    return doctors.filter((d) => (d.doctorId || d.id) === selectedDoctor);
+  }, [doctors, selectedDoctor]);
+
   // Filtered Appointments
   const filteredAppointments = useMemo(() => {
     return appointments.filter((apt) => {
-      if (selectedDoctor !== "all" && apt.doctorId !== selectedDoctor) return false;
+      if (selectedDoctor !== "all") {
+        const targetDoc = doctors.find((d) => (d.doctorId || d.id) === selectedDoctor || d.id === selectedDoctor);
+        if (targetDoc && !isDoctorMatch(apt, targetDoc, visibleDoctors)) return false;
+      }
       if (selectedStatus !== "all" && apt.status !== selectedStatus) return false;
       if (searchQuery.trim()) {
         const queryLower = searchQuery.toLowerCase();
@@ -507,23 +619,18 @@ export default function AppointmentsPage() {
         const pEmail = (apt.patient?.email || "").toLowerCase();
         const pPhone = (apt.patient?.phone || "").toLowerCase();
         const tTitle = (apt.treatment?.title || "").toLowerCase();
-        if (!pName.includes(queryLower) && !pEmail.includes(queryLower) && !pPhone.includes(queryLower) && !tTitle.includes(queryLower)) {
+        const docDisplay = getPractitionerDisplayName(apt, doctors).toLowerCase();
+        if (!pName.includes(queryLower) && !pEmail.includes(queryLower) && !pPhone.includes(queryLower) && !tTitle.includes(queryLower) && !docDisplay.includes(queryLower)) {
           return false;
         }
       }
       return true;
     });
-  }, [appointments, selectedDoctor, selectedStatus, searchQuery]);
+  }, [appointments, selectedDoctor, selectedStatus, searchQuery, doctors, visibleDoctors]);
 
   const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
   const isTodayActive = selectedDate === getTodayIso();
   const isCustom = bookingConfig?.systemType === "aurwell_custom" || bookingConfig?.systemType === "custom";
-
-  // Visible Practitioners for Calendar View
-  const visibleDoctors = useMemo(() => {
-    if (selectedDoctor === "all") return doctors;
-    return doctors.filter((d) => (d.doctorId || d.id) === selectedDoctor);
-  }, [doctors, selectedDoctor]);
 
   const statusBadge = (status: string) => {
     switch (status) {
@@ -789,19 +896,33 @@ export default function AppointmentsPage() {
               {visibleDoctors.length === 0 ? (
                 <div className="p-3 text-xs font-bold text-neutral-500 text-center">General Appointments</div>
               ) : (
-                visibleDoctors.map((doc) => (
-                  <div key={doc.doctorId || doc.id} className="p-3.5 px-4 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 truncate">
-                      <div className="w-6 h-6 rounded-full bg-neutral-200 text-neutral-800 flex items-center justify-center font-bold text-[10px]">
-                        {doc.name ? doc.name[0].toUpperCase() : "D"}
-                      </div>
-                      <div className="truncate">
-                        <h4 className="font-bold text-xs text-neutral-900 truncate">{doc.name}</h4>
-                        <p className="text-[10px] text-neutral-400 font-medium truncate">{doc.title || "Practitioner"}</p>
+                visibleDoctors.map((doc) => {
+                  const avatarSrc = doc.avatarUrl || doc.photoUrl || doc.imageUrl || (doc as any).avatar;
+                  return (
+                    <div key={doc.doctorId || doc.id} className="p-3.5 px-4 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 truncate">
+                        {avatarSrc ? (
+                          <img
+                            src={avatarSrc}
+                            alt={doc.name}
+                            className="w-7 h-7 rounded-full object-cover border border-neutral-200/80 shadow-2xs shrink-0"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-neutral-200 text-neutral-800 flex items-center justify-center font-bold text-[11px] shrink-0">
+                            {doc.name ? doc.name[0].toUpperCase() : "D"}
+                          </div>
+                        )}
+                        <div className="truncate">
+                          <h4 className="font-bold text-xs text-neutral-900 truncate">{doc.name}</h4>
+                          <p className="text-[10px] text-neutral-400 font-medium truncate">{doc.title || "Practitioner"}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -830,11 +951,25 @@ export default function AppointmentsPage() {
                       const docId = doc.doctorId || doc.id;
                       // Find appointments in this hour slot for this doctor
                       const slotAppointments = filteredAppointments.filter((apt) => {
-                        if (docId !== "all" && apt.doctorId && apt.doctorId !== docId) return false;
-                        if (!apt.schedule?.startDateTime) return false;
-                        const d = new Date(apt.schedule.startDateTime);
-                        const aptHour = String(d.getUTCHours()).padStart(2, "0");
-                        const slotHour = time.split(":")[0];
+                        if (!isDoctorMatch(apt, doc, visibleDoctors)) return false;
+                        
+                        let aptHour = "";
+                        if (apt.schedule?.timeSlot) {
+                          aptHour = String(apt.schedule.timeSlot).split(":")[0].padStart(2, "0");
+                        } else if (apt.timeSlot) {
+                          aptHour = String(apt.timeSlot).split(":")[0].padStart(2, "0");
+                        } else if (apt.schedule?.startDateTime) {
+                          const str = String(apt.schedule.startDateTime);
+                          if (str.includes("T")) {
+                            aptHour = str.split("T")[1].split(":")[0].padStart(2, "0");
+                          } else {
+                            const d = new Date(apt.schedule.startDateTime);
+                            aptHour = String(d.getHours()).padStart(2, "0");
+                          }
+                        }
+
+                        if (!aptHour) return false;
+                        const slotHour = time.split(":")[0].padStart(2, "0");
                         return aptHour === slotHour;
                       });
 
@@ -849,10 +984,29 @@ export default function AppointmentsPage() {
                             </button>
                           ) : (
                             slotAppointments.map((apt) => {
-                              const startParsed = new Date(apt.schedule?.startDateTime);
-                              const timeFormatted = isNaN(startParsed.getTime())
-                                ? time
-                                : startParsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                              let timeFormatted = time;
+                              if (apt.schedule?.timeSlot) {
+                                timeFormatted = apt.schedule.timeSlot;
+                              } else if (apt.timeSlot) {
+                                timeFormatted = apt.timeSlot;
+                              } else if (apt.schedule?.startDateTime) {
+                                const str = String(apt.schedule.startDateTime);
+                                if (str.includes("T")) {
+                                  const timeParts = str.split("T")[1].split(":");
+                                  if (timeParts.length >= 2) {
+                                    const h = parseInt(timeParts[0], 10);
+                                    const m = timeParts[1];
+                                    const ampm = h >= 12 ? "pm" : "am";
+                                    const h12 = h % 12 || 12;
+                                    timeFormatted = `${String(h12).padStart(2, "0")}:${m} ${ampm}`;
+                                  }
+                                } else {
+                                  const startParsed = new Date(apt.schedule.startDateTime);
+                                  if (!isNaN(startParsed.getTime())) {
+                                    timeFormatted = startParsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                                  }
+                                }
+                              }
 
                               return (
                                 <div
@@ -891,9 +1045,10 @@ export default function AppointmentsPage() {
                                     </div>
 
                                     <div className="flex items-center justify-between text-[11px] text-neutral-600 pt-1.5 border-t border-neutral-100">
-                                      <span className="font-semibold truncate flex items-center gap-1 text-neutral-800">
+                                      <span className="font-semibold truncate flex items-center gap-1 text-neutral-800" title={`Patient: ${apt.patient?.name || "Anonymous"}`}>
                                         <User className="w-3 h-3 text-neutral-400 shrink-0" />
-                                        {apt.patient?.name || "Anonymous Patient"}
+                                        <span className="text-neutral-400 font-normal text-[10px]">Patient:</span>
+                                        <span className="truncate">{apt.patient?.name || "Anonymous Patient"}</span>
                                       </span>
                                       {apt.treatment?.price !== undefined && (
                                         <span className="font-bold text-neutral-900 shrink-0">
@@ -918,10 +1073,21 @@ export default function AppointmentsPage() {
           /* ── GRID CARDS VIEW ────────────────────────────────────────────────── */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredAppointments.map((apt) => {
-              const startParsed = apt.schedule?.startDateTime ? new Date(apt.schedule.startDateTime) : new Date();
-              const timeStr = isNaN(startParsed.getTime())
-                ? "10:00 AM"
-                : startParsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              let timeStr = "10:00 AM";
+              const sched = apt.schedule;
+              const timeRaw = sched?.timeSlot || apt.timeSlot || (sched?.startDateTime?.includes("T") ? sched.startDateTime.split("T")[1].substring(0, 5) : "");
+              if (timeRaw) {
+                const [h, min] = timeRaw.split(":");
+                const hNum = parseInt(h, 10);
+                const ampm = hNum >= 12 ? "PM" : "AM";
+                const h12 = hNum % 12 || 12;
+                timeStr = `${String(h12).padStart(2, "0")}:${min} ${ampm}`;
+              } else if (sched?.startDateTime) {
+                const startParsed = new Date(sched.startDateTime);
+                if (!isNaN(startParsed.getTime())) {
+                  timeStr = startParsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                }
+              }
 
               return (
                 <div
@@ -990,7 +1156,7 @@ export default function AppointmentsPage() {
                   {/* Footer and Quick Action Buttons */}
                   <div className="pt-3 border-t border-neutral-100 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
                     <span className="text-[11px] font-medium text-neutral-400 truncate">
-                      Dr. {apt.doctorName || "Practitioner"}
+                      {getPractitionerDisplayName(apt, doctors)}
                     </span>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {apt.status === "confirmed" && (
@@ -1066,15 +1232,12 @@ export default function AppointmentsPage() {
               <div className="space-y-3 text-xs bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-500 font-medium">Practitioner:</span>
-                  <span className="font-bold text-neutral-900">Dr. {selectedAppointment.doctorName || "Staff"}</span>
+                  <span className="font-bold text-neutral-900">{getPractitionerDisplayName(selectedAppointment, doctors)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-neutral-500 font-medium">Scheduled Date & Time:</span>
                   <span className="font-bold text-neutral-900">
-                    {new Date(selectedAppointment.schedule?.startDateTime).toLocaleString([], {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {formatAppointmentDateTime(selectedAppointment.schedule)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -1205,15 +1368,12 @@ export default function AppointmentsPage() {
                 <div className="flex justify-between text-neutral-500">
                   <span>Current Schedule:</span>
                   <span className="font-bold text-neutral-900">
-                    {new Date(rescheduleTarget.schedule?.startDateTime).toLocaleString([], {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {formatAppointmentDateTime(rescheduleTarget.schedule)}
                   </span>
                 </div>
                 <div className="flex justify-between text-neutral-500">
                   <span>Current Doctor:</span>
-                  <span className="font-bold text-neutral-900">Dr. {rescheduleTarget.doctorName || "Assigned"}</span>
+                  <span className="font-bold text-neutral-900">{getPractitionerDisplayName(rescheduleTarget, doctors)}</span>
                 </div>
               </div>
 

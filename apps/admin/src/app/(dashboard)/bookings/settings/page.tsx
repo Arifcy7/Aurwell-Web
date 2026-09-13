@@ -183,161 +183,42 @@ export default function BookingSettingsPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Booking Engine Mode */}
+        {/* Subdomain */}
         <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-4">
           <div>
-            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Booking System Engine</h2>
+            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Public Web Address</h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Select how patients book treatments when visiting your public web portal
+              Patients visit this link to view treatments, select practitioners, and book appointments
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              {
-                id: "aurwell_custom",
-                title: "Native Aurwell Booking",
-                desc: "Full online booking wizard with live calendar slots, hold checkout lock, and integrated Stripe payments.",
-                badge: "Recommended",
-              },
-              {
-                id: "external_sdk",
-                title: "External Widget / Link",
-                desc: "Seamlessly redirect patients to your existing Fresha, Phorest, Jane App, or custom external portal.",
-                badge: "Redirect",
-              },
-              {
-                id: "disabled",
-                title: "Disabled / Phone Only",
-                desc: "Hide online calendar and show clinic direct phone and contact consultation details.",
-                badge: "Contact",
-              },
-            ].map((option) => {
-              const isSelected = systemType === option.id;
-              return (
-                <label
-                  key={option.id}
-                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
-                    isSelected
-                      ? "border-neutral-900 bg-neutral-900/5 shadow-xs ring-1 ring-neutral-900"
-                      : "border-neutral-200/80 hover:border-neutral-300 bg-white"
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <input
-                      type="radio"
-                      name="systemType"
-                      value={option.id}
-                      checked={isSelected}
-                      onChange={(e) => setSystemType(e.target.value as any)}
-                      className="sr-only"
-                    />
-                    <h4 className="font-extrabold text-sm text-neutral-900">{option.title}</h4>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        isSelected ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
-                      }`}
-                    >
-                      {option.badge}
-                    </span>
-                  </div>
-                  <p className="text-xs text-neutral-500 leading-relaxed">{option.desc}</p>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Subdomain & Custom Domain */}
-        <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-4">
           <div>
-            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Public Web Addresses</h2>
-            <p className="text-xs text-neutral-500 mt-0.5">
-              Patients visit this URL to view treatments, select practitioners, and book appointments
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-bold text-neutral-700">Aurwell Hosted Subdomain *</label>
-              <div className="flex items-center mt-1">
-                <input
-                  type="text"
-                  required
-                  value={subdomain}
-                  onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                  placeholder="harleystreet"
-                  className="border border-r-0 border-neutral-200 rounded-l-xl p-2.5 text-xs font-mono font-bold text-neutral-900 bg-neutral-50 w-48 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-                />
-                <span className="bg-neutral-100 border border-neutral-200 rounded-r-xl px-3 py-2.5 text-xs text-neutral-600 font-mono font-bold">
-                  .aurwell.app
-                </span>
-              </div>
-              <p className="text-[11px] text-neutral-500 mt-1">
-                Public URL: <strong className="text-neutral-900 font-mono">https://{subdomain || "yourclinic"}.aurwell.app</strong>
-              </p>
-            </div>
-
-            <div className="pt-3 border-t border-neutral-100">
-              <label className="text-xs font-bold text-neutral-700">Custom CNAME Domain (Optional)</label>
+            <label className="text-xs font-bold text-neutral-700">Aurwell Hosted Subdomain *</label>
+            <div className="flex items-center mt-1">
               <input
                 type="text"
-                value={customDomain}
-                onChange={(e) => setCustomDomain(e.target.value.toLowerCase())}
-                placeholder="e.g. booking.harleystreetclinic.com"
-                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                required
+                value={subdomain}
+                onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                placeholder="harleystreet"
+                className="border border-r-0 border-neutral-200 rounded-l-xl p-2.5 text-xs font-mono font-bold text-neutral-900 bg-neutral-50 w-48 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
               />
-              <p className="text-[11px] text-neutral-400 mt-1">
-                Point a CNAME record from your domain to <code className="font-mono text-neutral-700">cname.aurwell.app</code>
-              </p>
+              <span className="bg-neutral-100 border border-neutral-200 rounded-r-xl px-3 py-2.5 text-xs text-neutral-600 font-mono font-bold">
+                .aurwell.app
+              </span>
             </div>
+            <p className="text-[11px] text-neutral-500 mt-1.5">
+              Public Link: <strong className="text-neutral-900 font-mono">https://{subdomain || "yourclinic"}.aurwell.app</strong>
+            </p>
           </div>
         </div>
 
-        {/* External Provider URL */}
-        {systemType === "external_sdk" && (
-          <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-4">
-            <div>
-              <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">External Booking Configuration</h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Patients visiting your public site will be routed to your external portal
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-neutral-700">Provider Name</label>
-                <input
-                  type="text"
-                  value={externalProvider}
-                  onChange={(e) => setExternalProvider(e.target.value)}
-                  placeholder="e.g. Fresha, Phorest, Jane App"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-neutral-700">External Booking URL *</label>
-                <input
-                  type="url"
-                  required={systemType === "external_sdk"}
-                  value={externalUrl}
-                  onChange={(e) => setExternalUrl(e.target.value)}
-                  placeholder="https://fresha.com/a/your-clinic"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Native Booking Policies */}
-        {systemType === "aurwell_custom" && (
-          <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-5">
-            <div>
-              <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
-                Booking Rules & Payment Policies
-              </h2>
+        {/* Booking Rules & Payment Policies */}
+        <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-5">
+          <div>
+            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
+              Booking Rules & Payment Policies
+            </h2>
               <p className="text-xs text-neutral-500 mt-0.5">
                 Stripe deposit requirements, cancellation thresholds, and calendar increment rules
               </p>
@@ -436,7 +317,6 @@ export default function BookingSettingsPage() {
               </div>
             </div>
           </div>
-        )}
 
         {/* Save Bar */}
         <div className="flex justify-end pt-2">
