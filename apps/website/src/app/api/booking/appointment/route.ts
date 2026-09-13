@@ -6,65 +6,95 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const clinicId = url.searchParams.get("clinicId");
     const appointmentId = url.searchParams.get("appointmentId");
+    const paymentIntentId =
+      url.searchParams.get("paymentIntentId") || url.searchParams.get("payment_intent");
 
-    if (!appointmentId) {
+    if (!appointmentId && !paymentIntentId) {
       return NextResponse.json(
-        { error: "appointmentId query parameter is required." },
+        { error: "appointmentId or paymentIntentId query parameter is required." },
         { status: 400 }
       );
     }
 
     let aptDoc: FirebaseFirestore.DocumentSnapshot | null = null;
 
-    // 1. If clinicId is provided, try direct document lookup
-    if (clinicId) {
-      const directSnap = await adminDb
-        .collection("clinics")
-        .doc(clinicId)
-        .collection("appointments")
-        .doc(appointmentId)
-        .get();
-
-      if (directSnap.exists) {
-        aptDoc = directSnap;
-      } else {
-        // 2. Query subcollection by appointmentId field
-        const querySnap = await adminDb
+    // 1. Lookup by appointmentId
+    if (appointmentId) {
+      if (clinicId) {
+        const directSnap = await adminDb
           .collection("clinics")
           .doc(clinicId)
           .collection("appointments")
+          .doc(appointmentId)
+          .get();
+
+        if (directSnap.exists) {
+          aptDoc = directSnap;
+        } else {
+          const querySnap = await adminDb
+            .collection("clinics")
+            .doc(clinicId)
+            .collection("appointments")
+            .where("appointmentId", "==", appointmentId)
+            .limit(1)
+            .get();
+
+          if (!querySnap.empty) {
+            aptDoc = querySnap.docs[0];
+          }
+        }
+      }
+
+      if (!aptDoc || !aptDoc.exists) {
+        const groupSnap = await adminDb
+          .collectionGroup("appointments")
           .where("appointmentId", "==", appointmentId)
           .limit(1)
           .get();
 
-        if (!querySnap.empty) {
-          aptDoc = querySnap.docs[0];
+        if (!groupSnap.empty) {
+          aptDoc = groupSnap.docs[0];
         }
       }
     }
 
-    // 3. Fallback: Search across all appointments collectionGroup
-    if (!aptDoc || !aptDoc.exists) {
-      const groupSnap = await adminDb
-        .collectionGroup("appointments")
-        .where("appointmentId", "==", appointmentId)
-        .limit(1)
-        .get();
+    // 2. Lookup by paymentIntentId (for redirect payments like Amazon Pay, Apple Pay, Link, Revolut)
+    if ((!aptDoc || !aptDoc.exists) && paymentIntentId) {
+      if (clinicId) {
+        const snap1 = await adminDb
+          .collection("clinics")
+          .doc(clinicId)
+          .collection("appointments")
+          .where("payment.stripePaymentIntentId", "==", paymentIntentId)
+          .limit(1)
+          .get();
 
-      if (!groupSnap.empty) {
-        aptDoc = groupSnap.docs[0];
+        if (!snap1.empty) {
+          aptDoc = snap1.docs[0];
+        }
+      }
+
+      if (!aptDoc || !aptDoc.exists) {
+        const groupSnap = await adminDb
+          .collectionGroup("appointments")
+          .where("payment.stripePaymentIntentId", "==", paymentIntentId)
+          .limit(1)
+          .get();
+
+        if (!groupSnap.empty) {
+          aptDoc = groupSnap.docs[0];
+        }
       }
     }
 
     if (!aptDoc || !aptDoc.exists) {
       return NextResponse.json(
-        { error: `Appointment #${appointmentId} not found.` },
+        { error: `Appointment not found.` },
         { status: 404 }
       );
     }
 
     const data = aptDoc.data() || {};
-    // Extract clinicId from parent path if not present in document
     const extractedClinicId =
       data.clinicId || clinicId || aptDoc.ref.parent.parent?.id || "";
 

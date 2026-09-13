@@ -323,12 +323,27 @@ export async function rescheduleAppointment(params: {
 }
 
 /**
- * Fetch appointment details by ID (handles both document ID and appointmentId field)
+ * Fetch appointment details by ID or paymentIntentId (handles both document ID and appointmentId field)
  */
-export async function fetchAppointmentDetails(clinicId: string, appointmentId: string) {
-  const url = `/api/booking/appointment?clinicId=${encodeURIComponent(
-    clinicId || ""
-  )}&appointmentId=${encodeURIComponent(appointmentId)}`;
+export async function fetchAppointmentDetails(
+  clinicId: string,
+  appointmentIdOrParams: string | { appointmentId?: string; paymentIntentId?: string }
+) {
+  let appointmentId = "";
+  let paymentIntentId = "";
+  if (typeof appointmentIdOrParams === "string") {
+    appointmentId = appointmentIdOrParams;
+  } else if (appointmentIdOrParams) {
+    appointmentId = appointmentIdOrParams.appointmentId || "";
+    paymentIntentId = appointmentIdOrParams.paymentIntentId || "";
+  }
+
+  const queryParams = new URLSearchParams();
+  if (clinicId) queryParams.set("clinicId", clinicId);
+  if (appointmentId) queryParams.set("appointmentId", appointmentId);
+  if (paymentIntentId) queryParams.set("paymentIntentId", paymentIntentId);
+
+  const url = `/api/booking/appointment?${queryParams.toString()}`;
 
   const res = await fetch(url, {
     method: "GET",

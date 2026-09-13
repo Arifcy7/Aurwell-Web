@@ -172,8 +172,12 @@ export default function ClinicBookingPage() {
 
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 45 | 5>(() => {
     if (typeof window !== "undefined") {
-      const isResched = new URLSearchParams(window.location.search).get("reschedule");
+      const sp = new URLSearchParams(window.location.search);
+      const isResched = sp.get("reschedule");
       if (isResched) return 3;
+      const redirectStatus = sp.get("redirect_status");
+      const paymentIntent = sp.get("payment_intent") || sp.get("paymentIntentId");
+      if (redirectStatus === "succeeded" || paymentIntent) return 5;
     }
     return 1;
   });
@@ -587,6 +591,108 @@ export default function ClinicBookingPage() {
           console.warn("Could not preload appointment for cancellation:", cErr);
         }
       }
+
+      // 5. If returning from Stripe Redirect Payment (Amazon Pay, Apple Pay, Google Pay, Revolut, Link, Klarna, 3DS)
+      const redirectStatus = searchParams?.get("redirect_status");
+      const paymentIntent = searchParams?.get("payment_intent") || searchParams?.get("paymentIntentId");
+
+      if (paymentIntent || redirectStatus === "succeeded") {
+        try {
+          let aptData: any = null;
+          let sessionSnapshot: any = null;
+
+          if (typeof window !== "undefined") {
+            try {
+              const raw = sessionStorage.getItem("aurwell_pending_booking");
+              if (raw) sessionSnapshot = JSON.parse(raw);
+            } catch (e) {}
+          }
+
+          try {
+            aptData = await fetchAppointmentDetails(clinicId, {
+              paymentIntentId: paymentIntent || undefined,
+              appointmentId: sessionSnapshot?.appointmentId || undefined,
+            });
+          } catch (fetchErr) {
+            console.warn("Could not fetch appointment by payment intent:", fetchErr);
+          }
+
+          const targetAptId = aptData?.appointmentId || aptData?.id || sessionSnapshot?.appointmentId;
+
+          if (targetAptId && clinicId) {
+            // Finalize booking on backend only if not already confirmed
+            if (aptData?.status !== "confirmed") {
+              try {
+                await confirmBooking({
+                  clinicId,
+                  appointmentId: targetAptId,
+                  paymentIntentId: paymentIntent || null,
+                });
+              } catch (cErr) {
+                console.warn("Post-redirect confirmBooking status:", cErr);
+              }
+            }
+
+            // Populate Step 5 Confirmed Booking Details
+            setBookingRef(targetAptId.toUpperCase());
+
+            if (aptData?.treatment) {
+              setSelectedTreatment(aptData.treatment);
+            } else if (sessionSnapshot?.treatmentTitle) {
+              setSelectedTreatment({
+                id: sessionSnapshot.treatmentId || "treatment_booked",
+                title: sessionSnapshot.treatmentTitle,
+                durationMinutes: sessionSnapshot.durationMinutes || 30,
+              });
+            }
+
+            if (aptData?.treatment?.variantTitle || sessionSnapshot?.variantTitle) {
+              setSelectedVariant({
+                title: aptData?.treatment?.variantTitle || sessionSnapshot?.variantTitle,
+              });
+            }
+
+            if (aptData?.doctorName || sessionSnapshot?.doctorName) {
+              setSelectedDoctor({ name: aptData?.doctorName || sessionSnapshot?.doctorName });
+            }
+
+            if (aptData?.schedule?.startDateTime) {
+              setSelectedDate(aptData.schedule.startDateTime.substring(0, 10));
+              try {
+                const dateObj = new Date(aptData.schedule.startDateTime);
+                setSelectedTimeSlot(
+                  dateObj.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })
+                );
+              } catch (e) {}
+            } else if (sessionSnapshot?.selectedDate) {
+              setSelectedDate(sessionSnapshot.selectedDate);
+              setSelectedTimeSlot(sessionSnapshot.selectedTimeSlot || "");
+            }
+
+            const pName = aptData?.patient?.name || sessionSnapshot?.patientName || "";
+            const pEmail = aptData?.patient?.email || sessionSnapshot?.patientEmail || "";
+            const pPhone = aptData?.patient?.phone || sessionSnapshot?.patientPhone || "";
+
+            if (pName) setPatientName(pName);
+            if (pEmail) setPatientEmail(pEmail);
+            if (pPhone) setPatientPhone(pPhone);
+
+            setStep(5);
+
+            if (typeof window !== "undefined") {
+              sessionStorage.removeItem("aurwell_pending_booking");
+              // Clean URL to base path so refreshing won't re-trigger payment redirect or duplicate emails
+              window.history.replaceState({}, document.title, window.location.pathname);
+            }
+          }
+        } catch (redirectErr) {
+          console.error("Error processing Stripe redirect return:", redirectErr);
+        }
+      }
     } catch (err: any) {
       console.error("Error loading clinic portal:", err);
       setError("Failed to connect to the clinic booking engine.");
@@ -942,6 +1048,21 @@ export default function ClinicBookingPage() {
           type: "tabs",
           defaultCollapsed: false,
         },
+        paymentMethodOrder: [
+          "apple_pay",
+          "google_pay",
+          "card",
+          "revolut_pay",
+          "amazon_pay",
+          "link",
+          "klarna",
+          "paypal",
+          "afterpay_clearpay",
+        ],
+        wallets: {
+          applePay: "auto",
+          googlePay: "auto",
+        },
       });
 
       setPaymentElement(pElement);
@@ -1172,11 +1293,45 @@ export default function ClinicBookingPage() {
 
     setIsProcessingPayment(true);
     setStripeError("");
+
+    const resolvedClinicId = clinic?.id || (clinic as any)?.clinicId;
+
+    // Persist pending booking snapshot to sessionStorage in case of wallet / 3DS redirect
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(
+          "aurwell_pending_booking",
+          JSON.stringify({
+            appointmentId: heldReservation.appointmentId,
+            clinicId: resolvedClinicId,
+            treatmentId: selectedTreatment?.id,
+            treatmentTitle: selectedTreatment?.title,
+            durationMinutes: selectedTreatment?.durationMinutes || 30,
+            variantTitle: selectedVariant?.title,
+            doctorName: selectedDoctor?.name,
+            selectedDate,
+            selectedTimeSlot,
+            patientName: patientName.trim(),
+            patientEmail: patientEmail.trim(),
+            patientPhone: patientPhone.trim(),
+          })
+        );
+      } catch (e) {
+        console.warn("Could not save pending booking snapshot:", e);
+      }
+    }
+
     try {
+      const returnUrl = new URL(window.location.href);
+      if (resolvedClinicId) {
+        returnUrl.searchParams.set("clinicId", resolvedClinicId);
+      }
+      returnUrl.searchParams.set("booking_return", "1");
+
       const confirmResult = await stripeObj.confirmPayment({
         elements: stripeElements,
         confirmParams: {
-          return_url: window.location.href,
+          return_url: returnUrl.toString(),
           payment_method_data: {
             billing_details: {
               name: patientName.trim(),
@@ -1209,6 +1364,11 @@ export default function ClinicBookingPage() {
 
         setBookingRef(heldReservation.appointmentId.toUpperCase());
         setStep(5);
+
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("aurwell_pending_booking");
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
       } else {
         setStripeError("Payment status could not be finalized. Please contact clinic reception.");
       }
