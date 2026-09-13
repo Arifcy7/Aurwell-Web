@@ -11,7 +11,7 @@ import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
 import { TREATMENT_CATEGORIES } from "@/lib/constants";
-import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal, Trash2 } from "lucide-react";
+import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal, Trash2, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TreatmentType {
@@ -29,6 +29,9 @@ interface Treatment {
   featuresHeading: string;
   features: string[];
   types: TreatmentType[];
+  durationMinutes?: number;
+  bufferMinutes?: number;
+  depositRequired?: boolean | null;
   isActive?: boolean;
   createdAt?: any;
 }
@@ -59,6 +62,8 @@ export default function TreatmentsPage() {
   const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [featuresHeading, setFeaturesHeading] = useState("Key Benefits");
+  const [durationMinutes, setDurationMinutes] = useState<string>("30");
+  const [bufferMinutes, setBufferMinutes] = useState<string>("15");
 
   // Delete confirmation state
   const [deleteTarget, setDeleteTarget] = useState<Treatment | null>(null);
@@ -138,6 +143,9 @@ export default function TreatmentsPage() {
         shouldDeleteOriginal = true;
       }
 
+      const parsedDuration = Number(durationMinutes);
+      const parsedBuffer = Number(bufferMinutes);
+
       const treatmentData = {
         categories: selectedCategories,
         title,
@@ -145,6 +153,8 @@ export default function TreatmentsPage() {
         bannerUrl: finalBannerUrl || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600",
         featuresHeading,
         features: featuresListInput.split(",").map((f) => f.trim()).filter(Boolean),
+        durationMinutes: parsedDuration > 0 ? parsedDuration : 30,
+        bufferMinutes: !isNaN(parsedBuffer) && parsedBuffer >= 0 ? parsedBuffer : 15,
         types: types
           .filter((t) => t.title && t.nonMemberPrice)
           .map((t) => ({
@@ -189,6 +199,8 @@ export default function TreatmentsPage() {
       setBannerFile(null);
       setFeaturesHeading("Key Benefits");
       setFeaturesListInput("");
+      setDurationMinutes("30");
+      setBufferMinutes("15");
       setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
       setSelectedCategories([]);
       setEditId(null);
@@ -210,6 +222,8 @@ export default function TreatmentsPage() {
     setBannerFile(null);
     setFeaturesHeading(treatment.featuresHeading || "Key Benefits");
     setFeaturesListInput(Array.isArray(treatment.features) ? treatment.features.join(", ") : "");
+    setDurationMinutes(treatment.durationMinutes !== undefined && treatment.durationMinutes !== null ? String(treatment.durationMinutes) : "30");
+    setBufferMinutes(treatment.bufferMinutes !== undefined && treatment.bufferMinutes !== null ? String(treatment.bufferMinutes) : "15");
     setTypes(
       Array.isArray(treatment.types) && treatment.types.length > 0
         ? treatment.types.map((t) => ({
@@ -324,6 +338,8 @@ export default function TreatmentsPage() {
                 setBannerFile(null);
                 setFeaturesHeading("Key Benefits");
                 setFeaturesListInput("");
+                setDurationMinutes("30");
+                setBufferMinutes("15");
                 setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
                 setSelectedCategories([]);
                 setShowTreatmentForm(true);
@@ -635,6 +651,41 @@ export default function TreatmentsPage() {
                     className="input-modern"
                   />
                 </div>
+
+                {/* Session Duration & Buffer Settings */}
+                <div className="grid grid-cols-2 gap-3 p-3 bg-neutral-50/80 rounded-2xl border border-neutral-100">
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1.5 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-neutral-700" />
+                      <span>Duration (Mins) <span className="text-rose-500">*</span></span>
+                    </label>
+                    <input
+                      type="number"
+                      min="5"
+                      step="5"
+                      required
+                      placeholder="e.g. 30"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(e.target.value)}
+                      className="input-modern bg-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-700 mb-1.5 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>Buffer Prep (Mins)</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="5"
+                      placeholder="e.g. 15"
+                      value={bufferMinutes}
+                      onChange={(e) => setBufferMinutes(e.target.value)}
+                      className="input-modern bg-white text-xs"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -780,7 +831,12 @@ export default function TreatmentsPage() {
 
               <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <h4 className="text-base font-bold tracking-tight mb-1 text-neutral-900">{t.title || "Untitled"}</h4>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h4 className="text-base font-bold tracking-tight text-neutral-900">{t.title || "Untitled"}</h4>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-neutral-700 bg-neutral-100 px-2.5 py-0.5 rounded-full shrink-0">
+                      <Clock className="w-3 h-3 text-neutral-500" /> {t.durationMinutes || 30}m
+                    </span>
+                  </div>
 
                   {/* Multi-category Pills */}
                   <div className="flex flex-wrap gap-1 mb-2">

@@ -30,7 +30,15 @@ import {
   Image as ImageIcon,
   Settings,
   Share2,
+  Calendar,
+  CalendarDays,
+  UserCheck,
+  Clock,
+  CalendarOff,
+  Globe,
+  Shield,
 } from "lucide-react";
+import { checkIsSuperAdmin } from "@/lib/firebase/booking";
 
 interface SubNavItem {
   name: string;
@@ -53,8 +61,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [clinicId, setClinicId] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [hasCustomBooking, setHasCustomBooking] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    appBuilder: true,
+    appBuilder: false,
+    bookings: true,
   });
 
   const toggleSection = (key: string) => {
@@ -88,6 +99,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setUser(currentUser);
 
       try {
+        // Check Super Admin privilege from /admin collection
+        const isSuper = await checkIsSuperAdmin(currentUser.uid);
+        setIsSuperAdmin(isSuper);
+
         const userDoc = await getDoc(doc(db, "users", currentUser.uid));
 
         if (userDoc.exists()) {
@@ -105,6 +120,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               const cData = clinicDoc.data();
               freshName = cData.merchantName || "Aurwell Clinic";
               freshLogo = cData.logoUrl || "";
+
+              const sys = cData.bookingConfig?.systemType;
+              const hasCustom = sys === "aurwell_custom" || sys === "custom";
+              setHasCustomBooking(hasCustom);
             }
           }
 
@@ -157,6 +176,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: "Blogs & Articles", href: "/app-builder/blogs", icon: <FileText className="w-4 h-4" /> },
     { name: "Banners", href: "/app-builder/banners", icon: <ImageIcon className="w-4 h-4" /> },
     { name: "App Settings", href: "/app-builder/settings", icon: <Settings className="w-4 h-4" /> },
+  ];
+
+  const bookingsSubItems: SubNavItem[] = [
+    { name: "Appointments", href: "/bookings", icon: <CalendarDays className="w-4 h-4" /> },
+    { name: "Practitioners", href: "/bookings/doctors", icon: <UserCheck className="w-4 h-4" /> },
+    { name: "Operating Hours & Shifts", href: "/bookings/schedules", icon: <Clock className="w-4 h-4" /> },
+    { name: "Leaves & Blocked Slots", href: "/bookings/leaves", icon: <CalendarOff className="w-4 h-4" /> },
+    { name: "Subdomain & Settings", href: "/bookings/settings", icon: <Globe className="w-4 h-4" /> },
   ];
 
   const getBadgeStyle = (variant: "orange" | "green" | "gray") => {
@@ -428,6 +455,114 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </Link>
           </motion.div>
+          {/* Bookings Collapsible Section (Shown only if custom booking is enabled or user is super admin) */}
+          {(hasCustomBooking || isSuperAdmin) && (
+            <div>
+              <motion.button
+                whileHover={{ x: 3 }}
+                transition={{ duration: 0.15 }}
+                onClick={() => toggleSection("bookings")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
+                  pathname.startsWith("/bookings")
+                    ? "text-neutral-900"
+                    : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <Calendar
+                    className={`w-5 h-5 transition-colors ${
+                      pathname.startsWith("/bookings") ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                    }`}
+                  />
+                  <span>Bookings</span>
+                </div>
+                <motion.div animate={{ rotate: expandedSections.bookings ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                  <ChevronDown className="w-4 h-4 text-neutral-400" />
+                </motion.div>
+              </motion.button>
+
+              {/* Accordion Sub-Items */}
+              <AnimatePresence initial={false}>
+                {expandedSections.bookings && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="relative pl-7 mt-1 space-y-1.5 overflow-hidden"
+                  >
+                    {/* Continuous Tree Trunk Line */}
+                    <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-neutral-200/90 z-0" />
+
+                    {bookingsSubItems.map((subItem) => {
+                      const isSubActive = pathname === subItem.href;
+                      return (
+                        <motion.div
+                          key={subItem.href}
+                          whileHover={{ x: 3 }}
+                          transition={{ duration: 0.15 }}
+                          className="relative flex items-center"
+                        >
+                          <svg
+                            className="absolute left-[-5px] top-[-10px] w-5 h-[34px] text-neutral-200/90 pointer-events-none z-0"
+                            viewBox="0 0 20 34"
+                            fill="none"
+                          >
+                            <path
+                              d="M 1 0 V 16 Q 1 22 8 22 H 12"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              fill="none"
+                            />
+                          </svg>
+
+                          <Link
+                            href={subItem.href}
+                            className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                              isSubActive
+                                ? "bg-white text-neutral-900 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                                : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              {subItem.icon && <span className="text-neutral-400">{subItem.icon}</span>}
+                              <span>{subItem.name}</span>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* Super Admin Section (Only shown to Super Admins verified from /admin) */}
+          {isSuperAdmin && (
+            <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }} className="pt-2">
+              <Link
+                href="/super-admin"
+                className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                  pathname.startsWith("/super-admin")
+                    ? "bg-neutral-900 text-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] font-bold"
+                    : "text-neutral-700 hover:text-neutral-900 hover:bg-white/80 border border-neutral-200/60 bg-neutral-100/60"
+                }`}
+              >
+                <div className="flex items-center gap-3.5">
+                  <Shield
+                    className={`w-5 h-5 transition-colors ${
+                      pathname.startsWith("/super-admin") ? "text-[#C9A96E]" : "text-[#C9A96E]"
+                    }`}
+                  />
+                  <span>Super Admin</span>
+                </div>
+                <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-[#C9A96E]/20 text-[#9e7e45] border border-[#C9A96E]/40">
+                  Root
+                </span>
+              </Link>
+            </motion.div>
+          )}
         </nav>
       </div>
 
@@ -441,7 +576,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span className="text-xs font-semibold text-neutral-900 truncate">
               {user?.email}
             </span>
-            <span className="text-[10px] text-neutral-400 font-medium">Logged in</span>
+            <span className="text-[10px] text-neutral-400 font-medium">
+              {isSuperAdmin ? "Super Admin • Logged in" : "Logged in"}
+            </span>
           </div>
         </div>
 
@@ -457,6 +594,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   const getPageTitle = () => {
+    if (pathname === "/bookings") return "Appointments Calendar";
+    if (pathname.includes("/bookings/doctors")) return "Practitioners & Staff";
+    if (pathname.includes("/bookings/schedules")) return "Operating Hours & Shifts";
+    if (pathname.includes("/bookings/leaves")) return "Leaves & Blocked Slots";
+    if (pathname.includes("/bookings/settings")) return "Subdomain & Booking Settings";
+    if (pathname.startsWith("/super-admin")) return "Super Admin Portal";
     if (pathname.includes("treatments")) return "Treatments";
     if (pathname.includes("membership")) return "Membership Tiers";
     if (pathname.includes("rewards")) return "Rewards Program";

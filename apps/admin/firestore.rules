@@ -40,13 +40,19 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── 2. CLINICS COLLECTION & SUBCOLLECTIONS ───────────────────────────
+    // ── 2. SUBDOMAINS COLLECTION (Public Lookup) ─────────────────────────
+    match /subdomains/{subdomain} {
+      allow read: if true; // Publicly readable for subdomain tenant routing
+      allow write: if isAdmin();
+    }
+
+    // ── 3. CLINICS COLLECTION & SUBCOLLECTIONS ───────────────────────────
     match /clinics/{clinicId} {
-      allow read: if isSignedIn();
+      allow read: if true; // Publicly readable for public clinic booking & branded pages
       allow write: if isClinicAdmin(clinicId);
 
       match /treatments/{treatmentId} {
-        allow read: if isSignedIn();
+        allow read: if true; // Publicly readable for patient booking & app
         allow write: if isClinicAdmin(clinicId);
       }
 
@@ -66,23 +72,44 @@ service cloud.firestore {
       }
 
       match /blogs/{blogId} {
-        allow read: if isSignedIn();
+        allow read: if true;
         allow write: if isClinicAdmin(clinicId);
       }
 
       match /banners/{bannerId} {
-        allow read: if isSignedIn();
+        allow read: if true;
         allow write: if isClinicAdmin(clinicId);
       }
 
       match /automated_offers/{offerId} {
-        allow read: if isSignedIn();
+        allow read: if true;
         allow write: if isClinicAdmin(clinicId);
       }
 
       match /notifications/{notificationId} {
         allow read: if isSignedIn();
         allow write: if isClinicAdmin(clinicId);
+      }
+
+      match /doctors/{doctorId} {
+        allow read: if true; // Publicly readable for doctor selection in booking
+        allow write: if isClinicAdmin(clinicId);
+      }
+
+      match /schedules/{scheduleId} {
+        allow read: if true; // Publicly readable for opening hours & availability
+        allow write: if isClinicAdmin(clinicId);
+      }
+
+      match /blocked_slots/{slotId} {
+        allow read: if isClinicAdmin(clinicId);
+        allow write: if isClinicAdmin(clinicId);
+      }
+
+      match /appointments/{appointmentId} {
+        allow read: if isClinicAdmin(clinicId) || (isSignedIn() && resource.data.patient.patientId == request.auth.uid);
+        allow create: if isClinicAdmin(clinicId) || (isSignedIn() && request.resource.data.patient.patientId == request.auth.uid);
+        allow update, delete: if isClinicAdmin(clinicId);
       }
 
       match /patients/{patientId} {
@@ -115,18 +142,24 @@ service cloud.firestore {
       }
     }
 
-    // ── 3. REFERRALS COLLECTION ──────────────────────────────────────────
+    // ── 4. REFERRALS COLLECTION ──────────────────────────────────────────
     match /referrals/{referralCode} {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && (isClinicAdmin(request.resource.data.clinicId) || request.auth.uid == request.resource.data.uid);
       allow delete: if isAdmin();
     }
 
-    // ── 4. B2B REFERRALS COLLECTION ──────────────────────────────────────
+    // ── 5. B2B REFERRALS COLLECTION ──────────────────────────────────────
     match /b2b_referrals/{referralId} {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && (isAdmin() || request.auth.uid == request.resource.data.referrerUid);
       allow delete: if isAdmin();
+    }
+
+    // ── 6. ADMINS (SUPER ADMIN ACCESS) ──────────────────────────────────
+    match /admin/{adminDoc} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
     }
 
     // ── DEV INTEGRATION TESTING ──────────────────────────────────────────
