@@ -409,7 +409,7 @@ export default function ClinicBookingPage() {
               if (!querySnap.empty) {
                 clinicId = querySnap.docs[0].id;
               } else {
-                setError(`No clinic found matching public address "${cleanSub}.aurwell.app".`);
+                setError(`We could not find an active booking page for "${cleanSub}". Please double-check the web link.`);
                 setLoading(false);
                 return;
               }
@@ -419,7 +419,7 @@ export default function ClinicBookingPage() {
           // Fetch Clinic Config from Firestore
           const clinicSnap = await getDoc(doc(db, "clinics", clinicId));
           if (!clinicSnap.exists()) {
-            setError("Clinic profile is currently unavailable.");
+            setError("This clinic's booking schedule is currently unavailable. Please try again shortly.");
             setLoading(false);
             return;
           }
@@ -695,7 +695,7 @@ export default function ClinicBookingPage() {
       }
     } catch (err: any) {
       console.error("Error loading clinic portal:", err);
-      setError("Failed to connect to the clinic booking engine.");
+      setError("Unable to load the booking schedule right now. Please refresh the page.");
     } finally {
       setLoading(false);
     }
@@ -996,7 +996,7 @@ export default function ClinicBookingPage() {
       setStripeError("");
       const StripeConstructor = await loadStripeSdk();
       if (!StripeConstructor) {
-        setStripeError("Unable to load secure Stripe payment gateway. Please check network connection.");
+        setStripeError("Unable to load secure checkout. Please check your internet connection and try again.");
         return;
       }
 
@@ -1069,7 +1069,7 @@ export default function ClinicBookingPage() {
       paymentMountedRef.current = false;
     } catch (err: any) {
       console.error("Error initializing Stripe payment element:", err);
-      setStripeError("Payment initialization failed. Please check network connection.");
+      setStripeError("Unable to initialize payment methods. Please refresh and try again.");
     }
   };
 
@@ -1260,7 +1260,7 @@ export default function ClinicBookingPage() {
         }
 
         if (!pubKey) {
-          throw new Error("This clinic has not yet configured or connected their Stripe payment gateway. Please contact clinic reception.");
+          throw new Error("Online payment setup is in progress for this clinic. Please contact clinic reception directly to confirm your booking.");
         }
 
         setStripeClientSecret(secret);
@@ -1277,7 +1277,7 @@ export default function ClinicBookingPage() {
       }
     } catch (err: any) {
       console.error("Booking reservation failed:", err);
-      alert(err.message || "Failed to process booking through backend API. Please try again.");
+      alert(err.message || "We could not complete your booking reservation. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -1287,7 +1287,7 @@ export default function ClinicBookingPage() {
   const handleProcessStripePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripeObj || !stripeElements || !stripeClientSecret || !heldReservation) {
-      setStripeError("Payment gateway is initializing. Please try again in a moment.");
+      setStripeError("Secure checkout is loading. Please try again in a moment.");
       return;
     }
 
@@ -1370,7 +1370,7 @@ export default function ClinicBookingPage() {
           window.history.replaceState({}, document.title, window.location.pathname);
         }
       } else {
-        setStripeError("Payment status could not be finalized. Please contact clinic reception.");
+        setStripeError("Payment could not be verified. If your card was charged, please contact the clinic.");
       }
     } catch (err: any) {
       console.error("Payment confirmation failed:", err);
@@ -1414,8 +1414,8 @@ export default function ClinicBookingPage() {
           className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin mb-4"
           style={{ borderColor: `${brandColor} transparent ${brandColor} ${brandColor}` }}
         />
-        <h3 className="text-base font-bold text-neutral-900">Loading Clinic Booking Engine...</h3>
-        <p className="text-xs text-neutral-400 mt-1">Connecting to {subdomain || "clinic"}.aurwell.app</p>
+        <h3 className="text-base font-bold text-neutral-900">Loading Appointments...</h3>
+        <p className="text-xs text-neutral-400 mt-1">Finding available dates & services for you...</p>
       </div>
     );
   }
@@ -1425,14 +1425,14 @@ export default function ClinicBookingPage() {
       <div className="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center p-6 text-center">
         <div className="bg-white p-8 sm:p-12 rounded-3xl border border-neutral-200/80 shadow-xl max-w-md w-full space-y-4">
           <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
-          <h2 className="text-xl font-black text-neutral-900">Clinic Portal Not Found</h2>
+          <h2 className="text-xl font-black text-neutral-900">Clinic Unavailable</h2>
           <p className="text-xs text-neutral-500 leading-relaxed">{error}</p>
           <div className="pt-2">
             <Link
               href="/"
               className="inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-6 py-2.5 rounded-full text-xs font-bold transition shadow-sm"
             >
-              Aurwell Homepage
+              Return to Aurwell
             </Link>
           </div>
         </div>
@@ -1468,7 +1468,7 @@ export default function ClinicBookingPage() {
                 className="text-[10px] font-extrabold tracking-wider uppercase mt-1 block"
                 style={{ color: brandColor }}
               >
-                Online Booking Portal
+                Online Appointments
               </span>
             </div>
           </div>
@@ -2766,7 +2766,7 @@ export default function ClinicBookingPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-sm text-neutral-900">Sign in with Google</h4>
-                    <p className="text-[11px] text-neutral-500">1-click authentication to obtain secure booking verification.</p>
+                    <p className="text-[11px] text-neutral-500">Quick and secure verification to confirm your booking.</p>
                   </div>
                 </div>
                 <button
@@ -2775,7 +2775,7 @@ export default function ClinicBookingPage() {
                   disabled={isSigningInGoogle}
                   className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-neutral-300 text-neutral-800 hover:bg-neutral-50 text-xs font-bold transition shadow-xs flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-50"
                 >
-                  {isSigningInGoogle ? "Connecting..." : "Continue with Google"}
+                  {isSigningInGoogle ? "Signing in..." : "Continue with Google"}
                 </button>
               </div>
             ) : (

@@ -143,7 +143,7 @@ export async function reserveBookingHold(payload: {
     const errorMsg =
       (typeof errBody.error === "object" ? errBody.error?.message : errBody.error) ||
       errBody.message ||
-      "Failed to reserve appointment slot via booking engine";
+      "Unable to reserve appointment slot. Please try another time.";
     throw new Error(`${errorMsg}${details}`);
   }
 
@@ -222,7 +222,7 @@ export async function createStripePaymentIntent(payload: {
     const errorMsg =
       (typeof errBody.error === "object" ? errBody.error?.message : errBody.error) ||
       errBody.message ||
-      "Failed to initialize Stripe PaymentIntent";
+      "Failed to initialize payment checkout. Please try again.";
     throw new Error(errorMsg);
   }
 
@@ -287,7 +287,7 @@ export async function confirmBooking(payload: {
 
   if (!res.ok) {
     const errBody = await res.json().catch(() => ({}));
-    throw new Error(errBody.error || errBody.message || "Failed to confirm booking on backend");
+    throw new Error(errBody.error || errBody.message || "Failed to confirm appointment booking. Please contact the clinic.");
   }
 
   return await res.json();
