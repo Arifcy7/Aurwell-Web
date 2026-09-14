@@ -7,9 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import MotionButton from "@/components/ui/motion-button";
 import AppDemoPhone from "@/components/demo/AppDemoPhone";
 import { useBookingModal } from "@/components/booking/BookingProvider";
-import stepImg1 from "@/assets/1.png";
-import stepImg2 from "@/assets/2.png";
-import stepImg3 from "@/assets/3.png";
 import {
   ArrowRight,
   Check,
@@ -39,9 +36,105 @@ import {
   Pencil,
 } from "lucide-react";
 
+const featureSections = [
+  {
+    id: "rewards",
+    tag: "Rewards",
+    title: "Turn every visit into lasting loyalty",
+    description:
+      "Design flexible reward tiers, automated points, and exclusive member perks that clients track and redeem right inside their app. Full visibility for your front desk, effortless delight for your patients.",
+    buttonText: "See rewards program",
+    image: "/Rewards.png",
+    imageAlt: "Rewards and loyalty system",
+    imageLeft: false,
+  },
+  {
+    id: "booking",
+    tag: "Booking system",
+    title: "Frictionless booking for clients & practitioners",
+    description:
+      "Give patients an effortless scheduling experience that syncs in real time with your clinic calendars, treatment rooms, and staff shifts. Minimize no-shows with automated calendar reminders.",
+    buttonText: "Explore booking flow",
+    image: "/booking.png",
+    imageAlt: "Clinic booking and appointment system",
+    imageLeft: true,
+  },
+  {
+    id: "app",
+    tag: "App",
+    title: "Your clinic's app, seamlessly synced",
+    description:
+      "Empower patients to book treatments, track reward points, and access memberships on demand—all synced directly to your clinic schedule.",
+    buttonText: "Preview client app",
+    image: "/app.png",
+    imageAlt: "Your branded clinic mobile app",
+    imageLeft: false,
+  },
+  {
+    id: "retention",
+    tag: "Boost retention",
+    title: "Keep clients coming back on autopilot",
+    description:
+      "Turn first-time treatments into recurring monthly revenue with VIP memberships, automated re-booking prompts, and personalized offers that keep your calendar full year-round.",
+    buttonText: "Discover retention tools",
+    image: "/Retention.png",
+    imageAlt: "Client loyalty and retention system",
+    imageLeft: true,
+  },
+];
+
+const homeFaqs = [
+  {
+    q: "How fast can my clinic app be launched?",
+    a: "Your custom-branded mobile app is ready within 24 to 48 hours. We import your logo, brand colors, and treatment list automatically from your website, so you have zero technical setup to worry about.",
+  },
+  {
+    q: "Does Aurwell replace or integrate with our existing EMR / booking software?",
+    a: "Aurwell is built to integrate seamlessly with your existing EMR, calendar, and patient management systems. Every client appointment, reward redemption, and profile syncs in real time without creating double-booking headaches.",
+  },
+  {
+    q: "How does the rewards and loyalty points system work?",
+    a: "Clients automatically earn points on qualifying treatments, purchases, and re-bookings. You have full control in your admin portal to set points ratios, tiers (e.g. Silver, Gold, VIP), and unlockable perks.",
+  },
+  {
+    q: "Can we configure custom memberships and monthly subscription plans?",
+    a: "Yes! You can create recurring monthly membership clubs (e.g., monthly HydraFacial or Botox bank), custom gift cards, and exclusive tier benefits directly from the admin panel to generate reliable recurring revenue.",
+  },
+  {
+    q: "What does the client experience look like on their phone?",
+    a: "Clients download a native app completely branded with your clinic's name, icon, and colors. They can browse treatments, schedule appointments, track reward points, and receive personalized push notifications.",
+  },
+  {
+    q: "How can I see a live demo of the app and admin portal?",
+    a: "Click 'Schedule a Meeting' or 'Build App' to book a live 1-on-1 personalized walkthrough. Our product team will demonstrate both the client mobile app and the clinic admin portal tailored to your aesthetic practice.",
+  },
+];
+
+const launchSteps = [
+  {
+    step: "01",
+    title: "Bring your brand to life",
+    description:
+      "We automatically import your clinic's design, logo, colours and content from your existing website.",
+  },
+  {
+    step: "02",
+    title: "Make it yours",
+    description:
+      "Configure your app, set up memberships, rewards, offers and more from a simple admin portal.",
+  },
+  {
+    step: "03",
+    title: "Go live and grow",
+    description:
+      "Your app is ready in 24 hours. Start engaging clients, driving repeat visits and growing your revenue.",
+  },
+];
+
 export default function Home() {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || "https://admin.aurwell.app";
   const { openBookingModal } = useBookingModal();
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [activeTab, setActiveTab] = useState("Membership");
   const [previousTab, setPreviousTab] = useState("Membership");
   const handleTabClick = (tabName: string) => {
@@ -329,6 +422,12 @@ export default function Home() {
                       className="hover:text-neutral-600 transition-colors"
                     >
                       How It Works
+                    </Link>
+                    <Link
+                      href="#faq"
+                      className="hover:text-neutral-600 transition-colors"
+                    >
+                      FAQ
                     </Link>
                   </nav>
                 </div>
@@ -992,102 +1091,102 @@ export default function Home() {
       {/* Remaining Sections Container (Centered with normal padding) */}
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20">
         {/* Built for Growth Section */}
-        <section id="features" className="py-6 sm:py-12 scroll-mt-6">
-          <div className="bg-white/60 rounded-2xl sm:rounded-[36px] p-4 sm:p-14 border border-white/60 shadow-sm">
-            {/* Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 25 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-              className="text-center space-y-1 sm:space-y-2 mb-6 sm:mb-12"
-            >
-              <span className="text-neutral-600 text-[10px] sm:text-sm font-bold uppercase tracking-wider">
-                Built for Growth
-              </span>
-              <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-neutral-900 max-w-2xl mx-auto tracking-tight">
-                Everything You Need to Build Stronger Relationships
-              </h2>
-            </motion.div>
+        <section id="features" className="py-10 sm:py-16 lg:py-24 scroll-mt-6">
+          {/* Section Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center space-y-2 sm:space-y-3 mb-12 sm:mb-20 lg:mb-28"
+          >
+            <span className="text-neutral-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
+              Built for Growth
+            </span>
+            <h2 className="text-2xl sm:text-4xl lg:text-[44px] font-extrabold text-neutral-900 max-w-3xl mx-auto tracking-tight leading-tight">
+              Everything You Need to Build Stronger Relationships
+            </h2>
+            <p className="text-neutral-500 text-xs sm:text-base max-w-xl mx-auto font-normal">
+              A modern loyalty and clinic management suite crafted to elevate client satisfaction and recurring revenue.
+            </p>
+          </motion.div>
 
-            {/* Feature Cards Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-              {/* Card 1 */}
+          {/* 4 Alternating Minimal Feature Sections (All-around soft shadow, responsive mobile sizing) */}
+          <div className="space-y-16 sm:space-y-24 lg:space-y-32">
+            {featureSections.map((feature) => (
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                key={feature.id}
+                initial={{ opacity: 0, y: 35 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
+                viewport={{ once: true, amount: isMobile ? 0.25 : 0.55 }}
+                transition={{ duration: 0.8, delay: isMobile ? 0.05 : 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className={`flex flex-col ${
+                  feature.imageLeft ? "lg:flex-row-reverse" : "lg:flex-row"
+                } items-center justify-between gap-8 sm:gap-12 lg:gap-16 transform-gpu`}
               >
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
-                  <Users className="w-4 h-4 sm:w-6 sm:h-6" />
+                {/* Text Content Column */}
+                <div className="w-full lg:w-1/2 space-y-3.5 sm:space-y-5 text-left">
+                  <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-neutral-500">
+                    {feature.tag}
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-neutral-900 tracking-tight leading-[1.15]">
+                    {feature.title}
+                  </h3>
+                  <p className="text-neutral-600 text-xs sm:text-sm lg:text-base leading-relaxed max-w-lg font-normal">
+                    {feature.description}
+                  </p>
+                  <div className="pt-2">
+                    <button
+                      onClick={openBookingModal}
+                      className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 bg-white hover:border-neutral-900 hover:text-neutral-950 hover:bg-neutral-50 transition-all duration-200 cursor-pointer shadow-2xs group/btn"
+                    >
+                      <span>{feature.buttonText}</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-neutral-500 group-hover/btn:text-neutral-950 group-hover/btn:translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
-                  Boost Retention
-                </h3>
-                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
-                  Turn one-time visits into lasting relationships with loyalty programs that work.
-                </p>
-              </motion.div>
 
-              {/* Card 2 */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
-              >
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
-                  <Gift className="w-4 h-4 sm:w-6 sm:h-6" />
-                </div>
-                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
-                  Reward What Matters
-                </h3>
-                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
-                  Create points, tiers, and rewards that motivate your clients to engage more.
-                </p>
-              </motion.div>
+                {/* Image Column with High-Performance Progressive Edge Blur (Zero Backdrop-Filter GPU Overhead) */}
+                <div className="w-full lg:w-1/2 flex items-center justify-center p-2 sm:p-5">
+                  <div className="relative w-full aspect-square max-w-[340px] xs:max-w-[400px] sm:max-w-[460px] lg:max-w-[540px] rounded-[28px] sm:rounded-[36px] overflow-hidden bg-[#F5F5F7]">
+                    {/* Background Blurred Base Layer (Optical Edge Blur) */}
+                    <div className="absolute inset-0 overflow-hidden select-none pointer-events-none">
+                      <Image
+                        src={feature.image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 540px"
+                        quality={50}
+                        className="object-cover scale-105 filter blur-xl opacity-90 select-none pointer-events-none"
+                        draggable={false}
+                      />
+                    </div>
 
-              {/* Card 3 */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
-              >
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
-                  <Send className="w-4 h-4 sm:w-6 sm:h-6" />
+                    {/* Foreground Sharp Image with 4-Sided Feathered Perimeter Mask */}
+                    <div
+                      className="relative w-full h-full rounded-[28px] sm:rounded-[36px] overflow-hidden"
+                      style={{
+                        maskImage:
+                          "radial-gradient(ellipse at center, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 94%)",
+                        WebkitMaskImage:
+                          "radial-gradient(ellipse at center, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 94%)",
+                      }}
+                    >
+                      <Image
+                        src={feature.image}
+                        alt={feature.imageAlt}
+                        fill
+                        sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 540px"
+                        quality={85}
+                        decoding="async"
+                        className="object-cover select-none pointer-events-none"
+                        draggable={false}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
-                  Smart Automation
-                </h3>
-                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
-                  Automate offers and reminders so you can focus on what you do best.
-                </p>
               </motion.div>
-
-              {/* Card 4 */}
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.7, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-6 shadow-sm border border-neutral-100 hover:shadow-md transition-shadow"
-              >
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-neutral-100 text-neutral-900 flex items-center justify-center mb-2.5 sm:mb-4">
-                  <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6" />
-                </div>
-                <h3 className="text-xs sm:text-base font-bold text-neutral-900 mb-1 sm:mb-2">
-                  Track & Grow
-                </h3>
-                <p className="text-neutral-500 text-[11px] sm:text-sm leading-tight sm:leading-relaxed">
-                  Powerful analytics to understand client behavior and grow your business faster.
-                </p>
-              </motion.div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -1334,125 +1433,189 @@ export default function Home() {
         </section>
 
         {/* How It Works - 3 Step Process Section */}
-        <section id="how-it-works" className="py-12 scroll-mt-6">
-          <div className="relative rounded-[36px] bg-gradient-to-b from-white/40 via-white/60 to-white/80 p-8 sm:p-14 border border-white/60 shadow-sm">
-            {/* Header */}
+        <section id="how-it-works" className="py-12 sm:py-20 lg:py-24 scroll-mt-6">
+          <div className="relative max-w-6xl mx-auto">
+            {/* Header matching reference design */}
             <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="text-center space-y-2 mb-12"
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: isMobile ? 0.25 : 0.5 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="text-center space-y-2.5 sm:space-y-3 mb-14 sm:mb-18 lg:mb-20"
             >
-              <span className="text-neutral-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
-                How It Works
+              <span className="text-[#9E8265] text-xs sm:text-sm font-bold uppercase tracking-[0.2em]">
+                HOW IT WORKS
               </span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-neutral-900 tracking-tight">
-                Launch Your App in 3 Steps
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-neutral-900 tracking-tight leading-tight">
+                Launch Your App in <span className="text-[#476332]">3 Steps</span>
               </h2>
-              <p className="text-neutral-500 text-xs sm:text-sm max-w-lg mx-auto font-normal">
-                From website brand import to a live client application delivered in 24 hours.
+              <p className="text-neutral-500 text-xs sm:text-base max-w-lg mx-auto font-normal">
+                From your website to a live client application in just 24 hours.
               </p>
             </motion.div>
 
-            {/* 3 Step Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-5xl mx-auto">
-              {/* Step 1 Card */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-                className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
-              >
-                <div className="space-y-4">
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100/60 border border-neutral-100">
-                    <Image
-                      src={stepImg1}
-                      alt="Website Brand Import"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      decoding="async"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 [filter:hue-rotate(-115deg)]"
-                    />
+            {/* 3 Step Cards Grid with one-by-one stagger animation */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: isMobile ? 0.25 : 0.55 }}
+              variants={{
+                hidden: {},
+                visible: {
+                  transition: {
+                    staggerChildren: 0.32,
+                    delayChildren: 0.15,
+                  },
+                },
+              }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 lg:gap-12 text-center"
+            >
+              {launchSteps.map((item) => (
+                <motion.div
+                  key={item.step}
+                  variants={{
+                    hidden: { opacity: 0, y: 35, scale: 0.95 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: {
+                        duration: 0.7,
+                        ease: [0.22, 1, 0.36, 1],
+                      },
+                    },
+                  }}
+                  className="flex flex-col items-center text-center group cursor-default"
+                >
+                  {/* Circle Number Badge */}
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-[#EEF4E8] group-hover:bg-[#E3EEDC] group-hover:scale-105 transition-all duration-300 flex items-center justify-center mb-4 text-[#476332] font-semibold text-xs sm:text-sm tracking-wide shadow-[0_2px_8px_rgba(71,99,50,0.06)]">
+                    {item.step}
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-neutral-900">
-                      Website Brand Import
-                    </h3>
-                    <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
-                      Aurwell automatically imports your brand design, logo, colors, and fonts directly from your clinic website.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
 
-              {/* Step 2 Card */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-                className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
-              >
-                <div className="space-y-4">
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100/60 border border-neutral-100">
-                    <Image
-                      src={stepImg2}
-                      alt="Customize & Configure"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      decoding="async"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 [filter:hue-rotate(-115deg)]"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-neutral-900">
-                      Customize & Configure
-                    </h3>
-                    <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
-                      Your app is ready in 24 hours. Easily configure themes, membership tiers, and reward plans from your admin portal.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+                  {/* Step Title */}
+                  <h3 className="text-lg sm:text-xl font-bold text-neutral-900 tracking-tight mb-2.5 group-hover:text-[#476332] transition-colors duration-300">
+                    {item.title}
+                  </h3>
 
-              {/* Step 3 Card */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-                className="bg-white rounded-3xl p-5 sm:p-6 border border-neutral-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300 group"
-              >
-                <div className="space-y-4">
-                  <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100/60 border border-neutral-100">
-                    <Image
-                      src={stepImg3}
-                      alt="Start Passive Earning"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      decoding="async"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500 [filter:hue-rotate(-115deg)]"
-                    />
+                  {/* Step Description */}
+                  <p className="text-neutral-500 text-xs sm:text-sm leading-relaxed max-w-[270px] sm:max-w-[300px] mx-auto font-normal">
+                    {item.description}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* FAQ Section (Just Above the Footer) */}
+        <section id="faq" className="py-12 sm:py-20 lg:py-24 scroll-mt-6">
+          <div className="max-w-3xl mx-auto space-y-10 sm:space-y-14">
+            {/* Header */}
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: isMobile ? 0.25 : 0.5 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              className="text-center space-y-2 sm:space-y-3"
+            >
+              <span className="text-neutral-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
+                Common Questions
+              </span>
+              <h2 className="text-2xl sm:text-4xl lg:text-[42px] font-extrabold text-neutral-900 tracking-tight leading-tight">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-neutral-500 text-xs sm:text-base max-w-lg mx-auto font-normal">
+                Everything you need to know about building your clinic&apos;s custom mobile app, loyalty programs, and patient retention.
+              </p>
+            </motion.div>
+
+            {/* Accordion Cards List */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: isMobile ? 0.2 : 0.4 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-3 sm:space-y-4"
+            >
+              {homeFaqs.map((faq, idx) => {
+                const isOpen = openFaqIndex === idx;
+                return (
+                  <div
+                    key={idx}
+                    className={`rounded-2xl sm:rounded-3xl border transition-all duration-300 overflow-hidden ${
+                      isOpen
+                        ? "bg-white border-neutral-300 shadow-md"
+                        : "bg-white/70 hover:bg-white border-neutral-200/80 hover:border-neutral-300 shadow-2xs"
+                    }`}
+                  >
+                    <button
+                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                      className="w-full px-5 sm:px-7 py-4 sm:py-5 flex items-center justify-between text-left gap-4 cursor-pointer select-none transition-colors"
+                    >
+                      <span className="text-sm sm:text-base font-bold text-neutral-900 leading-snug">
+                        {faq.q}
+                      </span>
+                      <div
+                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                          isOpen
+                            ? "bg-neutral-900 text-white rotate-180"
+                            : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+                        }`}
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                      </div>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          key="content"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-5 sm:px-7 pb-5 sm:pb-6 text-xs sm:text-sm text-neutral-600 leading-relaxed font-normal border-t border-neutral-100 pt-3">
+                            {faq.a}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-neutral-900">
-                      Start Passive Earning
-                    </h3>
-                    <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
-                      Launch your app to patients to generate automated recurring membership revenue and repeat clinic appointments.
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
+                );
+              })}
+            </motion.div>
+
+            {/* Still have questions? Help strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.6 }}
+              className="text-center pt-2"
+            >
+              <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-full bg-neutral-100/70 border border-neutral-200/80 text-xs sm:text-sm text-neutral-600 max-w-xl mx-auto">
+                <span className="font-medium">Have questions about your specific practice?</span>
+                <button
+                  onClick={openBookingModal}
+                  className="font-bold text-neutral-900 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Schedule a consultation</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </motion.div>
           </div>
         </section>
 
 
-        {/* Bottom Call to Action Banner */}
-        <section className="py-8">
+      </div>
+
+      {/* Footer Section (Full Width, with centered links and edge-to-edge typography inside) */}
+      <footer id="about" className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 sm:pt-16 overflow-hidden scroll-mt-6">
+        {/* Call to Action Banner */}
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 mb-12 sm:mb-16">
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -1480,11 +1643,8 @@ export default function Home() {
               </button>
             </div>
           </motion.div>
-        </section>
-      </div>
+        </div>
 
-      {/* Footer Section (Full Width, with centered links and edge-to-edge typography inside) */}
-      <footer id="about" className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 overflow-hidden scroll-mt-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -1531,6 +1691,11 @@ export default function Home() {
               <li>
                 <Link href="#how-it-works" className="hover:text-neutral-900 transition-colors">
                   How It Works
+                </Link>
+              </li>
+              <li>
+                <Link href="#faq" className="hover:text-neutral-900 transition-colors">
+                  FAQ
                 </Link>
               </li>
             </ul>
