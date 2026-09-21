@@ -76,7 +76,7 @@ function formatDateHeader(dateStr: string): string {
 
 function formatAppointmentDateTime(schedule: any, fallbackTime?: string): string {
   if (!schedule && !fallbackTime) return "N/A";
-  
+
   let datePart = schedule?.date || "";
   let timePart = schedule?.timeSlot || fallbackTime || "";
 
@@ -127,7 +127,7 @@ function getWeekDays(dateStr: string): { dateStr: string; dayName: string; dayNu
   const current = new Date(y, m - 1, d);
   const dayOfWeek = current.getDay(); // 0 = Sun, 1 = Mon ...
   const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
-  
+
   const monday = new Date(current);
   monday.setDate(current.getDate() + diffToMonday);
 
@@ -652,7 +652,7 @@ export default function AppointmentsPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-5 pb-12">
       {/* ── Top Header & Action Controls ───────────────────────────────────── */}
-      <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-black text-neutral-900 tracking-tight">Appointments Calendar</h1>
@@ -667,24 +667,22 @@ export default function AppointmentsPage() {
 
         <div className="flex flex-wrap items-center gap-2.5">
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-neutral-100 p-1 rounded-2xl border border-neutral-200/80">
+          <div className="flex items-center bg-neutral-100 p-1 rounded-xl border border-neutral-200/80">
             <button
               onClick={() => setViewMode("calendar")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "calendar"
-                  ? "bg-white text-neutral-900 shadow-xs"
-                  : "text-neutral-500 hover:text-neutral-900"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${viewMode === "calendar"
+                ? "bg-white text-neutral-900 shadow-xs"
+                : "text-neutral-500 hover:text-neutral-900"
+                }`}
             >
               <CalendarDays className="w-3.5 h-3.5" /> Calendar
             </button>
             <button
               onClick={() => setViewMode("grid")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                viewMode === "grid"
-                  ? "bg-white text-neutral-900 shadow-xs"
-                  : "text-neutral-500 hover:text-neutral-900"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${viewMode === "grid"
+                ? "bg-white text-neutral-900 shadow-xs"
+                : "text-neutral-500 hover:text-neutral-900"
+                }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" /> Grid View
             </button>
@@ -696,7 +694,7 @@ export default function AppointmentsPage() {
             onClick={handleTriggerCleanup}
             disabled={cleaningHolds}
             title="Trigger background garbage collection for expired 15-minute held slots"
-            className="flex items-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300/80 px-3.5 py-2 rounded-2xl text-xs font-bold transition shadow-2xs cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 border border-neutral-300/80 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
           >
             {cleaningHolds ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -709,7 +707,7 @@ export default function AppointmentsPage() {
           {/* Add Walk-in Button */}
           <button
             onClick={() => openSlotCreator()}
-            className="flex items-center gap-1.5 bg-neutral-900 hover:bg-black text-white px-4 py-2 rounded-2xl text-xs font-bold transition shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 bg-[#768957] hover:bg-[#65774a] text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" /> Add Walk-in
           </button>
@@ -717,11 +715,11 @@ export default function AppointmentsPage() {
       </div>
 
       {/* ── Easy Interactive Date Navigator & 7-Day Ribbon ─────────────────── */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-neutral-200/80 shadow-xs space-y-4">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-100 pb-3">
           {/* Date Navigation & Heading */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center border border-neutral-200 rounded-2xl bg-neutral-50 p-0.5">
+            <div className="flex items-center border border-neutral-200 rounded-xl bg-neutral-50 p-0.5">
               <button
                 onClick={() => setSelectedDate((prev) => shiftDateString(prev, -1))}
                 title="Previous Day"
@@ -731,9 +729,8 @@ export default function AppointmentsPage() {
               </button>
               <button
                 onClick={() => setSelectedDate(getTodayIso())}
-                className={`px-3 py-1 text-xs font-bold rounded-xl transition cursor-pointer ${
-                  isTodayActive ? "bg-neutral-900 text-white shadow-2xs" : "text-neutral-700 hover:bg-white"
-                }`}
+                className={`px-3 py-1 text-xs font-bold rounded-xl transition cursor-pointer ${isTodayActive ? "bg-[#768957] text-white shadow-2xs" : "text-neutral-700 hover:bg-white"
+                  }`}
               >
                 Today
               </button>
@@ -775,25 +772,22 @@ export default function AppointmentsPage() {
               <button
                 key={day.dateStr}
                 onClick={() => setSelectedDate(day.dateStr)}
-                className={`flex flex-col items-center justify-center py-2.5 sm:py-3 rounded-2xl border transition-all cursor-pointer ${
-                  isSelected
-                    ? "bg-neutral-900 text-white border-neutral-900 shadow-sm ring-1 ring-neutral-900"
-                    : "bg-neutral-50/70 hover:bg-neutral-100/90 text-neutral-700 border-neutral-200/70"
-                }`}
+                className={`flex flex-col items-center justify-center py-2.5 sm:py-3 rounded-xl border transition-all cursor-pointer ${isSelected
+                  ? "bg-[#768957] text-white border-[#768957] shadow-sm ring-1 ring-[#768957]"
+                  : "bg-neutral-50/70 hover:bg-neutral-100/90 text-neutral-700 border-neutral-200/70"
+                  }`}
               >
                 <span
-                  className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${
-                    isSelected ? "text-neutral-300" : "text-neutral-400"
-                  }`}
+                  className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${isSelected ? "text-neutral-300" : "text-neutral-400"
+                    }`}
                 >
                   {day.dayName}
                 </span>
                 <span className="text-sm sm:text-base font-black mt-0.5 leading-none">{day.dayNumber}</span>
                 {day.isToday && (
                   <span
-                    className={`mt-1.5 w-1.5 h-1.5 rounded-full ${
-                      isSelected ? "bg-white" : "bg-neutral-900"
-                    }`}
+                    className={`mt-1.5 w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white" : "bg-[#768957]"
+                      }`}
                   />
                 )}
               </button>
@@ -803,7 +797,7 @@ export default function AppointmentsPage() {
       </div>
 
       {/* ── Filter & Search Toolbar ────────────────────────────────────────── */}
-      <div className="bg-white p-4 rounded-3xl border border-neutral-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           {/* Live Search */}
           <div className="relative w-full sm:w-64">
@@ -813,7 +807,7 @@ export default function AppointmentsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search patient, phone, treatment..."
-              className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl pl-9 pr-3 py-1.5 text-xs font-medium text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+              className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-neutral-800 placeholder:text-neutral-400 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
             />
           </div>
 
@@ -825,7 +819,7 @@ export default function AppointmentsPage() {
             <select
               value={selectedDoctor}
               onChange={(e) => setSelectedDoctor(e.target.value)}
-              className="border border-neutral-200 rounded-2xl px-3 py-1.5 text-xs font-semibold bg-neutral-50 text-neutral-800 focus:outline-none focus:border-neutral-900"
+              className="border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold bg-neutral-50 text-neutral-800 focus:outline-none focus:border-[#768957]"
             >
               <option value="all">All Practitioners ({doctors.length})</option>
               {doctors.map((doc) => (
@@ -844,7 +838,7 @@ export default function AppointmentsPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="border border-neutral-200 rounded-2xl px-3 py-1.5 text-xs font-semibold bg-neutral-50 text-neutral-800 focus:outline-none focus:border-neutral-900"
+              className="border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold bg-neutral-50 text-neutral-800 focus:outline-none focus:border-[#768957]"
             >
               <option value="all">All Statuses</option>
               <option value="confirmed">Confirmed</option>
@@ -868,11 +862,11 @@ export default function AppointmentsPage() {
 
       {/* ── Main View Area: Calendar Timeline View vs Grid Cards View ─────── */}
       {loading ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-neutral-200/80 p-8 shadow-xs text-neutral-400 text-sm animate-pulse">
+        <div className="text-center py-20 bg-white rounded-2xl border border-neutral-200/80 p-8 shadow-xs text-neutral-400 text-sm animate-pulse">
           Loading appointments schedule...
         </div>
       ) : filteredAppointments.length === 0 && viewMode === "grid" ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-neutral-200/80 p-8 shadow-xs">
+        <div className="text-center py-20 bg-white rounded-2xl border border-neutral-200/80 p-8 shadow-xs">
           <CalendarIcon className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
           <h3 className="text-base font-bold text-neutral-900">No appointments scheduled for {selectedDate}</h3>
           <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
@@ -881,7 +875,7 @@ export default function AppointmentsPage() {
         </div>
       ) : viewMode === "calendar" ? (
         /* ── CALENDAR TIMELINE VIEW ─────────────────────────────────────────── */
-        <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-xs overflow-hidden">
           {/* Header Row of Practitioners / Columns */}
           <div className="border-b border-neutral-200 bg-neutral-50/80 grid grid-cols-[80px_1fr] sm:grid-cols-[100px_1fr]">
             <div className="p-3.5 text-center text-xs font-bold text-neutral-400 border-r border-neutral-200">
@@ -952,7 +946,7 @@ export default function AppointmentsPage() {
                       // Find appointments in this hour slot for this doctor
                       const slotAppointments = filteredAppointments.filter((apt) => {
                         if (!isDoctorMatch(apt, doc, visibleDoctors)) return false;
-                        
+
                         let aptHour = "";
                         if (apt.schedule?.timeSlot) {
                           aptHour = String(apt.schedule.timeSlot).split(":")[0].padStart(2, "0");
@@ -1010,794 +1004,793 @@ export default function AppointmentsPage() {
 
                               return (
                                 <div
-                                    key={apt.id}
-                                    onClick={() => setSelectedAppointment(apt)}
-                                    className="bg-white p-3 rounded-2xl border border-neutral-200/90 shadow-2xs hover:shadow-md hover:border-neutral-900 transition-all cursor-pointer flex flex-col justify-between space-y-2 group/card"
-                                  >
-                                    <div className="flex items-start justify-between gap-1.5">
-                                      <div className="truncate">
-                                        <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900">
-                                          <Clock className="w-3 h-3 text-neutral-500" />
-                                          <span>{timeFormatted}</span>
-                                        </div>
-                                        <h4 className="font-bold text-xs text-neutral-900 mt-0.5 truncate">
-                                          {apt.treatment?.title || "Treatment"}
-                                        </h4>
+                                  key={apt.id}
+                                  onClick={() => setSelectedAppointment(apt)}
+                                  className="bg-white p-3 rounded-2xl border border-neutral-200/90 shadow-2xs hover:shadow-md hover:border-neutral-900 transition-all cursor-pointer flex flex-col justify-between space-y-2 group/card"
+                                >
+                                  <div className="flex items-start justify-between gap-1.5">
+                                    <div className="truncate">
+                                      <div className="flex items-center gap-1.5 text-xs font-black text-neutral-900">
+                                        <Clock className="w-3 h-3 text-neutral-500" />
+                                        <span>{timeFormatted}</span>
                                       </div>
-                                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                                        <span
-                                          className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border shrink-0 ${statusBadge(
-                                            apt.status
-                                          )}`}
-                                        >
-                                          {apt.status || "CONFIRMED"}
-                                        </span>
-                                        {clinicId && (
-                                          <AppointmentActionsMenu
-                                            clinicId={clinicId}
-                                            appointment={apt}
-                                            onOpenRescheduleModal={(a) => openRescheduleModal(a)}
-                                            onOpenCancelModal={(a) => openCancelModal(a)}
-                                            onOpenCompleteModal={(a) => openCompleteModal(a)}
-                                          />
-                                        )}
-                                      </div>
+                                      <h4 className="font-bold text-xs text-neutral-900 mt-0.5 truncate">
+                                        {apt.treatment?.title || "Treatment"}
+                                      </h4>
                                     </div>
-
-                                    <div className="flex items-center justify-between text-[11px] text-neutral-600 pt-1.5 border-t border-neutral-100">
-                                      <span className="font-semibold truncate flex items-center gap-1 text-neutral-800" title={`Patient: ${apt.patient?.name || "Anonymous"}`}>
-                                        <User className="w-3 h-3 text-neutral-400 shrink-0" />
-                                        <span className="text-neutral-400 font-normal text-[10px]">Patient:</span>
-                                        <span className="truncate">{apt.patient?.name || "Anonymous Patient"}</span>
+                                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                                      <span
+                                        className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border shrink-0 ${statusBadge(
+                                          apt.status
+                                        )}`}
+                                      >
+                                        {apt.status || "CONFIRMED"}
                                       </span>
-                                      {apt.treatment?.price !== undefined && (
-                                        <span className="font-bold text-neutral-900 shrink-0">
-                                          £{apt.treatment.price}
-                                        </span>
+                                      {clinicId && (
+                                        <AppointmentActionsMenu
+                                          clinicId={clinicId}
+                                          appointment={apt}
+                                          onOpenRescheduleModal={(a) => openRescheduleModal(a)}
+                                          onOpenCancelModal={(a) => openCancelModal(a)}
+                                          onOpenCompleteModal={(a) => openCompleteModal(a)}
+                                        />
                                       )}
                                     </div>
                                   </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          /* ── GRID CARDS VIEW ────────────────────────────────────────────────── */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredAppointments.map((apt) => {
-              let timeStr = "10:00 AM";
-              const sched = apt.schedule;
-              const timeRaw = sched?.timeSlot || apt.timeSlot || (sched?.startDateTime?.includes("T") ? sched.startDateTime.split("T")[1].substring(0, 5) : "");
-              if (timeRaw) {
-                const [h, min] = timeRaw.split(":");
-                const hNum = parseInt(h, 10);
-                const ampm = hNum >= 12 ? "PM" : "AM";
-                const h12 = hNum % 12 || 12;
-                timeStr = `${String(h12).padStart(2, "0")}:${min} ${ampm}`;
-              } else if (sched?.startDateTime) {
-                const startParsed = new Date(sched.startDateTime);
-                if (!isNaN(startParsed.getTime())) {
-                  timeStr = startParsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                }
-              }
 
-              return (
-                <div
-                  key={apt.id}
-                  onClick={() => setSelectedAppointment(apt)}
-                  className="bg-white rounded-2xl border border-neutral-200/80 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 cursor-pointer"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-base font-black text-neutral-900 flex items-center gap-1.5">
-                        <Clock className="w-4 h-4 text-neutral-900" /> {timeStr}
-                      </span>
-                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${statusBadge(
-                            apt.status
-                          )}`}
-                        >
-                          {apt.status || "CONFIRMED"}
-                        </span>
-                        {clinicId && (
-                          <AppointmentActionsMenu
-                            clinicId={clinicId}
-                            appointment={apt}
-                            onOpenRescheduleModal={(a) => openRescheduleModal(a)}
-                            onOpenCancelModal={(a) => openCancelModal(a)}
-                            onOpenCompleteModal={(a) => openCompleteModal(a)}
-                          />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <h3 className="font-bold text-sm text-neutral-900">{apt.treatment?.title || "Treatment"}</h3>
-                      <div className="flex items-center gap-2 text-[11px] text-neutral-500 mt-0.5">
-                        {apt.treatment?.variantTitle && <span>{apt.treatment.variantTitle}</span>}
-                        {apt.treatment?.durationMinutes && <span>• {apt.treatment.durationMinutes} mins</span>}
-                        {apt.treatment?.price !== undefined && (
-                          <span className="font-semibold text-neutral-700">• £{apt.treatment.price}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-neutral-100 space-y-1.5 text-xs text-neutral-600">
-                      <p className="flex items-center gap-2 font-semibold text-neutral-900 truncate">
-                        <User className="w-3.5 h-3.5 text-neutral-400 shrink-0" /> {apt.patient?.name || "Anonymous Patient"}
-                      </p>
-                      {apt.patient?.phone && (
-                        <p className="flex items-center gap-2 text-[11px] text-neutral-500 truncate">
-                          <Phone className="w-3 h-3 text-neutral-400 shrink-0" /> {apt.patient.phone}
-                        </p>
-                      )}
-                      {apt.patient?.email && (
-                        <p className="flex items-center gap-2 text-[11px] text-neutral-500 truncate">
-                          <Mail className="w-3 h-3 text-neutral-400 shrink-0" /> {apt.patient.email}
-                        </p>
-                      )}
-                      {apt.patient?.notes && (
-                        <p className="text-[11px] italic bg-neutral-50 p-2 rounded-lg text-neutral-600 mt-2 border border-neutral-100">
-                          &quot;{apt.patient.notes}&quot;
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Footer and Quick Action Buttons */}
-                  <div className="pt-3 border-t border-neutral-100 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
-                    <span className="text-[11px] font-medium text-neutral-400 truncate">
-                      {getPractitionerDisplayName(apt, doctors)}
-                    </span>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {apt.status === "confirmed" && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => openCompleteModal(apt)}
-                            title="Mark Completed"
-                            className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition flex items-center gap-1 cursor-pointer"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Done
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => openRescheduleModal(apt)}
-                            title="Reschedule Slot"
-                            className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1 cursor-pointer"
-                          >
-                            <Calendar className="w-3.5 h-3.5" />
-                            Move
-                          </button>
-                        </>
-                      )}
-                      {apt.status === "cancelled" && (
-                        <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Cancelled</span>
-                      )}
-                      {apt.status === "completed" && (
-                        <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Completed</span>
-                      )}
-                      {apt.status === "no_show" && (
-                        <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">No Show</span>
-                      )}
-                    </div>
+                                  <div className="flex items-center justify-between text-[11px] text-neutral-600 pt-1.5 border-t border-neutral-100">
+                                    <span className="font-semibold truncate flex items-center gap-1 text-neutral-800" title={`Patient: ${apt.patient?.name || "Anonymous"}`}>
+                                      <User className="w-3 h-3 text-neutral-400 shrink-0" />
+                                      <span className="text-neutral-400 font-normal text-[10px]">Patient:</span>
+                                      <span className="truncate">{apt.patient?.name || "Anonymous Patient"}</span>
+                                    </span>
+                                    {apt.treatment?.price !== undefined && (
+                                      <span className="font-bold text-neutral-900 shrink-0">
+                                        £{apt.treatment.price}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
           </div>
-        )}
+        </div>
+      ) : (
+        /* ── GRID CARDS VIEW ────────────────────────────────────────────────── */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredAppointments.map((apt) => {
+            let timeStr = "10:00 AM";
+            const sched = apt.schedule;
+            const timeRaw = sched?.timeSlot || apt.timeSlot || (sched?.startDateTime?.includes("T") ? sched.startDateTime.split("T")[1].substring(0, 5) : "");
+            if (timeRaw) {
+              const [h, min] = timeRaw.split(":");
+              const hNum = parseInt(h, 10);
+              const ampm = hNum >= 12 ? "PM" : "AM";
+              const h12 = hNum % 12 || 12;
+              timeStr = `${String(h12).padStart(2, "0")}:${min} ${ampm}`;
+            } else if (sched?.startDateTime) {
+              const startParsed = new Date(sched.startDateTime);
+              if (!isNaN(startParsed.getTime())) {
+                timeStr = startParsed.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              }
+            }
 
-        {/* ── Appointment Details Modal ──────────────────────────────────────── */}
-        {selectedAppointment && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-100">
-              <div className="flex items-start justify-between gap-3">
+            return (
+              <div
+                key={apt.id}
+                onClick={() => setSelectedAppointment(apt)}
+                className="bg-white rounded-2xl border border-neutral-200/80 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 cursor-pointer"
+              >
                 <div>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${statusBadge(
-                      selectedAppointment.status
-                    )}`}
-                  >
-                    {selectedAppointment.status || "CONFIRMED"}
-                  </span>
-                  <h2 className="text-xl font-black text-neutral-900 tracking-tight mt-2">
-                    {selectedAppointment.treatment?.title || "Treatment"}
-                  </h2>
-                  <p className="text-xs text-neutral-500">
-                    {selectedAppointment.treatment?.variantTitle || "Standard"} •{" "}
-                    {selectedAppointment.treatment?.durationMinutes || 30} mins • £
-                    {selectedAppointment.treatment?.price || 0}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedAppointment(null)}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-medium">Practitioner:</span>
-                  <span className="font-bold text-neutral-900">{getPractitionerDisplayName(selectedAppointment, doctors)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-medium">Scheduled Date & Time:</span>
-                  <span className="font-bold text-neutral-900">
-                    {formatAppointmentDateTime(selectedAppointment.schedule)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-medium">Patient Name:</span>
-                  <span className="font-bold text-neutral-900">{selectedAppointment.patient?.name || "N/A"}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-medium">Contact Phone:</span>
-                  <span className="font-bold text-neutral-900">{selectedAppointment.patient?.phone || "N/A"}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500 font-medium">Email:</span>
-                  <span className="font-bold text-neutral-900">{selectedAppointment.patient?.email || "N/A"}</span>
-                </div>
-                {selectedAppointment.patient?.notes && (
-                  <div className="pt-2 border-t border-neutral-200">
-                    <span className="text-neutral-500 font-medium">Patient Notes:</span>
-                    <p className="italic text-neutral-700 mt-0.5">&quot;{selectedAppointment.patient.notes}&quot;</p>
-                  </div>
-                )}
-                {selectedAppointment.staffNotes && (
-                  <div className="pt-2 border-t border-neutral-200 bg-white p-2.5 rounded-xl border">
-                    <span className="text-neutral-500 font-bold block mb-0.5">Clinical / Staff Notes:</span>
-                    <p className="text-neutral-900">{selectedAppointment.staffNotes}</p>
-                  </div>
-                )}
-                {selectedAppointment.payment?.status && (
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200">
-                    <span className="text-neutral-500 font-medium">Payment Status:</span>
-                    <span className="font-mono font-bold uppercase text-[10px] px-2 py-0.5 rounded bg-neutral-200 text-neutral-800">
-                      {selectedAppointment.payment.status}
+                  <div className="flex items-center justify-between">
+                    <span className="text-base font-black text-neutral-900 flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-neutral-900" /> {timeStr}
                     </span>
+                    <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${statusBadge(
+                          apt.status
+                        )}`}
+                      >
+                        {apt.status || "CONFIRMED"}
+                      </span>
+                      {clinicId && (
+                        <AppointmentActionsMenu
+                          clinicId={clinicId}
+                          appointment={apt}
+                          onOpenRescheduleModal={(a) => openRescheduleModal(a)}
+                          onOpenCancelModal={(a) => openCancelModal(a)}
+                          onOpenCompleteModal={(a) => openCompleteModal(a)}
+                        />
+                      )}
+                    </div>
                   </div>
+
+                  <div className="mt-3">
+                    <h3 className="font-bold text-sm text-neutral-900">{apt.treatment?.title || "Treatment"}</h3>
+                    <div className="flex items-center gap-2 text-[11px] text-neutral-500 mt-0.5">
+                      {apt.treatment?.variantTitle && <span>{apt.treatment.variantTitle}</span>}
+                      {apt.treatment?.durationMinutes && <span>• {apt.treatment.durationMinutes} mins</span>}
+                      {apt.treatment?.price !== undefined && (
+                        <span className="font-semibold text-neutral-700">• £{apt.treatment.price}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-neutral-100 space-y-1.5 text-xs text-neutral-600">
+                    <p className="flex items-center gap-2 font-semibold text-neutral-900 truncate">
+                      <User className="w-3.5 h-3.5 text-neutral-400 shrink-0" /> {apt.patient?.name || "Anonymous Patient"}
+                    </p>
+                    {apt.patient?.phone && (
+                      <p className="flex items-center gap-2 text-[11px] text-neutral-500 truncate">
+                        <Phone className="w-3 h-3 text-neutral-400 shrink-0" /> {apt.patient.phone}
+                      </p>
+                    )}
+                    {apt.patient?.email && (
+                      <p className="flex items-center gap-2 text-[11px] text-neutral-500 truncate">
+                        <Mail className="w-3 h-3 text-neutral-400 shrink-0" /> {apt.patient.email}
+                      </p>
+                    )}
+                    {apt.patient?.notes && (
+                      <p className="text-[11px] italic bg-neutral-50 p-2 rounded-lg text-neutral-600 mt-2 border border-neutral-100">
+                        &quot;{apt.patient.notes}&quot;
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer and Quick Action Buttons */}
+                <div className="pt-3 border-t border-neutral-100 flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+                  <span className="text-[11px] font-medium text-neutral-400 truncate">
+                    {getPractitionerDisplayName(apt, doctors)}
+                  </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {apt.status === "confirmed" && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openCompleteModal(apt)}
+                          title="Mark Completed"
+                          className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Done
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openRescheduleModal(apt)}
+                          title="Reschedule Slot"
+                          className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                          Move
+                        </button>
+                      </>
+                    )}
+                    {apt.status === "cancelled" && (
+                      <span className="text-[10px] text-rose-500 font-bold uppercase tracking-wider">Cancelled</span>
+                    )}
+                    {apt.status === "completed" && (
+                      <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Completed</span>
+                    )}
+                    {apt.status === "no_show" && (
+                      <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">No Show</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Appointment Details Modal ──────────────────────────────────────── */}
+      {selectedAppointment && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-100">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border ${statusBadge(
+                    selectedAppointment.status
+                  )}`}
+                >
+                  {selectedAppointment.status || "CONFIRMED"}
+                </span>
+                <h2 className="text-xl font-black text-neutral-900 tracking-tight mt-2">
+                  {selectedAppointment.treatment?.title || "Treatment"}
+                </h2>
+                <p className="text-xs text-neutral-500">
+                  {selectedAppointment.treatment?.variantTitle || "Standard"} •{" "}
+                  {selectedAppointment.treatment?.durationMinutes || 30} mins • £
+                  {selectedAppointment.treatment?.price || 0}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAppointment(null)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80">
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 font-medium">Practitioner:</span>
+                <span className="font-bold text-neutral-900">{getPractitionerDisplayName(selectedAppointment, doctors)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 font-medium">Scheduled Date & Time:</span>
+                <span className="font-bold text-neutral-900">
+                  {formatAppointmentDateTime(selectedAppointment.schedule)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 font-medium">Patient Name:</span>
+                <span className="font-bold text-neutral-900">{selectedAppointment.patient?.name || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 font-medium">Contact Phone:</span>
+                <span className="font-bold text-neutral-900">{selectedAppointment.patient?.phone || "N/A"}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-neutral-500 font-medium">Email:</span>
+                <span className="font-bold text-neutral-900">{selectedAppointment.patient?.email || "N/A"}</span>
+              </div>
+              {selectedAppointment.patient?.notes && (
+                <div className="pt-2 border-t border-neutral-200">
+                  <span className="text-neutral-500 font-medium">Patient Notes:</span>
+                  <p className="italic text-neutral-700 mt-0.5">&quot;{selectedAppointment.patient.notes}&quot;</p>
+                </div>
+              )}
+              {selectedAppointment.staffNotes && (
+                <div className="pt-2 border-t border-neutral-200 bg-white p-2.5 rounded-xl border">
+                  <span className="text-neutral-500 font-bold block mb-0.5">Clinical / Staff Notes:</span>
+                  <p className="text-neutral-900">{selectedAppointment.staffNotes}</p>
+                </div>
+              )}
+              {selectedAppointment.payment?.status && (
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-200">
+                  <span className="text-neutral-500 font-medium">Payment Status:</span>
+                  <span className="font-mono font-bold uppercase text-[10px] px-2 py-0.5 rounded bg-neutral-200 text-neutral-800">
+                    {selectedAppointment.payment.status}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Actions Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-neutral-100">
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedAppointment.status === "confirmed" && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const apt = selectedAppointment;
+                        setSelectedAppointment(null);
+                        openCompleteModal(apt);
+                      }}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Complete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const apt = selectedAppointment;
+                        setSelectedAppointment(null);
+                        openRescheduleModal(apt);
+                      }}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      Reschedule
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const apt = selectedAppointment;
+                        setSelectedAppointment(null);
+                        openCancelModal(apt);
+                      }}
+                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <Ban className="w-3.5 h-3.5" />
+                      Cancel & Refund
+                    </button>
+                  </>
                 )}
               </div>
 
-              {/* Actions Toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-neutral-100">
-                <div className="flex flex-wrap items-center gap-2">
-                  {selectedAppointment.status === "confirmed" && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const apt = selectedAppointment;
-                          setSelectedAppointment(null);
-                          openCompleteModal(apt);
-                        }}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Complete
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const apt = selectedAppointment;
-                          setSelectedAppointment(null);
-                          openRescheduleModal(apt);
-                        }}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center gap-1 cursor-pointer"
-                      >
-                        <Calendar className="w-3.5 h-3.5" />
-                        Reschedule
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const apt = selectedAppointment;
-                          setSelectedAppointment(null);
-                          openCancelModal(apt);
-                        }}
-                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                      >
-                        <Ban className="w-3.5 h-3.5" />
-                        Cancel & Refund
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedAppointment(null)}
-                  className="px-4 py-2 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAppointment(null)}
+                className="px-4 py-2 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ── 1. Reschedule Modal ────────────────────────────────────────────── */}
-        {rescheduleTarget && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-            <form
-              onSubmit={handleExecuteReschedule}
-              className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                      <Calendar className="w-5 h-5" />
-                    </span>
-                    <h2 className="text-lg font-black text-neutral-900 tracking-tight">Reschedule Appointment</h2>
-                  </div>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Atomically move {rescheduleTarget.patient?.name || "the patient"} to a new slot & doctor.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setRescheduleTarget(null)}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Current appointment info snippet */}
-              <div className="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-3 text-xs space-y-1">
-                <div className="flex justify-between text-neutral-500">
-                  <span>Treatment:</span>
-                  <span className="font-bold text-neutral-900">{rescheduleTarget.treatment?.title}</span>
-                </div>
-                <div className="flex justify-between text-neutral-500">
-                  <span>Current Schedule:</span>
-                  <span className="font-bold text-neutral-900">
-                    {formatAppointmentDateTime(rescheduleTarget.schedule)}
+      {/* ── 1. Reschedule Modal ────────────────────────────────────────────── */}
+      {rescheduleTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleExecuteReschedule}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-200"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                    <Calendar className="w-5 h-5" />
                   </span>
+                  <h2 className="text-lg font-black text-neutral-900 tracking-tight">Reschedule Appointment</h2>
                 </div>
-                <div className="flex justify-between text-neutral-500">
-                  <span>Current Doctor:</span>
-                  <span className="font-bold text-neutral-900">{getPractitionerDisplayName(rescheduleTarget, doctors)}</span>
-                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Atomically move {rescheduleTarget.patient?.name || "the patient"} to a new slot & doctor.
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={() => setRescheduleTarget(null)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
 
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-neutral-700">New Date *</label>
-                    <input
-                      type="date"
-                      required
-                      value={rescheduleDate}
-                      onChange={(e) => setRescheduleDate(e.target.value)}
-                      className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-neutral-700">New Start Time *</label>
-                    <input
-                      type="time"
-                      required
-                      value={rescheduleTime}
-                      onChange={(e) => setRescheduleTime(e.target.value)}
-                      className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                    />
-                  </div>
-                </div>
+            {/* Current appointment info snippet */}
+            <div className="bg-neutral-50 border border-neutral-200/80 rounded-2xl p-3 text-xs space-y-1">
+              <div className="flex justify-between text-neutral-500">
+                <span>Treatment:</span>
+                <span className="font-bold text-neutral-900">{rescheduleTarget.treatment?.title}</span>
+              </div>
+              <div className="flex justify-between text-neutral-500">
+                <span>Current Schedule:</span>
+                <span className="font-bold text-neutral-900">
+                  {formatAppointmentDateTime(rescheduleTarget.schedule)}
+                </span>
+              </div>
+              <div className="flex justify-between text-neutral-500">
+                <span>Current Doctor:</span>
+                <span className="font-bold text-neutral-900">{getPractitionerDisplayName(rescheduleTarget, doctors)}</span>
+              </div>
+            </div>
 
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-neutral-700">Assign Practitioner (Optional)</label>
-                  <select
-                    value={rescheduleDoctorId}
-                    onChange={(e) => setRescheduleDoctorId(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                  >
-                    {doctors.map((d) => (
-                      <option key={d.doctorId || d.id} value={d.doctorId || d.id}>
-                        Dr. {d.name} {d.role ? `(${d.role})` : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-neutral-700">Reason for Rescheduling</label>
+                  <label className="text-xs font-bold text-neutral-700">New Date *</label>
                   <input
-                    type="text"
-                    value={rescheduleReason}
-                    onChange={(e) => setRescheduleReason(e.target.value)}
-                    placeholder="e.g. Patient requested afternoon slot"
+                    type="date"
+                    required
+                    value={rescheduleDate}
+                    onChange={(e) => setRescheduleDate(e.target.value)}
+                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-neutral-700">New Start Time *</label>
+                  <input
+                    type="time"
+                    required
+                    value={rescheduleTime}
+                    onChange={(e) => setRescheduleTime(e.target.value)}
                     className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
                   />
                 </div>
               </div>
 
-              <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl flex items-start gap-2.5 text-[11px] text-blue-900">
-                <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                <span>
-                  Rescheduling will automatically dispatch a <strong>Reschedule Confirmation Email</strong> with a new
-                  Google Calendar link and attached <code>.ics</code> calendar invite.
-                </span>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setRescheduleTarget(null)}
-                  disabled={isRescheduling}
-                  className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+              <div>
+                <label className="text-xs font-bold text-neutral-700">Assign Practitioner (Optional)</label>
+                <select
+                  value={rescheduleDoctorId}
+                  onChange={(e) => setRescheduleDoctorId(e.target.value)}
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isRescheduling}
-                  className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isRescheduling ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Rescheduling...
-                    </>
-                  ) : (
-                    "Confirm Reschedule"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ── 2. Smart Cancellation & Refund Modal ──────────────────────────── */}
-        {cancelTarget && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-            <form
-              onSubmit={handleExecuteCancel}
-              className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="p-2 bg-rose-50 text-rose-600 rounded-xl">
-                      <Ban className="w-5 h-5" />
-                    </span>
-                    <h2 className="text-lg font-black text-neutral-900 tracking-tight">Cancel Appointment</h2>
-                  </div>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Smart cancellation with automated refund policy calculation.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCancelTarget(null)}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Policy evaluation box */}
-              <div
-                className={`p-4 rounded-2xl border text-xs space-y-2 ${
-                  isEligibleForRefund
-                    ? "bg-emerald-50/80 border-emerald-200 text-emerald-950"
-                    : "bg-amber-50/80 border-amber-200 text-amber-950"
-                }`}
-              >
-                <div className="flex items-center justify-between font-bold">
-                  <span>Cancellation Policy Check:</span>
-                  <span className="font-mono text-[11px]">
-                    {cancelHoursRemaining > 0 ? `${cancelHoursRemaining.toFixed(1)} hrs before slot` : "Past slot"}
-                  </span>
-                </div>
-
-                {isEligibleForRefund ? (
-                  <div className="space-y-1">
-                    <p className="font-bold text-emerald-800 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      Eligible for 100% Full Automated Refund
-                    </p>
-                    <p className="text-emerald-700 text-[11px]">
-                      Cancellation is more than 24 hours prior to appointment time. The patient will be refunded via
-                      Stripe to their original payment method.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    <p className="font-bold text-amber-900 flex items-center gap-1.5">
-                      <AlertCircle className="w-4 h-4 text-amber-600" />
-                      Late Cancellation Notice (&lt; 24h Policy)
-                    </p>
-                    <p className="text-amber-800 text-[11px]">
-                      Per clinic policy, cancellations within 24 hours forfeit the deposit fee. No automated refund will
-                      be issued.
-                    </p>
-                  </div>
-                )}
+                  {doctors.map((d) => (
+                    <option key={d.doctorId || d.id} value={d.doctorId || d.id}>
+                      Dr. {d.name} {d.role ? `(${d.role})` : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-neutral-700">Cancellation Reason</label>
-                <textarea
-                  rows={2}
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  placeholder="e.g. Patient called due to illness or schedule conflict..."
+                <label className="text-xs font-bold text-neutral-700">Reason for Rescheduling</label>
+                <input
+                  type="text"
+                  value={rescheduleReason}
+                  onChange={(e) => setRescheduleReason(e.target.value)}
+                  placeholder="e.g. Patient requested afternoon slot"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl flex items-start gap-2.5 text-[11px] text-blue-900">
+              <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+              <span>
+                Rescheduling will automatically dispatch a <strong>Reschedule Confirmation Email</strong> with a new
+                Google Calendar link and attached <code>.ics</code> calendar invite.
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setRescheduleTarget(null)}
+                disabled={isRescheduling}
+                className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isRescheduling}
+                className="px-5 py-2.5 bg-[#768957] hover:bg-[#65774a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {isRescheduling ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Rescheduling...
+                  </>
+                ) : (
+                  "Confirm Reschedule"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ── 2. Smart Cancellation & Refund Modal ──────────────────────────── */}
+      {cancelTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleExecuteCancel}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-200"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-rose-50 text-rose-600 rounded-xl">
+                    <Ban className="w-5 h-5" />
+                  </span>
+                  <h2 className="text-lg font-black text-neutral-900 tracking-tight">Cancel Appointment</h2>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Smart cancellation with automated refund policy calculation.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCancelTarget(null)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Policy evaluation box */}
+            <div
+              className={`p-4 rounded-2xl border text-xs space-y-2 ${isEligibleForRefund
+                ? "bg-emerald-50/80 border-emerald-200 text-emerald-950"
+                : "bg-amber-50/80 border-amber-200 text-amber-950"
+                }`}
+            >
+              <div className="flex items-center justify-between font-bold">
+                <span>Cancellation Policy Check:</span>
+                <span className="font-mono text-[11px]">
+                  {cancelHoursRemaining > 0 ? `${cancelHoursRemaining.toFixed(1)} hrs before slot` : "Past slot"}
+                </span>
+              </div>
+
+              {isEligibleForRefund ? (
+                <div className="space-y-1">
+                  <p className="font-bold text-emerald-800 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Eligible for 100% Full Automated Refund
+                  </p>
+                  <p className="text-emerald-700 text-[11px]">
+                    Cancellation is more than 24 hours prior to appointment time. The patient will be refunded via
+                    Stripe to their original payment method.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="font-bold text-amber-900 flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                    Late Cancellation Notice (&lt; 24h Policy)
+                  </p>
+                  <p className="text-amber-800 text-[11px]">
+                    Per clinic policy, cancellations within 24 hours forfeit the deposit fee. No automated refund will
+                    be issued.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-neutral-700">Cancellation Reason</label>
+              <textarea
+                rows={2}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g. Patient called due to illness or schedule conflict..."
+                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setCancelTarget(null)}
+                disabled={isCancelling}
+                className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+              >
+                Keep Booking
+              </button>
+              <button
+                type="submit"
+                disabled={isCancelling}
+                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  "Confirm Cancellation & Refund"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ── 3. Complete Appointment Modal ─────────────────────────────────── */}
+      {completeTarget && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleExecuteComplete}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-200"
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </span>
+                  <h2 className="text-lg font-black text-neutral-900 tracking-tight">Complete Appointment</h2>
+                </div>
+                <p className="text-xs text-neutral-500 mt-1">
+                  Mark treatment finished and record clinical notes for {completeTarget.patient?.name || "patient"}.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCompleteTarget(null)}
+                className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-neutral-700">Completion Summary / Reason</label>
+                <input
+                  type="text"
+                  required
+                  value={completeReason}
+                  onChange={(e) => setCompleteReason(e.target.value)}
                   className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setCancelTarget(null)}
-                  disabled={isCancelling}
-                  className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-                >
-                  Keep Booking
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCancelling}
-                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isCancelling ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Processing...
-                    </>
-                  ) : (
-                    "Confirm Cancellation & Refund"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ── 3. Complete Appointment Modal ─────────────────────────────────── */}
-        {completeTarget && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-            <form
-              onSubmit={handleExecuteComplete}
-              className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-                      <CheckCircle2 className="w-5 h-5" />
-                    </span>
-                    <h2 className="text-lg font-black text-neutral-900 tracking-tight">Complete Appointment</h2>
-                  </div>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Mark treatment finished and record clinical notes for {completeTarget.patient?.name || "patient"}.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCompleteTarget(null)}
-                  className="p-1.5 text-neutral-400 hover:text-neutral-900 rounded-xl transition cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-bold text-neutral-700">Completion Summary / Reason</label>
-                  <input
-                    type="text"
-                    required
-                    value={completeReason}
-                    onChange={(e) => setCompleteReason(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-neutral-700">Clinical Aftercare & Staff Notes</label>
-                  <textarea
-                    rows={3}
-                    value={completeNotes}
-                    onChange={(e) => setCompleteNotes(e.target.value)}
-                    placeholder="e.g. Advised patient to apply SPF 50 daily and return for follow up in 6 weeks..."
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl flex items-start gap-2.5 text-[11px] text-emerald-950">
-                <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span>
-                  Marking completed will automatically send the patient a <strong>Thank You & Review Request Email</strong> with
-                  post-treatment aftercare recommendations.
-                </span>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setCompleteTarget(null)}
-                  disabled={isCompleting}
-                  className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCompleting}
-                  className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isCompleting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-                    </>
-                  ) : (
-                    "Mark Completed & Dispatch Email"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* ── Hold Cleanup Floating Toast Notification ───────────────────────── */}
-        {cleanupToast && (
-          <div className="fixed bottom-6 right-6 bg-neutral-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 z-50 text-xs font-bold border border-neutral-800 animate-in slide-in-from-bottom-5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>{cleanupToast}</span>
-          </div>
-        )}
-
-        {/* ── Walk-in Booking Modal ──────────────────────────────────────────── */}
-        {isNewModalOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
-            <form
-              onSubmit={handleCreateWalkIn}
-              className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-100"
-            >
               <div>
-                <h2 className="text-xl font-black text-neutral-900 tracking-tight">Create Walk-in Booking</h2>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  Schedule a manual appointment for a walk-in patient or phone booking on {selectedDate}.
-                </p>
+                <label className="text-xs font-bold text-neutral-700">Clinical Aftercare & Staff Notes</label>
+                <textarea
+                  rows={3}
+                  value={completeNotes}
+                  onChange={(e) => setCompleteNotes(e.target.value)}
+                  placeholder="e.g. Advised patient to apply SPF 50 daily and return for follow up in 6 weeks..."
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 bg-emerald-50/70 border border-emerald-100 rounded-2xl flex items-start gap-2.5 text-[11px] text-emerald-950">
+              <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span>
+                Marking completed will automatically send the patient a <strong>Thank You & Review Request Email</strong> with
+                post-treatment aftercare recommendations.
+              </span>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setCompleteTarget(null)}
+                disabled={isCompleting}
+                className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isCompleting}
+                className="px-5 py-2.5 bg-[#768957] hover:bg-[#65774a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              >
+                {isCompleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                  </>
+                ) : (
+                  "Mark Completed & Dispatch Email"
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ── Hold Cleanup Floating Toast Notification ───────────────────────── */}
+      {cleanupToast && (
+        <div className="fixed bottom-6 right-6 bg-[#768957] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 z-50 text-xs font-bold border border-[#65774a] animate-in slide-in-from-bottom-5">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{cleanupToast}</span>
+        </div>
+      )}
+
+      {/* ── Walk-in Booking Modal ──────────────────────────────────────────── */}
+      {isNewModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleCreateWalkIn}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-neutral-100"
+          >
+            <div>
+              <h2 className="text-xl font-black text-neutral-900 tracking-tight">Create Walk-in Booking</h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Schedule a manual appointment for a walk-in patient or phone booking on {selectedDate}.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-neutral-700">Patient Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={formPatientName}
+                  onChange={(e) => setFormPatientName(e.target.value)}
+                  placeholder="e.g. Sarah Connor"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                />
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-bold text-neutral-700">Patient Full Name *</label>
+                  <label className="text-xs font-bold text-neutral-700">Phone Number</label>
                   <input
-                    type="text"
-                    required
-                    value={formPatientName}
-                    onChange={(e) => setFormPatientName(e.target.value)}
-                    placeholder="e.g. Sarah Connor"
+                    type="tel"
+                    value={formPatientPhone}
+                    onChange={(e) => setFormPatientPhone(e.target.value)}
+                    placeholder="+44 7700 900123"
                     className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-neutral-700">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={formPatientPhone}
-                      onChange={(e) => setFormPatientPhone(e.target.value)}
-                      placeholder="+44 7700 900123"
-                      className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-neutral-700">Email Address</label>
-                    <input
-                      type="email"
-                      value={formPatientEmail}
-                      onChange={(e) => setFormPatientEmail(e.target.value)}
-                      placeholder="patient@example.com"
-                      className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-neutral-700">Practitioner *</label>
-                    <select
-                      required
-                      value={formDoctorId}
-                      onChange={(e) => setFormDoctorId(e.target.value)}
-                      className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                    >
-                      {doctors.length === 0 ? (
-                        <option value="">No doctors created yet</option>
-                      ) : (
-                        doctors.map((d) => (
-                          <option key={d.doctorId || d.id} value={d.doctorId || d.id}>
-                            {d.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-neutral-700">Treatment *</label>
-                    <select
-                      required
-                      value={formTreatmentId}
-                      onChange={(e) => setFormTreatmentId(e.target.value)}
-                      className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                    >
-                      {treatments.length === 0 ? (
-                        <option value="">No treatments available</option>
-                      ) : (
-                        treatments.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.title} ({t.durationMinutes || 30} mins)
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label className="text-xs font-bold text-neutral-700">Start Time *</label>
+                  <label className="text-xs font-bold text-neutral-700">Email Address</label>
                   <input
-                    type="time"
-                    required
-                    value={formStartTime}
-                    onChange={(e) => setFormStartTime(e.target.value)}
+                    type="email"
+                    value={formPatientEmail}
+                    onChange={(e) => setFormPatientEmail(e.target.value)}
+                    placeholder="patient@example.com"
                     className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
                   />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-neutral-700">Practitioner *</label>
+                  <select
+                    required
+                    value={formDoctorId}
+                    onChange={(e) => setFormDoctorId(e.target.value)}
+                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  >
+                    {doctors.length === 0 ? (
+                      <option value="">No doctors created yet</option>
+                    ) : (
+                      doctors.map((d) => (
+                        <option key={d.doctorId || d.id} value={d.doctorId || d.id}>
+                          {d.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-neutral-700">Patient Notes / Medical Remarks</label>
-                  <textarea
-                    rows={2}
-                    value={formPatientNotes}
-                    onChange={(e) => setFormPatientNotes(e.target.value)}
-                    placeholder="Optional notes or allergies..."
+                  <label className="text-xs font-bold text-neutral-700">Treatment *</label>
+                  <select
+                    required
+                    value={formTreatmentId}
+                    onChange={(e) => setFormTreatmentId(e.target.value)}
                     className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
-                  />
+                  >
+                    {treatments.length === 0 ? (
+                      <option value="">No treatments available</option>
+                    ) : (
+                      treatments.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.title} ({t.durationMinutes || 30} mins)
+                        </option>
+                      ))
+                    )}
+                  </select>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setIsNewModalOpen(false)}
-                  className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? "Booking..." : "Confirm Booking"}
-                </button>
+              <div>
+                <label className="text-xs font-bold text-neutral-700">Start Time *</label>
+                <input
+                  type="time"
+                  required
+                  value={formStartTime}
+                  onChange={(e) => setFormStartTime(e.target.value)}
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                />
               </div>
-            </form>
-          </div>
-        )}
+
+              <div>
+                <label className="text-xs font-bold text-neutral-700">Patient Notes / Medical Remarks</label>
+                <textarea
+                  rows={2}
+                  value={formPatientNotes}
+                  onChange={(e) => setFormPatientNotes(e.target.value)}
+                  placeholder="Optional notes or allergies..."
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957]"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+              <button
+                type="button"
+                onClick={() => setIsNewModalOpen(false)}
+                className="px-4 py-2.5 border border-neutral-200 rounded-xl text-xs font-bold text-neutral-700 hover:bg-neutral-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-5 py-2.5 bg-[#768957] hover:bg-[#65774a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {submitting ? "Booking..." : "Confirm Booking"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

@@ -140,7 +140,7 @@ export default function ClientsPage() {
   return (
     <div className="space-y-4">
       {/* Search Bar & Header Card */}
-      <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+      <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative w-full max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 z-10 pointer-events-none" />
           <input
@@ -162,7 +162,7 @@ export default function ClientsPage() {
       {loading ? (
         <TableSkeleton rows={6} cols={5} />
       ) : (
-        <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 overflow-hidden transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs overflow-hidden">
           {filteredClients.length === 0 ? (
             <div className="py-12 text-center rounded-2xl bg-neutral-50 border border-neutral-100 text-sm font-medium text-neutral-400">
               No client records found matching your query.
@@ -184,7 +184,7 @@ export default function ClientsPage() {
                     <tr key={client.id} className="hover:bg-neutral-50/60 transition-colors">
                       <td className="py-4 px-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-neutral-100 text-neutral-700 flex items-center justify-center font-bold text-xs">
+                          <div className="w-8 h-8 rounded-full bg-[#768957]/10 text-[#586940] flex items-center justify-center font-bold text-xs">
                             {client.name ? client.name[0] : "C"}
                           </div>
                           <div className="font-semibold text-neutral-900">{client.name || "Valued Client"}</div>
@@ -202,7 +202,7 @@ export default function ClientsPage() {
                           {client.visitsCount || 0} visits
                         </span>
                       </td>
-                      <td className="py-4 px-4 whitespace-nowrap text-right font-bold text-emerald-600">
+                      <td className="py-4 px-4 whitespace-nowrap text-right font-bold text-[#586940]">
                         {client.loyaltyBalance} pts
                       </td>
                     </tr>

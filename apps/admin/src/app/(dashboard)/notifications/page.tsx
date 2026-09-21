@@ -207,7 +207,7 @@ export default function NotificationsPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Send Notification Form */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-neutral-100 p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs space-y-5">
           <h3 className="text-md font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-3">
             Compose Broadcast
           </h3>
@@ -257,7 +257,7 @@ export default function NotificationsPage() {
                     type="radio"
                     checked={targetType === "all"}
                     onChange={() => setTargetType("all")}
-                    className="h-4 w-4 border-neutral-300 text-black focus:ring-black"
+                    className="h-4 w-4 border-neutral-300 text-[#768957] focus:ring-[#768957]"
                   />
                   All Clients
                 </label>
@@ -266,7 +266,7 @@ export default function NotificationsPage() {
                     type="radio"
                     checked={targetType === "visits"}
                     onChange={() => setTargetType("visits")}
-                    className="h-4 w-4 border-neutral-300 text-black focus:ring-black"
+                    className="h-4 w-4 border-neutral-300 text-[#768957] focus:ring-[#768957]"
                   />
                   Target by Visits Count
                 </label>
@@ -298,8 +298,8 @@ export default function NotificationsPage() {
 
             {statusMessage && (
               <div
-                className={`rounded-full px-4 py-2 text-xs font-semibold ${statusMessage.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
+                className={`rounded-xl px-4 py-2 text-xs font-semibold ${statusMessage.type === "success"
+                  ? "bg-[#768957]/10 text-[#586940] border border-[#768957]/25"
                   : "bg-red-50 text-red-800 border border-red-200"
                   }`}
               >
@@ -311,7 +311,7 @@ export default function NotificationsPage() {
               <button
                 type="submit"
                 disabled={isSending || matchedClients.length === 0}
-                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSending ? (
                   <>
@@ -327,7 +327,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Live Estimator Sidebar Card */}
-        <div className="bg-neutral-900 text-white rounded-3xl p-6 flex flex-col justify-between shadow-[0_8px_30px_rgb(0,0,0,0.08)] relative overflow-hidden">
+        <div className="bg-[#768957] text-white rounded-2xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-8 -translate-y-8"></div>
 
           <div className="space-y-4 z-10">
@@ -336,21 +336,21 @@ export default function NotificationsPage() {
             </span>
             <div className="space-y-1">
               <div className="text-5xl font-black tracking-tight">{matchedClients.length}</div>
-              <p className="text-sm text-neutral-400 font-medium">Estimated Target Recipients</p>
+              <p className="text-sm text-neutral-200 font-medium">Estimated Target Recipients</p>
             </div>
-            <p className="text-xs text-neutral-400 leading-relaxed border-t border-white/10 pt-3">
+            <p className="text-xs text-neutral-200 leading-relaxed border-t border-white/15 pt-3">
               This represents active clients within your database meeting the defined parameters. Push notifications are only received by users with valid device registrations.
             </p>
           </div>
 
           <div className="mt-8 border-t border-white/10 pt-4 space-y-2.5 z-10">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-400">Total Clients:</span>
+              <span className="text-white/60">Total Clients:</span>
               <span className="font-semibold">{clients.length}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
-              <span className="text-neutral-400">Filter Applied:</span>
-              <span className="font-semibold text-neutral-200 capitalize">
+              <span className="text-white/60">Filter Applied:</span>
+              <span className="font-semibold text-white capitalize">
                 {targetType === "all" ? "None (All Clients)" : `Visits ${operator} ${visitsValue}`}
               </span>
             </div>
@@ -359,7 +359,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* Dispatch History log */}
-      <div className="bg-white rounded-3xl border border-neutral-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-xs overflow-hidden">
         <div className="p-6 border-b border-neutral-200">
           <h3 className="text-md font-bold tracking-tight text-neutral-900">Broadcast Dispatch History</h3>
           <p className="text-xs text-neutral-500">Track and review delivery logs for previously sent messages</p>

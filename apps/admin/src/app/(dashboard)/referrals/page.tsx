@@ -272,7 +272,7 @@ export default function ReferralsPage() {
     return (
       <div className="space-y-8 pb-12 max-w-5xl mx-auto">
         {/* Hero Opt-In Poster */}
-        <div className="relative overflow-hidden rounded-3xl p-8 sm:p-14 shadow-xl border border-neutral-200/40 text-center flex flex-col items-center justify-center">
+        <div className="relative overflow-hidden rounded-2xl p-8 sm:p-14 shadow-xl border border-neutral-200/40 text-center flex flex-col items-center justify-center">
           {/* Background Image */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -308,7 +308,7 @@ export default function ReferralsPage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleJoinProgram}
                 disabled={joining}
-                className="inline-flex items-center gap-3 px-9 py-4 rounded-2xl bg-white text-neutral-950 font-black text-sm sm:text-base shadow-xl hover:bg-neutral-100 transition-all cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-3 px-9 py-4 rounded-xl bg-white text-neutral-950 font-black text-sm sm:text-base shadow-xl hover:bg-neutral-100 transition-all cursor-pointer disabled:opacity-50"
               >
                 {joining ? (
                   <span>Activating Partner Account...</span>
@@ -325,8 +325,8 @@ export default function ReferralsPage() {
 
         {/* Feature Highlights Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-3xl border border-neutral-200/80 bg-white p-7 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 text-neutral-900 flex items-center justify-center font-bold">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white p-7 shadow-xs space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 flex items-center justify-center font-bold">
               <DollarSign className="w-6 h-6 text-neutral-900" />
             </div>
             <h3 className="font-bold text-neutral-900 text-base">30% Monthly Payout</h3>
@@ -335,8 +335,8 @@ export default function ReferralsPage() {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-neutral-200/80 bg-white p-7 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 text-neutral-900 flex items-center justify-center font-bold">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white p-7 shadow-xs space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 flex items-center justify-center font-bold">
               <Share2 className="w-6 h-6 text-neutral-900" />
             </div>
             <h3 className="font-bold text-neutral-900 text-base">Unique Link & 30-Day Window</h3>
@@ -345,8 +345,8 @@ export default function ReferralsPage() {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-neutral-200/80 bg-white p-7 shadow-sm space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 text-neutral-900 flex items-center justify-center font-bold">
+          <div className="rounded-2xl border border-neutral-200/80 bg-white p-7 shadow-xs space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 text-neutral-900 flex items-center justify-center font-bold">
               <TrendingUp className="w-6 h-6 text-neutral-900" />
             </div>
             <h3 className="font-bold text-neutral-900 text-base">Realtime Partner Dashboard</h3>
@@ -365,7 +365,7 @@ export default function ReferralsPage() {
   return (
     <div className="space-y-8 pb-10">
       {/* Header Hero Poster */}
-      <div className="relative overflow-hidden rounded-3xl p-8 sm:p-10 shadow-xl border border-neutral-200/40">
+      <div className="relative overflow-hidden rounded-2xl p-8 sm:p-10 shadow-xl border border-neutral-200/40">
         {/* Background Image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -405,7 +405,7 @@ export default function ReferralsPage() {
       </div>
 
       {/* Shareable Link Suite Card */}
-      <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6">
+      <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
         <div>
           <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
             <Share2 className="w-5 h-5 text-neutral-700" />
@@ -423,13 +423,13 @@ export default function ReferralsPage() {
               type="text"
               readOnly
               value={referralUrl || "Generating link..."}
-              className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 pr-12 font-mono text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3.5 pr-12 font-mono text-xs sm:text-sm font-semibold text-neutral-800 focus:outline-none focus:ring-1 focus:ring-[#768957] focus:border-[#768957]"
             />
           </div>
 
           <button
             onClick={handleCopyLink}
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm transition-all cursor-pointer shadow-md bg-neutral-900 text-white hover:bg-neutral-800"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm transition-all cursor-pointer shadow-xs hover:shadow-sm bg-[#768957] text-white hover:bg-[#65774a]"
           >
             {copied ? (
               <>
@@ -543,10 +543,10 @@ export default function ReferralsPage() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1: Total Referrals */}
-        <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-3">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-neutral-400 tracking-wide">Total Referred</span>
-            <div className="p-2.5 rounded-2xl bg-neutral-100 text-neutral-900 border border-neutral-200">
+            <div className="p-2.5 rounded-xl bg-neutral-100 text-neutral-900 border border-neutral-200">
               <Users className="w-5 h-5 text-neutral-800" />
             </div>
           </div>
@@ -555,10 +555,10 @@ export default function ReferralsPage() {
         </div>
 
         {/* Card 2: Active Subscriptions */}
-        <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-3">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-neutral-400 tracking-wide">Active Subscriptions</span>
-            <div className="p-2.5 rounded-2xl bg-neutral-100 text-neutral-900 border border-neutral-200">
+            <div className="p-2.5 rounded-xl bg-neutral-100 text-neutral-900 border border-neutral-200">
               <CheckCircle2 className="w-5 h-5 text-neutral-800" />
             </div>
           </div>
@@ -567,32 +567,32 @@ export default function ReferralsPage() {
         </div>
 
         {/* Card 3: Monthly Commission */}
-        <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-3">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-neutral-400 tracking-wide">Monthly Commission</span>
-            <div className="p-2.5 rounded-2xl bg-neutral-100 text-neutral-900 border border-neutral-200">
+            <div className="p-2.5 rounded-xl bg-neutral-100 text-neutral-900 border border-neutral-200">
               <DollarSign className="w-5 h-5 text-neutral-800" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-neutral-900">€{totalMonthlyCommission.toFixed(2)}</p>
+          <p className="text-3xl font-extrabold text-neutral-900">{totalMonthlyCommission.toFixed(2)}</p>
           <p className="text-xs text-neutral-500">Recurring payout estimate / month (30%)</p>
         </div>
 
         {/* Card 4: Lifetime Earnings */}
-        <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 shadow-sm space-y-3">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase text-neutral-400 tracking-wide">Total Earned</span>
-            <div className="p-2.5 rounded-2xl bg-neutral-100 text-neutral-900 border border-neutral-200">
+            <div className="p-2.5 rounded-xl bg-neutral-100 text-neutral-900 border border-neutral-200">
               <Award className="w-5 h-5 text-neutral-800" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-neutral-900">€{totalLifetimeEarnings.toFixed(2)}</p>
+          <p className="text-3xl font-extrabold text-neutral-900">{totalLifetimeEarnings.toFixed(2)}</p>
           <p className="text-xs text-neutral-600 font-medium">Total paid out to date</p>
         </div>
       </div>
 
       {/* Referred Clinics Directory Table Section */}
-      <div className="rounded-3xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold text-neutral-900">Referred Clinics Directory</h3>
@@ -681,8 +681,8 @@ export default function ReferralsPage() {
       {/* CLINIC DETAIL & MONTHLY COMMISSION HISTORY MODAL                         */}
       {/* -------------------------------------------------------------------------- */}
       {selectedClinicDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-          <div className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-neutral-100 space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="w-full max-w-lg bg-white rounded-2xl p-6 sm:p-8 shadow-2xl border border-neutral-100 space-y-6">
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-neutral-100 pb-4">
               <div className="space-y-1">
@@ -708,39 +708,36 @@ export default function ReferralsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200/60">
                 <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide">
-                  Monthly Commission
+                  Total Paid Commission
                 </span>
-                <p className="text-xl font-black text-neutral-900 mt-1">
-                  €{selectedClinicDetail.monthlyCommission.toFixed(2)}/mo
+                <p className="text-2xl font-black text-neutral-900 mt-1">
+                  €{(selectedClinicDetail.totalEarned || 0).toFixed(2)}
                 </p>
-                <span className="text-[10px] text-neutral-500">30% recurring rate</span>
               </div>
-
               <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200/60">
                 <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide">
-                  Total Collected
+                  Current Status
                 </span>
-                <p className="text-xl font-black text-neutral-900 mt-1">
-                  €{selectedClinicDetail.totalEarned.toFixed(2)}
+                <p className="text-base font-bold text-neutral-900 mt-1 capitalize flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${selectedClinicDetail.status === "active" ? "bg-[#768957]" : "bg-neutral-400"}`} />
+                  {selectedClinicDetail.status}
                 </p>
-                <span className="text-[10px] text-emerald-600 font-bold">Lifetime earnings</span>
               </div>
             </div>
 
-            {/* Monthly Commission Payout Log Timeline */}
+            {/* Historical Monthly Payment Logs */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-neutral-500" />
-                Monthly Commission Collection History
+              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                Monthly Commission Payout History
               </h4>
 
-              <div className="rounded-2xl border border-neutral-200/80 bg-neutral-50/50 divide-y divide-neutral-100 overflow-hidden">
+              <div className="border border-neutral-100 rounded-xl divide-y divide-neutral-100 max-h-56 overflow-y-auto">
                 {selectedClinicDetail.paymentHistory && selectedClinicDetail.paymentHistory.length > 0 ? (
-                  selectedClinicDetail.paymentHistory.map((log, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3.5 text-xs font-semibold">
-                      <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  selectedClinicDetail.paymentHistory.map((log, i) => (
+                    <div key={i} className="p-3 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-lg bg-neutral-100 text-neutral-700">
+                          <CheckCircle2 className="w-4 h-4 text-[#768957]" />
                         </div>
                         <div>
                           <p className="text-neutral-900 font-bold">{log.month}</p>
@@ -748,8 +745,8 @@ export default function ReferralsPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-black text-emerald-700">+€{log.amount.toFixed(2)}</p>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                        <p className="text-sm font-black text-[#586940]">+€{log.amount.toFixed(2)}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#586940] bg-[#768957]/10 px-2 py-0.5 rounded-full border border-[#768957]/25">
                           Paid
                         </span>
                       </div>
@@ -767,7 +764,7 @@ export default function ReferralsPage() {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedClinicDetail(null)}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-neutral-900 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#768957] text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer"
               >
                 Close History
               </button>

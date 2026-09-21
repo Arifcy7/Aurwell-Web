@@ -104,7 +104,7 @@ export default function AppDockMockup({
           <button
             type="button"
             onClick={handleButtonClick}
-            className="px-3.5 py-1.5 bg-neutral-900/85 hover:bg-neutral-900 text-white text-xs font-semibold rounded-full backdrop-blur-md shadow-xs transition-all cursor-pointer"
+            className="px-3.5 py-1.5 bg-[#768957]/90 hover:bg-[#768957] text-white text-xs font-semibold rounded-full backdrop-blur-md shadow-xs transition-all cursor-pointer"
           >
             {currentPreview ? "Change Logo" : "Upload App Logo"}
           </button>

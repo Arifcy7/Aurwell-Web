@@ -62,7 +62,7 @@ export default function AdminSplashScreen({
           className={
             fullScreen
               ? "fixed inset-0 z-[9999] bg-[#F3F4F6] flex flex-col items-center justify-center overflow-hidden select-none"
-              : "absolute inset-0 z-40 bg-[#F3F4F6]/95 backdrop-blur-sm flex flex-col items-center justify-center min-h-[480px] rounded-3xl overflow-hidden select-none"
+              : "absolute inset-0 z-40 bg-[#F3F4F6]/95 backdrop-blur-sm flex flex-col items-center justify-center min-h-[480px] rounded-2xl overflow-hidden select-none"
           }
         >
           {/* Ambient Background Glow Aura */}
@@ -99,7 +99,7 @@ export default function AdminSplashScreen({
               initial={{ scaleY: 0, opacity: 0 }}
               animate={{ scaleY: 1, opacity: 0.3 }}
               transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
-              className="w-[1.5px] h-6 sm:h-10 bg-neutral-900 rounded-full origin-center"
+              className="w-[1.5px] h-6 sm:h-10 bg-[#768957] rounded-full origin-center"
             />
 
             {/* Typography Wordmark Reveal */}
@@ -133,7 +133,7 @@ export default function AdminSplashScreen({
                 initial={{ width: "25%" }}
                 animate={{ width: `${loadProgress}%` }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="h-full bg-neutral-900 rounded-full shadow-sm"
+                className="h-full bg-[#768957] rounded-full shadow-sm"
               />
             </div>
             <p className="text-[10px] sm:text-[11px] font-semibold text-neutral-500 tracking-wide text-center px-4">

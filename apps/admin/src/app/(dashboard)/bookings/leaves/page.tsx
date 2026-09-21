@@ -84,12 +84,12 @@ export default function LeavesPage() {
     return isNaN(d.getTime())
       ? isoString
       : d.toLocaleString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
   };
 
   return (
@@ -104,7 +104,7 @@ export default function LeavesPage() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-neutral-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+          className="flex items-center gap-2 bg-[#768957] hover:bg-[#65774a] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Add Blocked Period
         </button>
@@ -116,7 +116,7 @@ export default function LeavesPage() {
           Loading blocked schedule periods...
         </div>
       ) : leaves.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-neutral-200/80 p-8 shadow-xs">
+        <div className="text-center py-20 bg-white rounded-2xl border border-neutral-200/80 p-8 shadow-xs">
           <CalendarOff className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
           <h3 className="text-base font-bold text-neutral-900">No active leaves or blocked slots</h3>
           <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
@@ -124,7 +124,7 @@ export default function LeavesPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-neutral-200/80 divide-y divide-neutral-100 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-2xl border border-neutral-200/80 divide-y divide-neutral-100 shadow-xs overflow-hidden">
           {leaves.map((item) => {
             const matchedDoc = doctors.find((d) => d.id === item.doctorId || d.doctorId === item.doctorId);
             const targetLabel = item.doctorId ? `Dr. ${matchedDoc?.name || item.doctorId}` : "Entire Clinic";
@@ -135,11 +135,10 @@ export default function LeavesPage() {
                   <div className="flex items-center gap-2.5">
                     <h4 className="font-bold text-sm text-neutral-900">{item.reason}</h4>
                     <span
-                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${
-                        item.doctorId
+                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase ${item.doctorId
                           ? "bg-amber-50 text-amber-700 border-amber-200"
                           : "bg-rose-50 text-rose-700 border-rose-200"
-                      }`}
+                        }`}
                     >
                       {item.type || (item.doctorId ? "LEAVE" : "CLOSURE")}
                     </span>
@@ -174,10 +173,10 @@ export default function LeavesPage() {
 
       {/* Add Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleSave}
-            className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-neutral-100"
+            className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-neutral-100"
           >
             <div>
               <h2 className="text-xl font-black text-neutral-900 tracking-tight">Block Schedule Period</h2>
@@ -192,7 +191,7 @@ export default function LeavesPage() {
                 <select
                   value={formDoctorId}
                   onChange={(e) => setFormDoctorId(e.target.value)}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 >
                   <option value="all">Entire Clinic (All Practitioners)</option>
                   {doctors.map((d) => (
@@ -211,7 +210,7 @@ export default function LeavesPage() {
                     required
                     value={formStart}
                     onChange={(e) => setFormStart(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                    className="w-full border border-neutral-200 rounded-xl p-2 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                   />
                 </div>
                 <div>
@@ -221,7 +220,7 @@ export default function LeavesPage() {
                     required
                     value={formEnd}
                     onChange={(e) => setFormEnd(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                    className="w-full border border-neutral-200 rounded-xl p-2 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                   />
                 </div>
               </div>
@@ -231,7 +230,7 @@ export default function LeavesPage() {
                 <select
                   value={formType}
                   onChange={(e) => setFormType(e.target.value as any)}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 >
                   <option value="leave">Vacation / Annual Leave</option>
                   <option value="break">Personal Break / Training</option>
@@ -245,7 +244,7 @@ export default function LeavesPage() {
                   value={formReason}
                   onChange={(e) => setFormReason(e.target.value)}
                   placeholder="e.g. Annual Medical Conference, Renovations"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 />
               </div>
             </div>
@@ -261,7 +260,7 @@ export default function LeavesPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 bg-[#768957] hover:bg-[#65774a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {submitting ? "Confirming..." : "Confirm Block"}
               </button>

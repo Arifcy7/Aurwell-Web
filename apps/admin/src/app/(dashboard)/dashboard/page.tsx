@@ -281,10 +281,10 @@ export default function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Product Activity Live Feed */}
-        <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] flex flex-col">
+        <div className="rounded-2xl bg-white p-6 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03),0_6px_16px_-6px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] flex flex-col">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center">
                 <Activity className="w-4 h-4" />
               </div>
               <div>
@@ -293,8 +293,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 border border-emerald-100">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#768957]/10 px-3 py-1 text-xs font-semibold text-[#586940] border border-[#768957]/25">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#768957] animate-pulse"></span>
               Live Feed
             </span>
           </div>
@@ -335,17 +335,17 @@ export default function DashboardPage() {
                         backgroundColor: { duration: 0.85 },
                         borderColor: { duration: 0.85 },
                       }}
-                      className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition-shadow duration-300 ${
-                        isHighlighted ? "shadow-md shadow-emerald-500/10 ring-1 ring-emerald-400/30" : "hover:bg-neutral-50"
+                      className={`flex items-start gap-3.5 p-3.5 rounded-xl border transition-shadow duration-300 ${
+                        isHighlighted ? "shadow-md shadow-[#768957]/10 ring-1 ring-[#768957]/30" : "hover:bg-neutral-50"
                       }`}
                     >
-                      <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[10px] font-bold text-neutral-800 shadow-xs border border-neutral-100 flex-shrink-0 uppercase tracking-tight">
+                      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-[10px] font-bold text-neutral-800 shadow-xs border border-neutral-100 flex-shrink-0 uppercase tracking-tight">
                         {badgeLabel.substring(0, 3)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#586940] bg-[#768957]/10 px-2 py-0.5 rounded-full border border-[#768957]/20">
                               {badgeLabel}
                             </span>
                             {isHighlighted && (

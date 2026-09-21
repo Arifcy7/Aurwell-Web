@@ -129,7 +129,7 @@ export default function ImageUploader({
             <button
               type="button"
               onClick={onButtonClick}
-              className="px-3.5 py-1.5 bg-neutral-900/85 hover:bg-neutral-900 text-white text-xs font-semibold rounded-full backdrop-blur-md shadow-xs transition-all cursor-pointer"
+              className="px-3.5 py-1.5 bg-[#768957]/90 hover:bg-[#768957] text-white text-xs font-semibold rounded-xl backdrop-blur-md shadow-xs transition-all cursor-pointer"
             >
               Change Image
             </button>
@@ -153,7 +153,7 @@ export default function ImageUploader({
           onClick={onButtonClick}
           className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-5 cursor-pointer transition-all duration-200 ${heightClass || "aspect-[16/9] h-auto min-h-[150px] max-h-56"} ${
             dragActive
-              ? "border-black bg-neutral-50 scale-[1.01]"
+              ? "border-[#768957] bg-neutral-50 scale-[1.01]"
               : "border-neutral-300 hover:border-neutral-400 bg-white hover:bg-neutral-50"
           }`}
         >
@@ -181,7 +181,7 @@ export default function ImageUploader({
               />
             </svg>
             <p className="text-xs font-medium text-neutral-600">
-              <span className="font-semibold text-black underline">Upload an image</span> or drag and drop
+              <span className="font-semibold text-[#768957] underline">Upload an image</span> or drag and drop
             </p>
             <p className="text-[10px] text-neutral-400">PNG, JPG, GIF up to 5MB</p>
           </div>

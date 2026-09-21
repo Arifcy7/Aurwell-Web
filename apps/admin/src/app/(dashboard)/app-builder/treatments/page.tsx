@@ -345,7 +345,7 @@ export default function TreatmentsPage() {
                 setShowTreatmentForm(true);
               }
             }}
-            className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition flex items-center gap-2 cursor-pointer"
+            className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition flex items-center gap-2 cursor-pointer"
           >
             {showTreatmentForm ? (
               <>
@@ -365,7 +365,7 @@ export default function TreatmentsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 space-y-3 relative"
+        className="rounded-2xl bg-white p-5 shadow-xs border border-neutral-200/80 space-y-3 relative"
       >
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="relative w-full sm:w-80">
@@ -383,14 +383,14 @@ export default function TreatmentsPage() {
           <div className="relative w-full sm:w-auto">
             <button
               onClick={() => setShowFilterPopover(!showFilterPopover)}
-              className={`w-full sm:w-auto px-4 py-2 rounded-full text-xs font-bold flex items-center justify-between sm:justify-start gap-2 border transition cursor-pointer shadow-sm ${
+              className={`w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-between sm:justify-start gap-2 border transition cursor-pointer shadow-xs ${
                 selectedFilterCategories.length > 0
-                  ? "bg-neutral-900 text-white border-neutral-900"
+                  ? "bg-[#768957] text-white border-[#768957]"
                   : "bg-neutral-50 text-neutral-800 border-neutral-200 hover:bg-neutral-100"
               }`}
             >
               <div className="flex items-center gap-2">
-                <Filter className="w-3.5 h-3.5 text-emerald-500" />
+                <Filter className={`w-3.5 h-3.5 ${selectedFilterCategories.length > 0 ? "text-white" : "text-[#768957]"}`} />
                 <span>
                   {selectedFilterCategories.length === 0
                     ? "Category Filter"
@@ -410,7 +410,7 @@ export default function TreatmentsPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-12 z-30 w-80 sm:w-96 rounded-3xl bg-white p-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-neutral-100 space-y-4"
+                  className="absolute right-0 top-12 z-30 w-80 sm:w-96 rounded-2xl bg-white p-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-neutral-200/80 space-y-4"
                 >
                   <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                     <div className="flex items-center gap-2">
@@ -451,7 +451,7 @@ export default function TreatmentsPage() {
                           onClick={() => toggleFilterCategory(cat)}
                           className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition cursor-pointer text-left ${
                             isSelected
-                              ? "bg-neutral-900 text-white font-semibold shadow-sm"
+                              ? "bg-[#768957] text-white font-semibold shadow-sm"
                               : "bg-white text-neutral-700 hover:bg-neutral-100 border border-neutral-200/60"
                           }`}
                         >
@@ -477,7 +477,7 @@ export default function TreatmentsPage() {
                     <button
                       type="button"
                       onClick={() => setShowFilterPopover(false)}
-                      className="rounded-full bg-neutral-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+                      className="rounded-xl bg-[#768957] px-4 py-1.5 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer"
                     >
                       Apply Filter
                     </button>
@@ -497,7 +497,7 @@ export default function TreatmentsPage() {
             {selectedFilterCategories.map((cat) => (
               <span
                 key={cat}
-                className="inline-flex items-center gap-1 bg-neutral-900 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm"
+                className="inline-flex items-center gap-1 bg-[#768957] text-white text-xs font-semibold px-2.5 py-0.5 rounded-full shadow-sm"
               >
                 {cat}
                 <button
@@ -546,7 +546,7 @@ export default function TreatmentsPage() {
                   {selectedCategories.map((cat) => (
                     <span
                       key={cat}
-                      className="inline-flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
+                      className="inline-flex items-center gap-1.5 bg-[#768957] text-white text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
                     >
                       {cat}
                       <button
@@ -584,7 +584,7 @@ export default function TreatmentsPage() {
                       onClick={() => toggleCategorySelection(cat)}
                       className={`flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer text-left border ${
                         isSelected
-                          ? "bg-neutral-900 text-white border-neutral-900"
+                          ? "bg-[#768957] text-white border-[#768957]"
                           : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-400"
                       }`}
                     >
@@ -771,7 +771,7 @@ export default function TreatmentsPage() {
               <button
                 type="submit"
                 disabled={isSaving || selectedCategories.length === 0}
-                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="rounded-full bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSaving ? (
                   <>
@@ -792,7 +792,7 @@ export default function TreatmentsPage() {
       {loading ? (
         <CardGridSkeleton count={3} />
       ) : filteredTreatments.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-white border border-neutral-100 text-sm font-medium text-neutral-400">
+        <div className="p-12 text-center rounded-2xl bg-white border border-neutral-200/80 text-sm font-medium text-neutral-400">
           No treatment products found matching your filter criteria.
         </div>
       ) : (
@@ -803,8 +803,8 @@ export default function TreatmentsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: idx * 0.04 }}
-              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
-                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              className={`overflow-hidden rounded-2xl border bg-white shadow-xs flex flex-col justify-between transition-all hover:shadow-md ${
+                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200/80"
               }`}
             >
               {/* Treatment Banner */}
@@ -816,13 +816,13 @@ export default function TreatmentsPage() {
                   {(t.categories || []).slice(0, 2).map((cat) => (
                     <span
                       key={cat}
-                      className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"
+                      className="bg-[#768957]/90 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"
                     >
                       {cat}
                     </span>
                   ))}
                   {(t.categories || []).length > 2 && (
-                    <span className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
+                    <span className="bg-[#768957]/90 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
                       +{(t.categories || []).length - 2}
                     </span>
                   )}
@@ -860,7 +860,7 @@ export default function TreatmentsPage() {
                       <ul className="space-y-0.5 text-xs text-neutral-600">
                         {t.features.slice(0, 3).map((f, i) => (
                           <li key={i} className="flex items-center gap-1.5">
-                            <span className="h-1 w-1 bg-black rounded-full" />
+                            <span className="h-1 w-1 bg-[#768957] rounded-full" />
                             <span className="truncate">{f}</span>
                           </li>
                         ))}
@@ -910,7 +910,7 @@ export default function TreatmentsPage() {
                           onChange={() => handleToggleActive(t)}
                           className="sr-only peer"
                         />
-                        <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black"></div>
+                        <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
                         <span className="ml-2 text-xs font-medium text-neutral-500">
                           {t.isActive !== false ? "Active" : "Inactive"}
                         </span>

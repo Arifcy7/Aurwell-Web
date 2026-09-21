@@ -301,7 +301,7 @@ export default function MembershipTiersPage() {
             setTerms("");
             setShowForm(!showForm);
           }}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start cursor-pointer"
+          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition self-start cursor-pointer"
         >
           {showForm ? "Cancel" : "Create Membership Tier"}
         </button>
@@ -458,7 +458,7 @@ export default function MembershipTiersPage() {
                   <button
                     type="button"
                     onClick={handleAddTreatmentRow}
-                    className="text-xs text-black font-semibold hover:underline cursor-pointer"
+                    className="text-xs text-[#768957] font-semibold hover:underline cursor-pointer"
                   >
                     + Add Session
                   </button>
@@ -534,14 +534,14 @@ export default function MembershipTiersPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSaving ? (
                   <>
@@ -561,9 +561,9 @@ export default function MembershipTiersPage() {
 
       {/* Tiers Listing Cards with Simple Fade Animation */}
       {loading ? (
-        <CardGridSkeleton count={2} />
+        <CardGridSkeleton count={2} variant="membership" />
       ) : tiers.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
+        <div className="rounded-2xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No membership tiers established yet</p>
           <p className="text-xs text-neutral-400">Click "Create Membership Tier" to offer recurring patient subscriptions.</p>
         </div>
@@ -575,13 +575,13 @@ export default function MembershipTiersPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className={`rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] flex flex-col justify-between overflow-hidden transition-all duration-300 ${
-                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              className={`rounded-2xl border bg-white shadow-xs hover:shadow-md flex flex-col justify-between overflow-hidden transition-all duration-300 ${
+                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200/80"
               }`}
             >
               <div>
                 {/* Card Cover Header Banner */}
-                <div className="relative h-44 sm:h-48 w-full bg-neutral-900 overflow-hidden">
+                <div className="relative h-44 sm:h-48 w-full bg-[#768957] overflow-hidden">
                   {t.imageUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
@@ -612,7 +612,7 @@ export default function MembershipTiersPage() {
                     <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-md ${
                       t.isActive !== false
                         ? "bg-emerald-500/90 text-white"
-                        : "bg-neutral-800/90 text-neutral-300"
+                        : "bg-[#65774a]/90 text-white"
                     }`}>
                       {t.isActive !== false ? "Active Tier" : "Inactive"}
                     </span>
@@ -660,7 +660,7 @@ export default function MembershipTiersPage() {
                           return (
                             <span
                               key={i}
-                              className="inline-flex items-center gap-1.5 bg-neutral-900 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs"
+                              className="inline-flex items-center gap-1.5 bg-[#768957] text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs"
                             >
                               <span className="text-emerald-400 font-bold">{inc.sessionsCount}x</span>
                               <span>{tr ? tr.title : "Treatment"}</span>
@@ -701,7 +701,7 @@ export default function MembershipTiersPage() {
                     onChange={() => handleToggleActive(t)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neutral-900"></div>
+                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
                   <span className="ml-2.5 text-xs font-semibold text-neutral-700">
                     {t.isActive !== false ? "Active Tier" : "Inactive"}
                   </span>

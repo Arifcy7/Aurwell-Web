@@ -150,7 +150,7 @@ export default function DoctorsPage() {
             setFormIsActive(true);
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-2 bg-neutral-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+          className="flex items-center gap-2 bg-[#768957] hover:bg-[#65774a] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Add Practitioner
         </button>
@@ -158,7 +158,7 @@ export default function DoctorsPage() {
 
       {/* Doctor Cards */}
       {doctors.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-neutral-200/80 p-8 shadow-xs">
+        <div className="text-center py-20 bg-white rounded-2xl border border-neutral-200/80 p-8 shadow-xs">
           <Stethoscope className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
           <h3 className="text-base font-bold text-neutral-900">No practitioners added yet</h3>
           <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
@@ -187,7 +187,7 @@ export default function DoctorsPage() {
                           className="w-12 h-12 rounded-full object-cover border border-neutral-200"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-neutral-100 text-neutral-800 flex items-center justify-center font-bold text-base border border-neutral-200">
+                        <div className="w-12 h-12 rounded-full bg-[#768957]/10 text-[#586940] flex items-center justify-center font-bold text-base border border-[#768957]/20">
                           {doctor.name ? doctor.name[0].toUpperCase() : "D"}
                         </div>
                       )}
@@ -199,11 +199,10 @@ export default function DoctorsPage() {
 
                     <button
                       onClick={() => toggleActiveStatus(doctor)}
-                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border cursor-pointer transition ${
-                        doctor.isActive
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border cursor-pointer transition ${doctor.isActive
+                          ? "bg-[#768957]/10 text-[#586940] border-[#768957]/25"
                           : "bg-neutral-100 text-neutral-600 border-neutral-200"
-                      }`}
+                        }`}
                     >
                       {doctor.isActive ? "ACTIVE" : "INACTIVE"}
                     </button>
@@ -257,10 +256,10 @@ export default function DoctorsPage() {
 
       {/* Add / Edit Practitioner Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <form
             onSubmit={handleSave}
-            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-neutral-100 my-8"
+            className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 space-y-4 shadow-2xl border border-neutral-100 my-8"
           >
             <div>
               <h2 className="text-xl font-black text-neutral-900 tracking-tight">
@@ -279,7 +278,7 @@ export default function DoctorsPage() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   placeholder="e.g. Dr. Sarah Jenkins"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 />
               </div>
 
@@ -289,7 +288,7 @@ export default function DoctorsPage() {
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="e.g. Senior Aesthetic Practitioner"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 />
               </div>
 
@@ -301,7 +300,7 @@ export default function DoctorsPage() {
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
                     placeholder="doctor@clinic.com"
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                   />
                 </div>
                 <div>
@@ -311,7 +310,7 @@ export default function DoctorsPage() {
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
                     placeholder="+44 7700 900123"
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                   />
                 </div>
               </div>
@@ -323,7 +322,7 @@ export default function DoctorsPage() {
                   value={formAvatarUrl}
                   onChange={(e) => setFormAvatarUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 />
               </div>
 
@@ -334,7 +333,7 @@ export default function DoctorsPage() {
                   value={formBio}
                   onChange={(e) => setFormBio(e.target.value)}
                   placeholder="Short introduction visible to patients during online booking..."
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
                 />
               </div>
 
@@ -348,7 +347,7 @@ export default function DoctorsPage() {
                       id="allTreatments"
                       checked={formAllTreatments}
                       onChange={(e) => setFormAllTreatments(e.target.checked)}
-                      className="rounded text-neutral-900 focus:ring-neutral-900 h-3.5 w-3.5"
+                      className="rounded text-[#768957] focus:ring-[#768957] h-3.5 w-3.5"
                     />
                     <label htmlFor="allTreatments" className="text-xs font-semibold text-neutral-700">
                       All Treatments
@@ -367,7 +366,7 @@ export default function DoctorsPage() {
                           type="checkbox"
                           checked={formAssignedTreatments.includes(t.id)}
                           onChange={() => toggleTreatmentSelection(t.id)}
-                          className="rounded text-neutral-900 focus:ring-neutral-900 h-3.5 w-3.5"
+                          className="rounded text-[#768957] focus:ring-[#768957] h-3.5 w-3.5"
                         />
                         <span className="truncate">{t.title}</span>
                       </label>
@@ -388,7 +387,7 @@ export default function DoctorsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-5 py-2.5 bg-neutral-900 hover:bg-black text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+                className="px-5 py-2.5 bg-[#768957] hover:bg-[#65774a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {submitting ? "Saving..." : "Save Practitioner"}
               </button>

@@ -184,7 +184,7 @@ export default function BookingSettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Subdomain */}
-        <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-4">
+        <div className="bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs space-y-4">
           <div>
             <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Public Web Address</h2>
             <p className="text-xs text-neutral-500 mt-0.5">
@@ -201,7 +201,7 @@ export default function BookingSettingsPage() {
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="harleystreet"
-                className="border border-r-0 border-neutral-200 rounded-l-xl p-2.5 text-xs font-mono font-bold text-neutral-900 bg-neutral-50 w-48 focus:bg-white focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900"
+                className="border border-r-0 border-neutral-200 rounded-l-xl p-2.5 text-xs font-mono font-bold text-neutral-900 bg-neutral-50 w-48 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
               />
               <span className="bg-neutral-100 border border-neutral-200 rounded-r-xl px-3 py-2.5 text-xs text-neutral-600 font-mono font-bold">
                 .aurwell.app
@@ -214,116 +214,116 @@ export default function BookingSettingsPage() {
         </div>
 
         {/* Booking Rules & Payment Policies */}
-        <div className="bg-white p-6 rounded-3xl border border-neutral-200/80 shadow-xs space-y-5">
+        <div className="bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs space-y-5">
           <div>
             <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
               Booking Rules & Payment Policies
             </h2>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Stripe deposit requirements, cancellation thresholds, and calendar increment rules
-              </p>
-            </div>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Stripe deposit requirements, cancellation thresholds, and calendar increment rules
+            </p>
+          </div>
 
-            <div className="flex items-center gap-3 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
-              <input
-                type="checkbox"
-                id="reqPayment"
-                checked={requirePayment}
-                onChange={(e) => setRequirePayment(e.target.checked)}
-                className="rounded text-neutral-900 focus:ring-neutral-900 h-4 w-4 cursor-pointer"
-              />
-              <label htmlFor="reqPayment" className="text-xs font-bold text-neutral-900 cursor-pointer">
-                Require upfront deposit / full payment via Stripe during online booking
-              </label>
-            </div>
+          <div className="flex items-center gap-3 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
+            <input
+              type="checkbox"
+              id="reqPayment"
+              checked={requirePayment}
+              onChange={(e) => setRequirePayment(e.target.checked)}
+              className="rounded text-[#768957] focus:ring-[#768957] h-4 w-4 cursor-pointer"
+            />
+            <label htmlFor="reqPayment" className="text-xs font-bold text-neutral-900 cursor-pointer">
+              Require upfront deposit / full payment via Stripe during online booking
+            </label>
+          </div>
 
-            {requirePayment && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
-                <div>
-                  <label className="text-xs font-bold text-neutral-800">Deposit Calculation Type</label>
-                  <select
-                    value={depositType}
-                    onChange={(e) => setDepositType(e.target.value as any)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-white font-semibold focus:outline-none focus:border-neutral-900"
-                  >
-                    <option value="percentage">Percentage of Treatment Price (%)</option>
-                    <option value="fixed">Fixed Currency Amount (£/€/$)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-neutral-800">
-                    Deposit Amount ({depositType === "percentage" ? "%" : "Fixed Amount"})
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max={depositType === "percentage" ? 100 : 10000}
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(Number(e.target.value))}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-white font-semibold focus:outline-none focus:border-neutral-900"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {requirePayment && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
               <div>
-                <label className="text-xs font-bold text-neutral-700">Slot Interval</label>
+                <label className="text-xs font-bold text-neutral-800">Deposit Calculation Type</label>
                 <select
-                  value={slotInterval}
-                  onChange={(e) => setSlotInterval(Number(e.target.value))}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+                  value={depositType}
+                  onChange={(e) => setDepositType(e.target.value as any)}
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-white font-semibold focus:outline-none focus:border-[#768957]"
                 >
-                  <option value={15}>15 Minutes</option>
-                  <option value={30}>30 Minutes</option>
-                  <option value={45}>45 Minutes</option>
-                  <option value={60}>60 Minutes</option>
+                  <option value="percentage">Percentage of Treatment Price (%)</option>
+                  <option value="fixed">Fixed Currency Amount (£/€/$)</option>
                 </select>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-neutral-700">Min Notice (Hours)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={minNotice}
-                  onChange={(e) => setMinNotice(Number(e.target.value))}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-neutral-700">Max Advance (Days)</label>
+                <label className="text-xs font-bold text-neutral-800">
+                  Deposit Amount ({depositType === "percentage" ? "%" : "Fixed Amount"})
+                </label>
                 <input
                   type="number"
                   min="1"
-                  max="365"
-                  value={maxAdvance}
-                  onChange={(e) => setMaxAdvance(Number(e.target.value))}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-neutral-700">Free Cancel (Hours)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={cancellationHours}
-                  onChange={(e) => setCancellationHours(Number(e.target.value))}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+                  max={depositType === "percentage" ? 100 : 10000}
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(Number(e.target.value))}
+                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-white font-semibold focus:outline-none focus:border-[#768957]"
                 />
               </div>
             </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="text-xs font-bold text-neutral-700">Slot Interval</label>
+              <select
+                value={slotInterval}
+                onChange={(e) => setSlotInterval(Number(e.target.value))}
+                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+              >
+                <option value={15}>15 Minutes</option>
+                <option value={30}>30 Minutes</option>
+                <option value={45}>45 Minutes</option>
+                <option value={60}>60 Minutes</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-neutral-700">Min Notice (Hours)</label>
+              <input
+                type="number"
+                min="0"
+                value={minNotice}
+                onChange={(e) => setMinNotice(Number(e.target.value))}
+                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-neutral-700">Max Advance (Days)</label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                value={maxAdvance}
+                onChange={(e) => setMaxAdvance(Number(e.target.value))}
+                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-neutral-700">Free Cancel (Hours)</label>
+              <input
+                type="number"
+                min="0"
+                value={cancellationHours}
+                onChange={(e) => setCancellationHours(Number(e.target.value))}
+                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+              />
+            </div>
           </div>
+        </div>
 
         {/* Save Bar */}
         <div className="flex justify-end pt-2">
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 bg-neutral-900 hover:bg-black text-white px-8 py-3 rounded-2xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 bg-[#768957] hover:bg-[#65774a] text-white px-8 py-3 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" /> {saving ? "Saving Configuration..." : "Save All Settings"}
           </button>

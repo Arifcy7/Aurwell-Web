@@ -515,7 +515,7 @@ export default function AutomatedOffersPage() {
     else if (key.includes("new_year") || key.includes("year")) IconComponent = PartyPopper;
 
     return (
-      <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shadow-xs border border-neutral-800 shrink-0">
+      <div className="w-12 h-12 rounded-2xl bg-[#768957] text-white flex items-center justify-center shadow-xs border border-[#65774a] shrink-0">
         <IconComponent className="w-5 h-5 text-neutral-100" />
       </div>
     );
@@ -551,7 +551,7 @@ export default function AutomatedOffersPage() {
         <div>
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold tracking-tight text-neutral-900">Automated Offers</h2>
-            <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200/80">
+            <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full border bg-[#768957]/10 text-[#586940] border-[#768957]/25">
               App Builder
             </span>
           </div>
@@ -562,7 +562,7 @@ export default function AutomatedOffersPage() {
 
         <button
           onClick={() => setShowAddCustomModal(true)}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition flex items-center gap-2 self-start cursor-pointer"
+          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition flex items-center gap-2 self-start cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Custom Occasion
@@ -578,7 +578,7 @@ export default function AutomatedOffersPage() {
             placeholder="Search occasions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-8 py-2 bg-white border border-neutral-200 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 transition shadow-2xs font-medium text-neutral-800"
+            className="w-full pl-10 pr-8 py-2 bg-white border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#768957] focus:border-[#768957] transition shadow-2xs font-medium text-neutral-800"
           />
           {searchQuery && (
             <button
@@ -592,7 +592,7 @@ export default function AutomatedOffersPage() {
 
         <div className="flex items-center gap-2.5 text-xs font-semibold text-neutral-600 self-end sm:self-auto">
           <span className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-full border border-neutral-200 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="w-2 h-2 rounded-full bg-[#768957]" />
             Active Offers: {offers.filter((o) => o.isActive).length}
           </span>
           <span className="bg-white px-3.5 py-1.5 rounded-full border border-neutral-200 shadow-2xs text-neutral-500">
@@ -602,7 +602,7 @@ export default function AutomatedOffersPage() {
       </div>
 
       {/* ── Occasions Offer List ── */}
-      <div className="bg-white rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+      <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-xs overflow-hidden">
         {filteredOffers.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center justify-center gap-3">
             <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400">
@@ -629,7 +629,7 @@ export default function AutomatedOffersPage() {
                     {renderOccasionBadge(offer)}
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm sm:text-base font-bold text-neutral-900 group-hover:text-black transition">
+                        <h3 className="text-sm sm:text-base font-bold text-neutral-900 group-hover:text-[#768957] transition">
                           {offer.title}
                         </h3>
                         {offer.isCustom && (
@@ -732,7 +732,7 @@ export default function AutomatedOffersPage() {
                   onChange={(e) => setFormIsActive(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neutral-900"></div>
+                <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#768957]"></div>
               </label>
             </div>
 
@@ -894,7 +894,7 @@ export default function AutomatedOffersPage() {
                     onChange={(e) => setFormAllProductsIncluded(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-neutral-900"></div>
+                  <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#768957]"></div>
                 </label>
               </div>
 
@@ -977,7 +977,7 @@ export default function AutomatedOffersPage() {
                     setIsEditing(false);
                     setDeleteTarget(selectedOffer);
                   }}
-                  className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer shadow-2xs"
+                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer shadow-2xs"
                 >
                   Delete Offer
                 </button>
@@ -989,14 +989,14 @@ export default function AutomatedOffersPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                  className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm"
+                  className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-sm"
                 >
                   {isSaving && (
                     <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
@@ -1059,14 +1059,14 @@ export default function AutomatedOffersPage() {
                 setShowAddCustomModal(false);
                 setCustomImageFile(null);
               }}
-              className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+              className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!customOccasionName.trim() || isSaving}
-              className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-sm"
+              className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-sm"
             >
               {isSaving && (
                 <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />

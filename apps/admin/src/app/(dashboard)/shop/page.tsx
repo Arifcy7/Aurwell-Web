@@ -381,10 +381,10 @@ export default function ShopSummaryPage() {
       </div>
 
       {/* Rewards Redemption Progress Card */}
-      <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+      <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center">
               <Gift className="w-4 h-4" />
             </div>
             <div>
@@ -401,17 +401,17 @@ export default function ShopSummaryPage() {
 
         <div className="h-3 w-full rounded-full bg-neutral-100/90 overflow-hidden p-0.5 border border-neutral-200/50">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
+            className="h-full rounded-full bg-[#768957] transition-all duration-500"
             style={{ width: `${redemptionRate}%` }}
           ></div>
         </div>
       </div>
 
       {/* Transaction Log Table Card */}
-      <div className="rounded-3xl bg-white p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 overflow-hidden transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+      <div className="rounded-2xl border border-neutral-200/80 bg-white p-7 shadow-xs overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-neutral-100 text-neutral-800 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center">
               <Receipt className="w-4 h-4" />
             </div>
             <div>
@@ -503,7 +503,7 @@ export default function ShopSummaryPage() {
                           e.stopPropagation();
                           handleOpenDetailModal(tx);
                         }}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-neutral-800 hover:text-black bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-neutral-800 hover:text-[#768957] bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full transition-all cursor-pointer"
                       >
                         Details
                         <ChevronRight className="w-3.5 h-3.5" />
@@ -521,9 +521,9 @@ export default function ShopSummaryPage() {
       {/* DETAILED TRANSACTION INFO MODAL */}
       {/* ========================================================================= */}
       {selectedTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
           <div
-            className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-neutral-100 overflow-hidden my-8 flex flex-col max-h-[90vh]"
+            className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden my-8 flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -667,22 +667,22 @@ export default function ShopSummaryPage() {
               </div>
 
               {/* Financial Breakdown */}
-              <div className="p-4 rounded-2xl bg-neutral-900 text-white space-y-2.5 shadow-sm">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-400">Payment Breakdown</h4>
+              <div className="p-4 rounded-2xl bg-[#768957] text-white space-y-2.5 shadow-sm">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-200">Payment Breakdown</h4>
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between text-neutral-300">
+                  <div className="flex justify-between text-neutral-100">
                     <span>Subtotal:</span>
                     <span>{formatCurrency(selectedTx.subtotal || selectedTx.amount, currency)}</span>
                   </div>
 
                   {Boolean(selectedTx.discountAmount) && selectedTx.discountAmount! > 0 && (
-                    <div className="flex justify-between text-emerald-400">
+                    <div className="flex justify-between text-emerald-200">
                       <span>Discount Applied:</span>
                       <span>-{formatCurrency(selectedTx.discountAmount!, currency)}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-sm font-extrabold text-white pt-2 border-t border-neutral-800">
+                  <div className="flex justify-between text-sm font-extrabold text-white pt-2 border-t border-[#65774a]">
                     <span>Total Amount Paid:</span>
                     <span>{formatCurrency(selectedTx.amount, currency)}</span>
                   </div>
@@ -757,7 +757,7 @@ export default function ShopSummaryPage() {
               <button
                 type="button"
                 onClick={() => setSelectedTx(null)}
-                className="rounded-full bg-neutral-900 px-6 py-2 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+                className="rounded-xl bg-[#768957] px-6 py-2 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer shadow-xs hover:shadow-sm"
               >
                 Close
               </button>
@@ -770,10 +770,10 @@ export default function ShopSummaryPage() {
       {/* REFUND CONFIRMATION MODAL (PASTE DISABLED REQUIREMENT) */}
       {/* ========================================================================= */}
       {showRefundModal && selectedTx && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-neutral-100 overflow-hidden p-6 space-y-5">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden p-6 space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
                 <RotateCcw className="w-5 h-5" />
               </div>
               <div>
@@ -785,7 +785,7 @@ export default function ShopSummaryPage() {
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 p-3 rounded-2xl border border-neutral-100">
+              <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 p-3 rounded-xl border border-neutral-100">
                 This action will call the Stripe Refund API and update the transaction status to <strong>"Refunded"</strong>.
                 To confirm, please manually type <strong className="text-rose-600 font-mono">refund</strong> in the box below.
               </p>
@@ -799,12 +799,9 @@ export default function ShopSummaryPage() {
                   type="text"
                   value={refundInput}
                   onChange={(e) => setRefundInput(e.target.value)}
-                  onPaste={(e) => {
-                    e.preventDefault();
-                    alert("Pasting is disabled for refund confirmation. Please type 'refund' manually.");
-                  }}
-                  placeholder="Type 'refund' here..."
-                  className="w-full rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-2.5 text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-mono"
+                  onPaste={(e) => e.preventDefault()}
+                  placeholder="type 'refund' to confirm"
+                  className="w-full text-xs font-mono font-bold px-3 py-2 border border-neutral-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#768957] focus:border-[#768957] bg-white transition"
                 />
               </div>
             </div>
@@ -814,7 +811,7 @@ export default function ShopSummaryPage() {
               <button
                 type="button"
                 onClick={() => setShowRefundModal(false)}
-                className="rounded-full bg-neutral-100 px-5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-200 transition cursor-pointer"
+                className="rounded-xl bg-neutral-100 px-5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-200 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -823,7 +820,7 @@ export default function ShopSummaryPage() {
                 type="button"
                 disabled={refundInput.trim().toLowerCase() !== "refund" || refunding}
                 onClick={handleExecuteRefund}
-                className="rounded-full bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white px-5 py-2 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 text-xs font-bold text-white px-5 py-2 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
               >
                 {refunding ? "Refunding..." : "Confirm Refund"}
               </button>

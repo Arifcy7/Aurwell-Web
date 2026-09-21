@@ -57,7 +57,7 @@ export default function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`relative z-10 w-[94vw] ${maxWidth} max-h-[88vh] sm:max-h-[90vh] bg-white rounded-3xl border border-neutral-100 shadow-2xl flex flex-col overflow-hidden my-auto`}
+            className={`relative z-10 w-[94vw] ${maxWidth} max-h-[88vh] sm:max-h-[90vh] bg-white rounded-2xl border border-neutral-100 shadow-2xl flex flex-col overflow-hidden my-auto`}
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-5 border-b border-neutral-100 bg-white shrink-0">

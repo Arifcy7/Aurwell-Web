@@ -490,10 +490,10 @@ export default function MembershipsPage() {
       </div>
 
       {/* Active membership list card */}
-      <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 overflow-hidden transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+      <div className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-neutral-100 text-neutral-800 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
@@ -510,7 +510,7 @@ export default function MembershipsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search member, email or tier..."
-              className="w-full pl-9 pr-8 py-2 rounded-full bg-neutral-50 border border-neutral-200 text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition-all"
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-[#768957] focus:border-[#768957] transition-all"
             />
             {searchQuery && (
               <button
@@ -550,7 +550,7 @@ export default function MembershipsPage() {
                     className="hover:bg-neutral-50/80 cursor-pointer transition-colors group"
                   >
                     <td className="py-4 px-4 whitespace-nowrap">
-                      <div className="font-semibold text-neutral-900 group-hover:text-black">{memb.clientName}</div>
+                      <div className="font-semibold text-neutral-900 group-hover:text-[#768957]">{memb.clientName}</div>
                       <div className="text-xs text-neutral-400">{memb.email}</div>
                     </td>
                     <td className="py-4 px-4 whitespace-nowrap font-medium text-neutral-800">
@@ -587,7 +587,7 @@ export default function MembershipsPage() {
                           e.stopPropagation();
                           handleOpenDetailModal(memb);
                         }}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-neutral-800 hover:text-black bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-neutral-800 hover:text-[#768957] bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full transition-all cursor-pointer"
                       >
                         View & Edit
                         <ChevronRight className="w-3.5 h-3.5" />
@@ -605,9 +605,9 @@ export default function MembershipsPage() {
       {/* MEMBERSHIP DETAIL MODAL */}
       {/* ========================================================================= */}
       {selectedMembership && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
           <div
-            className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-neutral-100 overflow-hidden my-8 flex flex-col max-h-[90vh]"
+            className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden my-8 flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -627,7 +627,7 @@ export default function MembershipsPage() {
                 <select
                   value={editingStatus}
                   onChange={(e: any) => setEditingStatus(e.target.value)}
-                  className="rounded-full bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 cursor-pointer shadow-sm"
+                  className="rounded-xl bg-white border border-neutral-200 px-3 py-1.5 text-xs font-bold text-neutral-800 focus:outline-none focus:ring-1 focus:ring-[#768957] cursor-pointer shadow-xs"
                 >
                   <option value="Active">Active</option>
                   <option value="Paused">Paused</option>
@@ -666,7 +666,7 @@ export default function MembershipsPage() {
                       onClick={() => setSelectedYearMonth(rec.yearMonth)}
                       className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
                         selectedYearMonth === rec.yearMonth
-                          ? "bg-neutral-900 text-white border-neutral-900 shadow-sm"
+                          ? "bg-[#768957] text-white border-[#768957] shadow-sm"
                           : "bg-neutral-50 text-neutral-600 border-neutral-200/80 hover:bg-neutral-100"
                       }`}
                     >
@@ -712,7 +712,7 @@ export default function MembershipsPage() {
                   {!showAddTreatmentForm && (
                     <button
                       onClick={() => setShowAddTreatmentForm(true)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-neutral-900 hover:text-black bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-neutral-900 hover:text-[#768957] bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-full transition-all cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add Treatment
@@ -810,7 +810,7 @@ export default function MembershipsPage() {
                         type="button"
                         onClick={handleRequestAddTreatment}
                         disabled={!newTreatmentTitle.trim()}
-                        className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-bold text-white hover:bg-neutral-800 disabled:opacity-50 transition cursor-pointer"
+                        className="rounded-full bg-[#768957] px-4 py-2 text-xs font-bold text-white hover:bg-[#65774a] disabled:opacity-50 transition cursor-pointer"
                       >
                         Proceed to Add...
                       </button>
@@ -920,7 +920,7 @@ export default function MembershipsPage() {
                   type="button"
                   onClick={handleSaveMembershipDetails}
                   disabled={saving}
-                  className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer shadow-sm"
+                  className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer shadow-xs hover:shadow-sm"
                 >
                   {saving ? "Saving Changes..." : "Save Changes"}
                 </button>
@@ -934,20 +934,20 @@ export default function MembershipsPage() {
       {/* CUSTOM CONFIRMATION POPUP MODAL (WITH MANDATORY CHECKBOX TICK) */}
       {/* ========================================================================= */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-neutral-100 overflow-hidden p-6 space-y-5">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-neutral-100 overflow-hidden p-6 space-y-5">
             <div className="flex items-center gap-3">
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                   confirmModal.type === "delete"
                     ? "bg-rose-100 text-rose-600"
-                    : "bg-emerald-100 text-emerald-600"
+                    : "bg-[#768957]/10 text-[#586940]"
                 }`}
               >
                 {confirmModal.type === "delete" ? (
                   <AlertTriangle className="w-5 h-5" />
                 ) : (
-                  <CheckCircle2 className="w-5 h-5" />
+                  <CheckCircle2 className="w-5 h-5 text-[#768957]" />
                 )}
               </div>
               <div>
@@ -958,7 +958,7 @@ export default function MembershipsPage() {
               </div>
             </div>
 
-            <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 p-3.5 rounded-2xl border border-neutral-100">
+            <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 p-3.5 rounded-xl border border-neutral-100">
               {confirmModal.type === "delete" ? (
                 <>
                   Are you sure you want to remove <strong>"{confirmModal.treatmentTitle}"</strong> from this subscriber's cycle?
@@ -973,10 +973,10 @@ export default function MembershipsPage() {
             {/* Custom Checkbox Requirement */}
             <div
               onClick={() => setConfirmModal((prev) => ({ ...prev, isChecked: !prev.isChecked }))}
-              className="flex items-center gap-3 p-3 rounded-2xl border border-neutral-200/80 bg-neutral-50/70 hover:bg-neutral-100/60 transition cursor-pointer select-none"
+              className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200/80 bg-neutral-50/70 hover:bg-neutral-100/60 transition cursor-pointer select-none"
             >
               {confirmModal.isChecked ? (
-                <CheckSquare className="w-5 h-5 text-neutral-900 flex-shrink-0" />
+                <CheckSquare className="w-5 h-5 text-[#768957] flex-shrink-0" />
               ) : (
                 <Square className="w-5 h-5 text-neutral-400 flex-shrink-0" />
               )}
@@ -997,7 +997,7 @@ export default function MembershipsPage() {
                     isChecked: false,
                   })
                 }
-                className="rounded-full bg-neutral-100 px-5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-200 transition cursor-pointer"
+                className="rounded-xl bg-neutral-100 px-5 py-2 text-xs font-bold text-neutral-700 hover:bg-neutral-200 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -1006,10 +1006,10 @@ export default function MembershipsPage() {
                 type="button"
                 disabled={!confirmModal.isChecked}
                 onClick={handleExecuteConfirmedAction}
-                className={`rounded-full px-5 py-2 text-xs font-bold text-white transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm ${
+                className={`rounded-xl px-5 py-2 text-xs font-bold text-white transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-xs ${
                   confirmModal.type === "delete"
                     ? "bg-rose-600 hover:bg-rose-700"
-                    : "bg-neutral-900 hover:bg-neutral-800"
+                    : "bg-[#768957] hover:bg-[#65774a]"
                 }`}
               >
                 {confirmModal.type === "delete" ? "Confirm Delete" : "Confirm Add"}

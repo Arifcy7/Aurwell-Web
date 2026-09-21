@@ -6,7 +6,9 @@ import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
-import QRScannerModal from "@/components/QRScannerModal";
+import dynamic from "next/dynamic";
+
+const QRScannerModal = dynamic(() => import("@/components/QRScannerModal"), { ssr: false });
 import AdminSplashScreen from "@/components/AdminSplashScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -245,16 +247,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
             <Link
               href="/dashboard"
-              className={`group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === "/dashboard"
-                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+              className={`group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/dashboard"
+                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <LayoutDashboard
-                className={`w-5 h-5 transition-colors ${
-                  pathname === "/dashboard" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                }`}
+                className={`w-5 h-5 transition-colors ${pathname === "/dashboard" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                  }`}
               />
               <span>Dashboard</span>
             </Link>
@@ -266,17 +266,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               whileHover={{ x: 3 }}
               transition={{ duration: 0.15 }}
               onClick={() => toggleSection("appBuilder")}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
-                pathname.startsWith("/app-builder")
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${pathname.startsWith("/app-builder")
                   ? "text-neutral-900"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <Sparkles
-                  className={`w-5 h-5 transition-colors ${
-                    pathname.startsWith("/app-builder") ? "text-neutral-900" : "text-neutral-500"
-                  }`}
+                  className={`w-5 h-5 transition-colors ${pathname.startsWith("/app-builder") ? "text-neutral-900" : "text-neutral-500"
+                    }`}
                 />
                 <span>App Builder</span>
               </div>
@@ -323,11 +321,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                         <Link
                           href={subItem.href}
-                          className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-2xl text-xs font-semibold transition-all ${
-                            isSubActive
-                              ? "bg-white text-neutral-900 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                          className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-xl text-xs font-semibold transition-all ${isSubActive
+                              ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                               : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2.5 truncate">
                             {subItem.name}
@@ -355,17 +352,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
             <Link
               href="/clients"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === "/clients"
-                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/clients"
+                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <Users
-                  className={`w-5 h-5 transition-colors ${
-                    pathname === "/clients" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                  }`}
+                  className={`w-5 h-5 transition-colors ${pathname === "/clients" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                    }`}
                 />
                 <span>Clients</span>
               </div>
@@ -376,17 +371,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
             <Link
               href="/shop"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === "/shop"
-                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/shop"
+                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <ShoppingBag
-                  className={`w-5 h-5 transition-colors ${
-                    pathname === "/shop" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                  }`}
+                  className={`w-5 h-5 transition-colors ${pathname === "/shop" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                    }`}
                 />
                 <span>Shop</span>
               </div>
@@ -397,17 +390,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
             <Link
               href="/memberships"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === "/memberships"
-                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/memberships"
+                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <CreditCard
-                  className={`w-5 h-5 transition-colors ${
-                    pathname === "/memberships" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                  }`}
+                  className={`w-5 h-5 transition-colors ${pathname === "/memberships" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                    }`}
                 />
                 <span>Memberships</span>
               </div>
@@ -418,17 +409,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
             <Link
               href="/notifications"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === "/notifications"
-                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/notifications"
+                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <Bell
-                  className={`w-5 h-5 transition-colors ${
-                    pathname === "/notifications" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                  }`}
+                  className={`w-5 h-5 transition-colors ${pathname === "/notifications" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                    }`}
                 />
                 <span>Notifications</span>
               </div>
@@ -439,17 +428,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
             <Link
               href="/referrals"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                pathname === "/referrals"
-                  ? "bg-white text-neutral-900 shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/referrals"
+                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                   : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3.5">
                 <Share2
-                  className={`w-5 h-5 transition-colors ${
-                    pathname === "/referrals" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                  }`}
+                  className={`w-5 h-5 transition-colors ${pathname === "/referrals" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                    }`}
                 />
                 <span>Referrals Program</span>
               </div>
@@ -462,17 +449,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 whileHover={{ x: 3 }}
                 transition={{ duration: 0.15 }}
                 onClick={() => toggleSection("bookings")}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer ${
-                  pathname.startsWith("/bookings")
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${pathname.startsWith("/bookings")
                     ? "text-neutral-900"
                     : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3.5">
                   <Calendar
-                    className={`w-5 h-5 transition-colors ${
-                      pathname.startsWith("/bookings") ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                    }`}
+                    className={`w-5 h-5 transition-colors ${pathname.startsWith("/bookings") ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
+                      }`}
                   />
                   <span>Bookings</span>
                 </div>
@@ -518,11 +503,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                           <Link
                             href={subItem.href}
-                            className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-2xl text-xs font-semibold transition-all ${
-                              isSubActive
-                                ? "bg-white text-neutral-900 shadow-[0_4px_16px_rgba(0,0,0,0.06)] border border-neutral-100 font-bold"
+                            className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-xl text-xs font-semibold transition-all ${isSubActive
+                                ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
                                 : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-2.5 truncate">
                               {subItem.icon && <span className="text-neutral-400">{subItem.icon}</span>}
@@ -543,17 +527,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }} className="pt-2">
               <Link
                 href="/super-admin"
-                className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                  pathname.startsWith("/super-admin")
-                    ? "bg-neutral-900 text-white shadow-[0_4px_20px_rgba(0,0,0,0.15)] font-bold"
+                className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname.startsWith("/super-admin")
+                    ? "bg-[#768957] text-white shadow-xs font-bold"
                     : "text-neutral-700 hover:text-neutral-900 hover:bg-white/80 border border-neutral-200/60 bg-neutral-100/60"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3.5">
                   <Shield
-                    className={`w-5 h-5 transition-colors ${
-                      pathname.startsWith("/super-admin") ? "text-[#C9A96E]" : "text-[#C9A96E]"
-                    }`}
+                    className={`w-5 h-5 transition-colors ${pathname.startsWith("/super-admin") ? "text-[#C9A96E]" : "text-[#C9A96E]"
+                      }`}
                   />
                   <span>Super Admin</span>
                 </div>
@@ -584,9 +566,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 rounded-full border border-neutral-200/80 bg-white px-4 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 shadow-sm transition-all cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 shadow-xs transition-all cursor-pointer active:scale-[0.98]"
         >
-          <LogOut className="w-3.5 h-3.5" />
+          <LogOut className="w-3.5 h-3.5 text-neutral-500" />
           Sign Out
         </button>
       </div>
@@ -644,10 +626,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowScanner(true)}
-            className="p-2 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 transition"
+            className="p-2 rounded-xl bg-[#768957] text-white hover:bg-[#65774a] transition shadow-xs flex items-center justify-center cursor-pointer active:scale-[0.98]"
             title="Scan Member QR"
           >
-            <QrCode className="w-4 h-4" />
+            <QrCode className="w-4 h-4 text-white" />
           </button>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -695,9 +677,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="hidden sm:flex items-center gap-3">
             <button
               onClick={() => setShowScanner(true)}
-              className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition-all flex items-center gap-2 cursor-pointer"
+              className="rounded-xl bg-[#768957] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-[0.98]"
             >
-              <QrCode className="w-4 h-4 text-emerald-400" />
+              <QrCode className="w-4 h-4 text-white" />
               Scan Member QR
             </button>
           </div>

@@ -26,7 +26,7 @@ export default function StatCard({
   const isDecrease = changeType === "decrease";
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)]">
+    <div className="relative overflow-hidden rounded-2xl bg-white p-6 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03),0_6px_16px_-6px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)]">
       {/* Header section with title and circular icon container */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
@@ -36,7 +36,7 @@ export default function StatCard({
           </div>
         </div>
 
-        <div className="w-11 h-11 rounded-full bg-neutral-100/80 flex items-center justify-center text-neutral-700 flex-shrink-0 shadow-inner">
+        <div className="w-10 h-10 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center flex-shrink-0">
           {icon ? (
             icon
           ) : (
@@ -73,7 +73,7 @@ export default function StatCard({
         {showSparkline && (
           <div className="w-24 h-12 flex-shrink-0 pb-1">
             <svg
-              className="w-full h-full text-emerald-500 overflow-visible"
+              className="w-full h-full text-[#768957] overflow-visible"
               viewBox="0 0 100 40"
               fill="none"
             >
@@ -81,7 +81,7 @@ export default function StatCard({
                 d="M 5,30 Q 25,32 45,15 T 75,8 Q 85,25 95,28"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -96,7 +96,7 @@ export default function StatCard({
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold border ${
               isIncrease
-                ? "bg-emerald-50 text-emerald-600 border-emerald-100/80"
+                ? "bg-[#768957]/10 text-[#586940] border-[#768957]/25"
                 : isDecrease
                 ? "bg-rose-50 text-rose-600 border-rose-100/80"
                 : "bg-neutral-50 text-neutral-600 border-neutral-200/80"

@@ -214,7 +214,7 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
               handleReset();
               onClose();
             }}
-            className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-black transition"
+            className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-[#768957] transition"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -245,7 +245,7 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
 
             <button
               onClick={handleReset}
-              className="w-full rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+              className="w-full rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer"
             >
               Scan Another Card
             </button>
@@ -261,7 +261,7 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
 
             {processing ? (
               <div className="flex justify-center items-center gap-2 text-xs text-neutral-500 py-12">
-                <div className="h-4 w-4 animate-spin rounded-full border border-neutral-300 border-t-black"></div>
+                <div className="h-4 w-4 animate-spin rounded-full border border-neutral-300 border-t-[#768957]"></div>
                 Updating client profile and loyalty points...
               </div>
             ) : (

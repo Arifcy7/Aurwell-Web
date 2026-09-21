@@ -266,7 +266,7 @@ export default function BannersPage() {
             if (treatments.length > 0) setTargetId(treatments[0].id);
             setShowForm(!showForm);
           }}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-sm transition self-start cursor-pointer"
+          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition self-start cursor-pointer"
         >
           {showForm ? "Cancel" : "Add App Banner"}
         </button>
@@ -361,13 +361,13 @@ export default function BannersPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 transition cursor-pointer"
+                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer shadow-xs hover:shadow-sm"
               >
                 {editId ? "Update Banner" : "Save Banner"}
               </button>
@@ -377,9 +377,9 @@ export default function BannersPage() {
 
       {/* Banners Listing Cards with Simple Fade Animation */}
       {loading ? (
-        <CardGridSkeleton count={2} />
+        <CardGridSkeleton count={3} variant="banner" />
       ) : banners.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
+        <div className="rounded-2xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No promotional banners added yet</p>
           <p className="text-xs text-neutral-400">Click "Add App Banner" to create your first visual carousel item.</p>
         </div>
@@ -391,8 +391,8 @@ export default function BannersPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className={`overflow-hidden rounded-3xl border bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.08)] flex flex-col justify-between transition-all duration-300 ${
-                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-100"
+              className={`overflow-hidden rounded-2xl border bg-white shadow-xs hover:shadow-md flex flex-col justify-between transition-all duration-300 ${
+                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200/80"
               }`}
             >
               <div>
@@ -413,7 +413,7 @@ export default function BannersPage() {
                     <span
                       className={`shrink-0 px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
                         b.isActive !== false
-                          ? "bg-emerald-50 text-emerald-700 border-emerald-200/80"
+                          ? "bg-[#768957]/10 text-[#586940] border-[#768957]/25"
                           : "bg-neutral-100 text-neutral-500 border-neutral-200"
                       }`}
                     >
@@ -440,7 +440,7 @@ export default function BannersPage() {
                     onChange={() => handleToggleActive(b)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neutral-900"></div>
+                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
                   <span className="ml-2 text-xs font-semibold text-neutral-700">
                     {b.isActive !== false ? "Active" : "Inactive"}
                   </span>

@@ -41,7 +41,7 @@ const topTreatments = [
 ];
 
 const membershipTiers = [
-  { name: "Prestige Elite VIP", activeCount: 68, monthlyRevenue: "€30,532", growth: "+14%", color: "bg-neutral-900" },
+  { name: "Prestige Elite VIP", activeCount: 68, monthlyRevenue: "€30,532", growth: "+14%", color: "bg-[#768957]" },
   { name: "Lumière Glow Club", activeCount: 124, monthlyRevenue: "€24,676", growth: "+22%", color: "bg-emerald-600" },
   { name: "Essentials Skincare", activeCount: 89, monthlyRevenue: "€8,811", growth: "+9%", color: "bg-teal-600" },
 ];
@@ -80,12 +80,12 @@ export default function DashboardAnalyticsGraph({
     points.slice(1).map((p) => `L ${p.x} ${p.y}`).join(" ");
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 flex flex-col justify-between transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] min-h-[440px]">
+    <div className="rounded-2xl bg-white p-6 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03),0_6px_16px_-6px_rgba(0,0,0,0.03)] flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] min-h-[440px]">
       {/* Header & Dropdown Controls */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-neutral-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center shrink-0">
               {graphType === "revenue" && <TrendingUp className="w-4 h-4" />}
               {graphType === "clients" && <Users className="w-4 h-4" />}
               {graphType === "treatments" && <BarChart3 className="w-4 h-4" />}
@@ -94,7 +94,7 @@ export default function DashboardAnalyticsGraph({
             <div>
               <h3 className="text-base font-bold text-neutral-900 tracking-tight flex items-center gap-2">
                 Clinic Analytics
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#586940] bg-[#768957]/10 px-2 py-0.5 rounded-full border border-[#768957]/25">
                   Live
                 </span>
               </h3>
@@ -107,7 +107,7 @@ export default function DashboardAnalyticsGraph({
             <select
               value={graphType}
               onChange={(e) => setGraphType(e.target.value as GraphViewType)}
-              className="appearance-none bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full px-4 py-2 pr-9 text-xs font-semibold text-neutral-800 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="appearance-none bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full px-4 py-2 pr-9 text-xs font-semibold text-neutral-800 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#768957]/20"
             >
               <option value="revenue">📈 Revenue Growth (€)</option>
               <option value="clients">👥 Client Acquisition</option>
@@ -149,8 +149,8 @@ export default function DashboardAnalyticsGraph({
                 <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-full overflow-visible">
                   <defs>
                     <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#768957" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="#768957" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
 
@@ -169,8 +169,8 @@ export default function DashboardAnalyticsGraph({
                     transition={{ duration: 0.8, ease: "easeInOut" }}
                     d={linePath}
                     fill="none"
-                    stroke="#10b981"
-                    strokeWidth="3"
+                    stroke="#768957"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                   />
 
@@ -181,7 +181,7 @@ export default function DashboardAnalyticsGraph({
                         cx={p.x}
                         cy={p.y}
                         r={hoveredDataIndex === index ? 6 : 4}
-                        className={`transition-all duration-200 ${hoveredDataIndex === index ? "fill-emerald-600 stroke-white stroke-2" : "fill-neutral-900"}`}
+                        className={`transition-all duration-200 ${hoveredDataIndex === index ? "fill-[#586940] stroke-white stroke-2" : "fill-[#768957]"}`}
                       />
                       {/* X Axis Labels */}
                       <text x={p.x} y={svgHeight - 5} textAnchor="middle" className="text-[10px] font-bold fill-neutral-400">
@@ -193,9 +193,9 @@ export default function DashboardAnalyticsGraph({
 
                 {/* Tooltip Overlay */}
                 {hoveredDataIndex !== null && (
-                  <div className="absolute top-3 left-4 bg-neutral-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-md pointer-events-none flex items-center gap-2 animate-fadeIn">
-                    <span>{monthlyData[hoveredDataIndex].label}:</span>
-                    <span className="text-emerald-400 font-extrabold">€{monthlyData[hoveredDataIndex].revenue.toLocaleString()}</span>
+                  <div className="absolute top-3 left-4 bg-white/95 backdrop-blur-md border border-neutral-200/90 text-neutral-800 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] pointer-events-none flex items-center gap-2 animate-fadeIn">
+                    <span className="text-neutral-500 font-medium">{monthlyData[hoveredDataIndex].label}:</span>
+                    <span className="text-[#586940] font-bold">€{monthlyData[hoveredDataIndex].revenue.toLocaleString()}</span>
                   </div>
                 )}
               </div>
@@ -221,7 +221,7 @@ export default function DashboardAnalyticsGraph({
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> New
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-900" /> Returning
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#768957]" /> Returning
                   </span>
                 </div>
               </div>
@@ -244,7 +244,7 @@ export default function DashboardAnalyticsGraph({
                         initial={{ height: 0 }}
                         animate={{ height: `${(d.returningClients / 100) * 100}%` }}
                         transition={{ duration: 0.5, delay: idx * 0.05 + 0.1 }}
-                        className="w-1/2 bg-neutral-900 rounded-t-lg group-hover:bg-neutral-800 transition-colors"
+                        className="w-1/2 bg-[#768957] rounded-t-lg group-hover:bg-[#65774a] transition-colors"
                         title={`Returning: ${d.returningClients}`}
                       />
                     </div>

@@ -46,7 +46,7 @@ export default function DeleteConfirmModal({
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className="pointer-events-auto w-full max-w-sm rounded-3xl bg-white shadow-[0_24px_60px_rgba(0,0,0,0.18)] border border-neutral-100 overflow-hidden">
+            <div className="pointer-events-auto w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-neutral-100 overflow-hidden">
               {/* Top accent bar */}
               <div className="h-1 w-full bg-gradient-to-r from-red-400 via-rose-500 to-red-400" />
 
@@ -54,7 +54,7 @@ export default function DeleteConfirmModal({
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
                       <AlertTriangle className="w-5 h-5 text-red-500" />
                     </div>
                     <div>
@@ -76,7 +76,7 @@ export default function DeleteConfirmModal({
                 </div>
 
                 {/* Description */}
-                <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 rounded-2xl px-4 py-3 border border-neutral-100">
+                <p className="text-xs text-neutral-600 leading-relaxed bg-neutral-50 rounded-xl px-4 py-3 border border-neutral-100">
                   {description}
                   {" "}Any associated images stored in Firebase Storage will also be deleted.
                 </p>
@@ -87,7 +87,7 @@ export default function DeleteConfirmModal({
                     type="button"
                     onClick={onClose}
                     disabled={isDeleting}
-                    className="flex-1 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition disabled:opacity-40 cursor-pointer"
+                    className="flex-1 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition disabled:opacity-40 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -95,7 +95,7 @@ export default function DeleteConfirmModal({
                     type="button"
                     onClick={onConfirm}
                     disabled={isDeleting}
-                    className="flex-1 rounded-full bg-red-600 hover:bg-red-700 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {isDeleting ? (
                       <>

@@ -29,9 +29,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] px-4 text-black">
-      <div className="w-full max-w-md space-y-8 rounded-3xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      <div className="w-full max-w-md space-y-8 rounded-2xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-md bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
+          <div className="w-12 h-12 rounded-xl bg-[#768957] text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
             A
           </div>
           <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Reset Password</h2>
@@ -60,8 +60,8 @@ export default function ForgotPasswordPage() {
 
           {message && (
             <div
-              className={`rounded-full px-4 py-2 text-xs font-semibold ${status === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
+              className={`rounded-xl px-4 py-2 text-xs font-semibold ${status === "success"
+                  ? "bg-[#768957]/10 text-[#586940] border border-[#768957]/30"
                   : "bg-red-50 text-red-800 border border-red-200"
                 }`}
             >
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="flex w-full justify-center rounded-full bg-neutral-900 px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-neutral-800 transition disabled:opacity-50 cursor-pointer"
+              className="flex w-full justify-center rounded-xl bg-[#768957] px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] transition disabled:opacity-50 cursor-pointer"
             >
               {status === "loading" ? "Sending..." : "Send Reset Link"}
             </button>
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
         </form>
 
         <div className="text-center text-xs">
-          <Link href="/login" className="font-bold text-neutral-900 hover:underline">
+          <Link href="/login" className="font-bold text-[#768957] hover:underline">
             Back to Login
           </Link>
         </div>

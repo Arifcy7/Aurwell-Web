@@ -34,7 +34,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] px-4 text-black">
-      <div className="w-full max-w-md space-y-8 rounded-3xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
+      <div className="w-full max-w-md space-y-8 rounded-2xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
         <a
           href={landingPageUrl}
           className="absolute left-6 top-6 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 shadow-2xs"
@@ -44,7 +44,7 @@ export default function LoginPage() {
           <ArrowLeft className="h-4 w-4" />
         </a>
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-md bg-neutral-900 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
+          <div className="w-12 h-12 rounded-xl bg-[#768957] text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
             A
           </div>
           <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Clinic Admin Sign In</h2>
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-neutral-500 hover:text-black hover:underline font-medium"
+                  className="text-xs text-neutral-500 hover:text-[#768957] hover:underline font-medium"
                 >
                   Forgot password?
                 </Link>
@@ -97,7 +97,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
               {error}
             </div>
           )}
@@ -106,7 +106,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="flex w-full justify-center rounded-full bg-neutral-900 px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-neutral-800 transition disabled:opacity-50 cursor-pointer"
+              className="flex w-full justify-center rounded-xl bg-[#768957] px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] transition disabled:opacity-50 cursor-pointer"
             >
               {status === "loading" ? "Signing In..." : "Sign In"}
             </button>
@@ -115,7 +115,7 @@ export default function LoginPage() {
 
         <div className="text-center text-xs text-neutral-500">
           Not registered?{" "}
-          <Link href="/signup" className="font-bold text-neutral-900 hover:underline">
+          <Link href="/signup" className="font-bold text-[#768957] hover:underline">
             Create an Account
           </Link>
         </div>

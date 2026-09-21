@@ -330,12 +330,12 @@ export default function ClinicAnalyticsDashboard({
   const currentOption = graphOptions.find((o) => o.value === graphType);
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-neutral-100 flex flex-col justify-between transition-all hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] h-full">
+    <div className="rounded-2xl bg-white p-6 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03),0_6px_16px_-6px_rgba(0,0,0,0.03)] flex flex-col justify-between transition-all hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] h-full">
       {/* Header & Custom Dropdown Menu */}
       <div>
         <div className="flex items-center justify-between mb-4 pb-3 border-b border-neutral-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center shrink-0">
               {graphType === "revenue" && <TrendingUp className="w-4 h-4" />}
               {graphType === "treatments" && <BarChart3 className="w-4 h-4" />}
               {graphType === "patients" && <Users className="w-4 h-4" />}
@@ -352,7 +352,7 @@ export default function ClinicAnalyticsDashboard({
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen((v) => !v)}
-              className="flex items-center gap-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full pl-3 pr-2.5 py-1.5 text-xs font-bold text-neutral-800 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-black/10 shadow-2xs"
+              className="flex items-center gap-2 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-full pl-3 pr-2.5 py-1.5 text-xs font-bold text-neutral-800 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-[#768957]/20 shadow-2xs"
             >
               <span className="text-neutral-500">{currentOption?.icon}</span>
               <span>{currentOption?.label}</span>
@@ -375,11 +375,11 @@ export default function ClinicAnalyticsDashboard({
                       onClick={() => { setGraphType(opt.value); setDropdownOpen(false); }}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
                         graphType === opt.value
-                          ? "bg-neutral-900 text-white"
+                          ? "bg-[#768957] text-white"
                           : "text-neutral-700 hover:bg-neutral-50"
                       }`}
                     >
-                      <span className={graphType === opt.value ? "text-emerald-400" : "text-neutral-400"}>{opt.icon}</span>
+                      <span className={graphType === opt.value ? "text-white" : "text-neutral-400"}>{opt.icon}</span>
                       {opt.label}
                     </button>
                   ))}
@@ -442,8 +442,8 @@ export default function ClinicAnalyticsDashboard({
                 >
                   <defs>
                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#768957" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="#768957" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
 
@@ -454,8 +454,8 @@ export default function ClinicAnalyticsDashboard({
                     transition={{ duration: 0.8, ease: "easeInOut" }}
                     d={revLinePath}
                     fill="none"
-                    stroke="#10b981"
-                    strokeWidth="3"
+                    stroke="#768957"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                   />
 
@@ -478,10 +478,10 @@ export default function ClinicAnalyticsDashboard({
                         cx={p.x}
                         cy={p.y}
                         r={hoveredRevIdx === idx ? 7 : 4}
-                        className="fill-neutral-900 stroke-white stroke-2 transition-all duration-150"
+                        className="fill-[#768957] stroke-white stroke-2 transition-all duration-150"
                       />
                       {hoveredRevIdx === idx && (
-                        <circle cx={p.x} cy={p.y} r={12} fill="#10b981" fillOpacity="0.12" />
+                        <circle cx={p.x} cy={p.y} r={12} fill="#768957" fillOpacity="0.15" />
                       )}
                       <text x={p.x} y={revSvgH - 5} textAnchor="middle" className="text-[10px] font-bold fill-neutral-400">
                         {p.data.label}
@@ -493,15 +493,15 @@ export default function ClinicAnalyticsDashboard({
                 {/* Tooltip pinned just above the cursor, clamped within chart */}
                 {hoveredRevIdx !== null && revenueData[hoveredRevIdx] && (
                   <div
-                    className="absolute pointer-events-none z-20 bg-neutral-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap"
+                    className="absolute pointer-events-none z-20 bg-white/95 backdrop-blur-md border border-neutral-200/90 text-neutral-800 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] whitespace-nowrap flex items-center gap-1.5"
                     style={{
                       left: chartMousePos.x,
                       top: Math.max(4, chartMousePos.y - 44),
                       transform: 'translateX(-50%)',
                     }}
                   >
-                    <span className="text-neutral-400">{revenueData[hoveredRevIdx].label} — </span>
-                    <span className="text-emerald-400 font-bold">{currencySymbol}{revenueData[hoveredRevIdx].amount.toLocaleString()}</span>
+                    <span className="text-neutral-500 font-medium">{revenueData[hoveredRevIdx].label} — </span>
+                    <span className="text-[#586940] font-bold">{currencySymbol}{revenueData[hoveredRevIdx].amount.toLocaleString()}</span>
                   </div>
                 )}
               </div>
@@ -574,15 +574,15 @@ export default function ClinicAnalyticsDashboard({
                 {/* Tooltip pinned just above cursor, clamped within chart */}
                 {hoveredBarIdx !== null && topTreatments[hoveredBarIdx] && (
                   <div
-                    className="absolute pointer-events-none z-20 bg-neutral-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap"
+                    className="absolute pointer-events-none z-20 bg-white/95 backdrop-blur-md border border-neutral-200/90 text-neutral-800 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] whitespace-nowrap flex items-center gap-1.5"
                     style={{
                       left: chartMousePos.x,
                       top: Math.max(4, chartMousePos.y - 44),
                       transform: 'translateX(-50%)',
                     }}
                   >
-                    <span className="text-neutral-400">{topTreatments[hoveredBarIdx].name} — </span>
-                    <span className="text-emerald-400 font-bold">{topTreatments[hoveredBarIdx].count} sessions</span>
+                    <span className="text-neutral-500 font-medium">{topTreatments[hoveredBarIdx].name} — </span>
+                    <span className="text-[#586940] font-bold">{topTreatments[hoveredBarIdx].count} sessions</span>
                   </div>
                 )}
               </div>
@@ -692,15 +692,15 @@ export default function ClinicAnalyticsDashboard({
                 {/* Tooltip pinned just above cursor, clamped within chart */}
                 {hoveredPatIdx !== null && patientGrowth[hoveredPatIdx] && (
                   <div
-                    className="absolute pointer-events-none z-20 bg-neutral-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow-lg whitespace-nowrap"
+                    className="absolute pointer-events-none z-20 bg-white/95 backdrop-blur-md border border-neutral-200/90 text-neutral-800 text-xs font-semibold px-3.5 py-2 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)] whitespace-nowrap flex items-center gap-1.5"
                     style={{
                       left: chartMousePos.x,
                       top: Math.max(4, chartMousePos.y - 44),
                       transform: 'translateX(-50%)',
                     }}
                   >
-                    <span className="text-neutral-400">{patientGrowth[hoveredPatIdx].month} — </span>
-                    <span className="text-indigo-400 font-bold">{patientGrowth[hoveredPatIdx].count} patients</span>
+                    <span className="text-neutral-500 font-medium">{patientGrowth[hoveredPatIdx].month} — </span>
+                    <span className="text-indigo-600 font-bold">{patientGrowth[hoveredPatIdx].count} patients</span>
                   </div>
                 )}
               </div>

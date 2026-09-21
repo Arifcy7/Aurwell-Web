@@ -62,7 +62,7 @@ export default function ColorPickerDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-[42px] p-1.5 pl-2 pr-5 bg-neutral-50/85 hover:bg-white rounded-full border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 transition-all flex items-center justify-between text-sm cursor-pointer group"
+        className="w-full h-[42px] p-1.5 pl-2 pr-5 bg-neutral-50/85 hover:bg-white rounded-full border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-[#768957]/20 focus:border-[#768957] transition-all flex items-center justify-between text-sm cursor-pointer group"
       >
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Symmetrical Pill Swatch */}
@@ -156,7 +156,7 @@ export default function ColorPickerDropdown({
                   value={currentColor}
                   onChange={(e) => onChange(e.target.value)}
                   placeholder="#000000"
-                  className="w-full px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-900 bg-neutral-50/50"
+                  className="w-full px-3 py-1.5 text-xs font-mono font-semibold rounded-full border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-[#768957]/20 focus:border-[#768957] bg-neutral-50/50"
                 />
               </div>
             </div>

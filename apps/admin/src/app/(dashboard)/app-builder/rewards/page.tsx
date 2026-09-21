@@ -125,7 +125,7 @@ function ModernSlider({
         <div className="relative flex-1 flex items-center">
           <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden relative">
             <div
-              className="h-full bg-neutral-900 rounded-full transition-all duration-75"
+              className="h-full bg-[#768957] rounded-full transition-all duration-75"
               style={{ width: `${percentage}%` }}
             />
           </div>
@@ -162,7 +162,7 @@ function ModernSlider({
                 onClick={() => onChange(preset)}
                 className={`text-[11px] font-medium px-2 py-0.5 rounded-md transition cursor-pointer ${
                   value === preset
-                    ? "bg-neutral-900 text-white shadow-xs"
+                    ? "bg-[#768957] text-white shadow-xs"
                     : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
                 }`}
               >
@@ -402,7 +402,7 @@ export default function RewardsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="rounded-3xl border border-neutral-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-6 w-full"
+        className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-6 w-full"
       >
         <div>
           <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ export default function RewardsPage() {
             </div>
 
             <div className="bg-white border border-neutral-200/70 rounded-xl p-3.5 text-xs text-neutral-700 leading-relaxed font-medium shadow-2xs">
-              Clients earn <strong className="text-neutral-900 font-bold underline decoration-emerald-500 decoration-2">{pointsEarned} pt(s)</strong> for every{" "}
+              Clients earn <strong className="text-neutral-900 font-bold underline decoration-[#768957] decoration-2">{pointsEarned} pt(s)</strong> for every{" "}
               <strong className="text-neutral-900 font-bold">€{spendAmount}</strong> spent on clinic treatments.
             </div>
 
@@ -516,7 +516,7 @@ export default function RewardsPage() {
                     <Gift className="w-3.5 h-3.5 text-neutral-500" />
                     <span className="text-xs font-semibold text-neutral-800">First Visit Bonus</span>
                   </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-100">
+                  <span className="text-xs font-bold text-[#586940] bg-[#768957]/10 px-2.5 py-0.5 rounded-md border border-[#768957]/25">
                     +{firstVisitPoints} pts
                   </span>
                 </div>
@@ -526,7 +526,7 @@ export default function RewardsPage() {
                     <Star className="w-3.5 h-3.5 text-neutral-500" />
                     <span className="text-xs font-semibold text-neutral-800">Google Review Bonus</span>
                   </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-100">
+                  <span className="text-xs font-bold text-[#586940] bg-[#768957]/10 px-2.5 py-0.5 rounded-md border border-[#768957]/25">
                     +{googleReviewPoints} pts
                   </span>
                 </div>
@@ -536,7 +536,7 @@ export default function RewardsPage() {
                     <UserPlus className="w-3.5 h-3.5 text-neutral-500" />
                     <span className="text-xs font-semibold text-neutral-800">Refer a Friend Bonus</span>
                   </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-100">
+                  <span className="text-xs font-bold text-[#586940] bg-[#768957]/10 px-2.5 py-0.5 rounded-md border border-[#768957]/25">
                     +{referralPoints} pts
                   </span>
                 </div>
@@ -570,7 +570,7 @@ export default function RewardsPage() {
             setExpiryDays("");
             setShowForm(!showForm);
           }}
-          className="rounded-full bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white hover:bg-neutral-800 shadow-xs transition cursor-pointer flex items-center gap-2"
+          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition cursor-pointer flex items-center gap-2"
         >
           {showForm ? (
             <>
@@ -579,7 +579,7 @@ export default function RewardsPage() {
             </>
           ) : (
             <>
-              <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <PlusCircle className="w-3.5 h-3.5 text-white" />
               Add Reward Option
             </>
           )}
@@ -710,13 +710,13 @@ export default function RewardsPage() {
               <button
                 type="button"
                 onClick={() => setShowForm(false)}
-                className="rounded-full border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 shadow-md transition cursor-pointer"
+                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition cursor-pointer"
               >
                 {editId ? "Update Reward Option" : "Save & Publish Reward"}
               </button>
@@ -726,9 +726,9 @@ export default function RewardsPage() {
 
       {/* Rewards Cards Grid with Simple Fade Animation */}
       {loading ? (
-        <CardGridSkeleton count={3} />
+        <CardGridSkeleton count={3} variant="reward" />
       ) : rewards.length === 0 ? (
-        <div className="rounded-3xl border border-neutral-100 bg-white p-12 text-center space-y-3 shadow-xs">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-12 text-center space-y-3 shadow-xs">
           <Award className="w-10 h-10 text-neutral-300 mx-auto" />
           <h4 className="text-sm font-bold text-neutral-700">No Redemption Rewards Configured</h4>
           <p className="text-xs text-neutral-400 max-w-sm mx-auto">
@@ -743,14 +743,14 @@ export default function RewardsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: idx * 0.04 }}
-              className={`rounded-3xl border p-6 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] ${
-                r.isActive === false ? "border-neutral-200 opacity-60 bg-neutral-50/50" : "border-neutral-100"
+              className={`rounded-2xl border p-6 bg-white shadow-xs flex flex-col justify-between transition-all hover:shadow-md ${
+                r.isActive === false ? "border-neutral-200 opacity-60 bg-neutral-50/50" : "border-neutral-200/80"
               }`}
             >
               <div className="space-y-4">
                 <div className="flex justify-between items-center gap-2">
-                  <span className="bg-neutral-900 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-xs flex items-center gap-1">
-                    <Tag className="w-3 h-3 text-emerald-400" />
+                  <span className="bg-[#768957] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-xs flex items-center gap-1">
+                    <Tag className="w-3 h-3 text-white" />
                     {r.cardInfo}
                   </span>
                   <span className="text-xs text-neutral-600 font-bold bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200/60">
@@ -764,7 +764,7 @@ export default function RewardsPage() {
                   
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {r.discountUpTo && (
-                      <span className="bg-emerald-50 text-emerald-800 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                      <span className="bg-[#768957]/10 text-[#586940] text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-[#768957]/25 flex items-center gap-1">
                         <Percent className="w-3 h-3" /> Up to €{r.discountUpTo} max
                       </span>
                     )}
@@ -794,7 +794,7 @@ export default function RewardsPage() {
                       onChange={() => handleToggleActive(r)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-neutral-900"></div>
+                    <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
                     <span className="ml-2 text-xs font-semibold text-neutral-600">
                       {r.isActive !== false ? "Active" : "Inactive"}
                     </span>
