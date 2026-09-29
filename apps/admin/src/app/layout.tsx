@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { FirebaseProvider } from "@/components/providers/FirebaseProvider";
+import DesktopOnlyGuard from "@/components/DesktopOnlyGuard";
 import "./globals.css";
 
 const inter = Inter({
@@ -46,7 +47,9 @@ export default function RootLayout({
       className={`${inter.variable} font-sans h-full antialiased`}
     >
       <body className={`${inter.className} min-h-full flex flex-col font-sans`}>
-        <FirebaseProvider>{children}</FirebaseProvider>
+        <FirebaseProvider>
+          <DesktopOnlyGuard>{children}</DesktopOnlyGuard>
+        </FirebaseProvider>
       </body>
     </html>
   );

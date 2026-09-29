@@ -393,7 +393,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center justify-between gap-1.5 sm:gap-2.5 w-full flex-wrap sm:flex-nowrap py-0.5"
+                className="flex items-center justify-between gap-2 sm:gap-2.5 w-full py-0.5"
               >
                 {/* Left Group: Logo and Nav Links */}
                 <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
@@ -403,14 +403,14 @@ export default function Home() {
                       alt="Aurwell Logo"
                       width={140}
                       height={36}
-                      className="h-6 sm:h-8 w-auto object-contain select-none"
+                      className="h-7 sm:h-9 w-auto object-contain select-none"
                       draggable={false}
                       priority
                       loading="eager"
                     />
                   </Link>
 
-                  <nav className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-sm font-bold text-neutral-900">
+                  <nav className="hidden sm:flex items-center gap-2 sm:gap-3 text-[11px] sm:text-sm font-bold text-neutral-900">
                     <Link
                       href="#features"
                       className="hover:text-neutral-600 transition-colors"
@@ -433,16 +433,16 @@ export default function Home() {
                 </div>
 
                 {/* Right Group: Action Buttons */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                   <Link
                     href={`${adminUrl}/login`}
-                    className="bg-neutral-100 hover:bg-neutral-200/80 text-neutral-900 font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-[11px] sm:text-xs transition-all"
+                    className="hidden sm:inline-flex bg-neutral-100 hover:bg-neutral-200/80 text-neutral-900 font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs transition-all"
                   >
                     Login
                   </Link>
                   <button
                     onClick={openBookingModal}
-                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs shadow-sm transition-all flex items-center gap-1 cursor-pointer"
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-[13px] shadow-sm transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
                   >
                     <span>Build app</span>
                   </button>

@@ -78,7 +78,7 @@ export default function PrivacyPolicyPage() {
                 alt="Aurwell Logo"
                 width={130}
                 height={34}
-                className="h-7 w-auto object-contain"
+                className="h-7 sm:h-9 w-auto object-contain"
                 priority
               />
             </Link>
@@ -95,13 +95,13 @@ export default function PrivacyPolicyPage() {
           <div className="flex items-center gap-2">
             <Link
               href={`${adminUrl}/login`}
-              className="bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-semibold px-3 py-1.5 rounded-full text-xs transition-all"
+              className="hidden sm:inline-flex bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs transition-all"
             >
               Login
             </Link>
             <button
               onClick={openBookingModal}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow-sm transition-all cursor-pointer"
+              className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-[13px] shadow-sm transition-all cursor-pointer"
             >
               Build App
             </button>
