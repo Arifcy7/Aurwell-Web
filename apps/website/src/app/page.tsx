@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import MotionButton from "@/components/ui/motion-button";
 import AppDemoPhone from "@/components/demo/AppDemoPhone";
 import { useBookingModal } from "@/components/booking/BookingProvider";
+import { logFeatureInteraction, logCtaClick } from "@/lib/firebase/analytics";
 import {
   ArrowRight,
   Check,
@@ -142,6 +143,7 @@ export default function Home() {
       setPreviousTab(tabName);
     }
     setActiveTab(tabName);
+    logFeatureInteraction("App Customizer", "switch_tab", tabName);
   };
   const [showSplash, setShowSplash] = useState(true);
   const [loadProgress, setLoadProgress] = useState(30);
@@ -384,7 +386,12 @@ export default function Home() {
       </AnimatePresence>
       {/* Hero & Navigation Master Container (Full height of viewport on desktop) */}
       <div className="w-full max-w-[1840px] mx-auto p-1.5 sm:p-2 lg:p-2.5 min-h-screen flex flex-col justify-center">
-        <section id="overview" className="w-full lg:h-[calc(100vh-20px)] lg:min-h-[660px]">
+        <section
+          id="overview"
+          data-analytics-section="hero-overview"
+          data-analytics-title="Hero Overview Section"
+          className="w-full lg:h-[calc(100vh-20px)] lg:min-h-[660px]"
+        >
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-3 h-full items-stretch">
             {/* Left Content & Header Column (~33% width) */}
             <div className="lg:col-span-4 flex flex-col justify-between pt-2 sm:pt-3 lg:pt-3 pb-6 px-4 sm:px-6 lg:px-7 bg-white sm:rounded-2xl lg:rounded-[24px]">
@@ -436,12 +443,16 @@ export default function Home() {
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                   <Link
                     href={`${adminUrl}/login`}
+                    data-cta-name="Clinic Login"
+                    data-cta-location="Header Navbar"
                     className="hidden sm:inline-flex bg-neutral-100 hover:bg-neutral-200/80 text-neutral-900 font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs transition-all"
                   >
                     Login
                   </Link>
                   <button
-                    onClick={openBookingModal}
+                    onClick={() => openBookingModal("header_nav_build_app")}
+                    data-cta-name="Build App CTA"
+                    data-cta-location="Header Navbar"
                     className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-[13px] shadow-sm transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
                   >
                     <span>Build app</span>
@@ -476,7 +487,9 @@ export default function Home() {
                   className="flex flex-wrap items-center gap-3 pt-2"
                 >
                   <button
-                    onClick={openBookingModal}
+                    onClick={() => openBookingModal("hero_schedule_meeting")}
+                    data-cta-name="Schedule a Meeting"
+                    data-cta-location="Hero Section"
                     className="px-5 py-2.5 rounded-full border border-neutral-900 bg-white text-neutral-900 text-xs sm:text-sm font-semibold hover:bg-neutral-50 transition-colors shadow-sm cursor-pointer"
                   >
                     Schedule a Meeting
@@ -896,7 +909,7 @@ export default function Home() {
                           {/* 4. Action Button */}
                           <div className="pt-1">
                             <button
-                              onClick={openBookingModal}
+                              onClick={() => openBookingModal("app_configurator_build_app")}
                               className="w-full py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center text-center cursor-pointer"
                             >
                               Build my app
@@ -1091,7 +1104,12 @@ export default function Home() {
       {/* Remaining Sections Container (Centered with normal padding) */}
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20">
         {/* Built for Growth Section */}
-        <section id="features" className="py-10 sm:py-16 lg:py-24 scroll-mt-6">
+        <section
+          id="features"
+          data-analytics-section="features-overview"
+          data-analytics-title="Built for Growth Features"
+          className="py-10 sm:py-16 lg:py-24 scroll-mt-6"
+        >
           {/* Section Header */}
           <motion.div
             initial={{ opacity: 0, y: 25 }}
@@ -1137,7 +1155,7 @@ export default function Home() {
                   </p>
                   <div className="pt-2">
                     <button
-                      onClick={openBookingModal}
+                      onClick={() => openBookingModal(`feature_${feature.id}`)}
                       className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full border border-neutral-300 text-xs sm:text-sm font-semibold text-neutral-800 bg-white hover:border-neutral-900 hover:text-neutral-950 hover:bg-neutral-50 transition-all duration-200 cursor-pointer shadow-2xs group/btn"
                     >
                       <span>{feature.buttonText}</span>
@@ -1191,7 +1209,12 @@ export default function Home() {
         </section>
 
         {/* All-in-One Platform Section */}
-        <section className="py-12">
+        <section
+          id="all-in-one"
+          data-analytics-section="all-in-one-platform"
+          data-analytics-title="All-in-One Loyalty Platform"
+          className="py-12"
+        >
           <div className="bg-white/60 rounded-[36px] p-8 sm:p-14 border border-white/60 shadow-sm overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
               {/* Left Column */}
@@ -1233,6 +1256,8 @@ export default function Home() {
                 <div className="pt-4">
                   <Link
                     href="#features"
+                    data-cta-name="Explore All Features"
+                    data-cta-location="All-in-One Platform"
                     className="inline-flex items-center gap-3 border border-neutral-300 hover:border-neutral-400 bg-white text-neutral-900 font-semibold pl-6 pr-2 py-2 rounded-full text-sm transition-all duration-200 group"
                   >
                     <span>Explore All Features</span>
@@ -1433,7 +1458,12 @@ export default function Home() {
         </section>
 
         {/* How It Works - 3 Step Process Section */}
-        <section id="how-it-works" className="py-12 sm:py-20 lg:py-24 scroll-mt-6">
+        <section
+          id="how-it-works"
+          data-analytics-section="how-it-works"
+          data-analytics-title="3 Step Launch Process"
+          className="py-12 sm:py-20 lg:py-24 scroll-mt-6"
+        >
           <div className="relative max-w-6xl mx-auto">
             {/* Header matching reference design */}
             <motion.div
@@ -1508,7 +1538,12 @@ export default function Home() {
         </section>
 
         {/* FAQ Section (Just Above the Footer) */}
-        <section id="faq" className="py-12 sm:py-20 lg:py-24 scroll-mt-6">
+        <section
+          id="faq"
+          data-analytics-section="faq-section"
+          data-analytics-title="Frequently Asked Questions"
+          className="py-12 sm:py-20 lg:py-24 scroll-mt-6"
+        >
           <div className="max-w-3xl mx-auto space-y-10 sm:space-y-14">
             {/* Header */}
             <motion.div
@@ -1598,7 +1633,7 @@ export default function Home() {
               <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-full bg-neutral-100/70 border border-neutral-200/80 text-xs sm:text-sm text-neutral-600 max-w-xl mx-auto">
                 <span className="font-medium">Have questions about your specific practice?</span>
                 <button
-                  onClick={openBookingModal}
+                  onClick={() => openBookingModal("faq_help_strip")}
                   className="font-bold text-neutral-900 hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
                   <span>Schedule a consultation</span>
@@ -1613,7 +1648,12 @@ export default function Home() {
       </div>
 
       {/* Footer Section (Full Width, with centered links and edge-to-edge typography inside) */}
-      <footer id="about" className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 sm:pt-16 overflow-hidden scroll-mt-6">
+      <footer
+        id="about"
+        data-analytics-section="footer-and-cta"
+        data-analytics-title="Footer & Final Call to Action"
+        className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 sm:pt-16 overflow-hidden scroll-mt-6"
+      >
         {/* Call to Action Banner */}
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 mb-12 sm:mb-16">
           <motion.div
@@ -1633,7 +1673,7 @@ export default function Home() {
             </div>
             <div>
               <button
-                onClick={openBookingModal}
+                onClick={() => openBookingModal("footer_cta_banner")}
                 className="inline-flex items-center gap-3 bg-white text-neutral-900 font-bold pl-6 pr-2 py-2.5 rounded-full text-xs sm:text-sm shadow-lg hover:bg-slate-100 transition-all duration-200 group whitespace-nowrap cursor-pointer"
               >
                 <span>Schedule a Meeting</span>

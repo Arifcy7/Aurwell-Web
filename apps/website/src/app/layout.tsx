@@ -41,7 +41,9 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
+import { Suspense } from "react";
 import { BookingProvider } from "@/components/booking/BookingProvider";
+import { FirebaseAnalyticsProvider } from "@/components/analytics/FirebaseAnalyticsProvider";
 
 export default function RootLayout({
   children,
@@ -54,8 +56,12 @@ export default function RootLayout({
       className={`${inter.variable} ${shadowsIntoLight.variable} font-sans h-full antialiased scroll-smooth`}
     >
       <body className={`${inter.className} min-h-full flex flex-col font-sans`}>
+        <Suspense fallback={null}>
+          <FirebaseAnalyticsProvider />
+        </Suspense>
         <BookingProvider>{children}</BookingProvider>
       </body>
     </html>
   );
 }
+
