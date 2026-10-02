@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { doc, getDoc, writeBatch, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
+import BookingAccessGuard from "@/components/bookings/BookingAccessGuard";
 import { Save, Globe, ShieldCheck, CheckCircle2, AlertCircle, ExternalLink, Sparkles, CreditCard, Clock, Link as LinkIcon } from "lucide-react";
 
 export default function BookingSettingsPage() {
@@ -157,7 +158,8 @@ export default function BookingSettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <BookingAccessGuard>
+      <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs">
         <div>
@@ -330,5 +332,6 @@ export default function BookingSettingsPage() {
         </div>
       </form>
     </div>
+    </BookingAccessGuard>
   );
 }

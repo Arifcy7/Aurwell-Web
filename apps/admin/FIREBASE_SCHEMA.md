@@ -96,7 +96,7 @@ Base branding, settings, profile, and booking configuration for each clinic tena
 | `appHeroImageUrl` | `string` | Mobile app home screen hero banner image URL |
 | `brandColor` | `string` | Hex colour for white-label app theming (e.g. `"#C9A96E"`) |
 | `websiteUrl` | `string` | External clinic website URL (optional) |
-| `treatmentList` | `array` of `string` | High-level treatment type tags (e.g. `["Botox", "Laser"]`) |
+| `whatsappNumber` | `string \| null` | **[NEW]** WhatsApp contact & booking phone number with dial code (e.g. `"+44 7123 456789"`) |
 | `currency` | `string` | ISO currency code (e.g. `"GBP"`, `"EUR"`, `"USD"`, `"RON"`, `"SEK"`, `"INR"`) |
 | `timezone` | `string` | IANA timezone (e.g. `"Europe/London"`) |
 | `country` | `string` | ISO 2-char country code (e.g. `"GB"`) |
@@ -178,6 +178,7 @@ Clinic service products with pricing variants, duration, and buffer settings.
 | `durationMinutes` | `number` | **[NEW]** Service duration in minutes (e.g. `30`, `45`, `60`) — displayed in patient booking portal & used to calculate calendar slot intervals |
 | `bufferMinutes` | `number` | **[NEW]** Post-service room prep / buffer window in minutes (default: `15`) |
 | `depositRequired` | `boolean \| null` | **[NEW]** Optional treatment-level deposit requirement override |
+| `externalBookingUrl` | `string \| null` | **[NEW]** Optional individual treatment booking URL override for external SDK clinics |
 | `types` | `array` of `object` | Pricing variants — see schema below |
 | `isActive` | `boolean` | Whether this treatment is visible in patient apps & public booking |
 | `createdAt` | `timestamp` | Document creation timestamp |
@@ -203,6 +204,7 @@ Clinic service products with pricing variants, duration, and buffer settings.
   "durationMinutes": 30,
   "bufferMinutes": 15,
   "depositRequired": null,
+  "externalBookingUrl": "https://booking.external-system.com/treatments/prp-restoration",
   "types": [
     { "title": "Single Session", "nonMemberPrice": 385, "memberPrice": 320 },
     { "title": "Course of 3 Sessions", "nonMemberPrice": 995, "memberPrice": 850 }

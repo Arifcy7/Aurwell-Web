@@ -28,7 +28,6 @@ export default function SignUpPage() {
   const [brandColor, setBrandColor] = useState("#000000");
   const [merchantName, setMerchantName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [treatmentList, setTreatmentList] = useState(""); // Comma separated tags
   const [description, setDescription] = useState("");
   const [currency, setCurrency] = useState(CURRENCIES[0].code);
   const [merchantNameError, setMerchantNameError] = useState("");
@@ -121,7 +120,6 @@ export default function SignUpPage() {
         merchantName,
         brandColor,
         websiteUrl,
-        treatmentList: treatmentList.split(",").map((t) => t.trim()).filter(Boolean),
         description,
         currency,
         timezone,
@@ -331,19 +329,6 @@ export default function SignUpPage() {
                 onChange={(e) => setWebsiteUrl(e.target.value)}
                 className="input-modern"
                 placeholder="https://example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                Treatment List <span className="text-[10px] text-neutral-400 font-normal">(optional, comma-separated)</span>
-              </label>
-              <input
-                type="text"
-                value={treatmentList}
-                onChange={(e) => setTreatmentList(e.target.value)}
-                className="input-modern"
-                placeholder="Laser, Botox, Chemical Peel, Facial"
               />
             </div>
 

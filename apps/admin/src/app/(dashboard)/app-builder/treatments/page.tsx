@@ -11,7 +11,7 @@ import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
 import { TREATMENT_CATEGORIES } from "@/lib/constants";
-import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal, Trash2, Clock } from "lucide-react";
+import { Search, Tag, Check, X, Plus, Filter, ChevronDown, SlidersHorizontal, Trash2, Clock, Info, ExternalLink, Link as LinkIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TreatmentType {
@@ -32,6 +32,7 @@ interface Treatment {
   durationMinutes?: number;
   bufferMinutes?: number;
   depositRequired?: boolean | null;
+  externalBookingUrl?: string;
   isActive?: boolean;
   createdAt?: any;
 }
@@ -64,6 +65,10 @@ export default function TreatmentsPage() {
   const [featuresHeading, setFeaturesHeading] = useState("Key Benefits");
   const [durationMinutes, setDurationMinutes] = useState<string>("30");
   const [bufferMinutes, setBufferMinutes] = useState<string>("15");
+  const [bookingConfig, setBookingConfig] = useState<any>(null);
+  const [externalBookingUrl, setExternalBookingUrl] = useState("");
+
+  const isExternalSdkClinic = bookingConfig?.systemType === "external_sdk";
 
   // Delete confirmation state
   const [deleteTarget, setDeleteTarget] = useState<Treatment | null>(null);
@@ -93,6 +98,14 @@ export default function TreatmentsPage() {
         if (userDoc.exists()) {
           const cId = userDoc.data().clinicId;
           setClinicId(cId);
+
+          if (cId) {
+            const clinicSnap = await getDoc(doc(db, "clinics", cId));
+            if (clinicSnap.exists()) {
+              setBookingConfig(clinicSnap.data().bookingConfig || null);
+            }
+          }
+
           await loadData(cId);
         }
       } catch (err) {
@@ -155,6 +168,7 @@ export default function TreatmentsPage() {
         features: featuresListInput.split(",").map((f) => f.trim()).filter(Boolean),
         durationMinutes: parsedDuration > 0 ? parsedDuration : 30,
         bufferMinutes: !isNaN(parsedBuffer) && parsedBuffer >= 0 ? parsedBuffer : 15,
+        externalBookingUrl: isExternalSdkClinic ? externalBookingUrl.trim() : "",
         types: types
           .filter((t) => t.title && t.nonMemberPrice)
           .map((t) => ({
@@ -201,6 +215,7 @@ export default function TreatmentsPage() {
       setFeaturesListInput("");
       setDurationMinutes("30");
       setBufferMinutes("15");
+      setExternalBookingUrl("");
       setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
       setSelectedCategories([]);
       setEditId(null);
@@ -224,6 +239,7 @@ export default function TreatmentsPage() {
     setFeaturesListInput(Array.isArray(treatment.features) ? treatment.features.join(", ") : "");
     setDurationMinutes(treatment.durationMinutes !== undefined && treatment.durationMinutes !== null ? String(treatment.durationMinutes) : "30");
     setBufferMinutes(treatment.bufferMinutes !== undefined && treatment.bufferMinutes !== null ? String(treatment.bufferMinutes) : "15");
+    setExternalBookingUrl(treatment.externalBookingUrl || "");
     setTypes(
       Array.isArray(treatment.types) && treatment.types.length > 0
         ? treatment.types.map((t) => ({
@@ -340,6 +356,7 @@ export default function TreatmentsPage() {
                 setFeaturesListInput("");
                 setDurationMinutes("30");
                 setBufferMinutes("15");
+                setExternalBookingUrl("");
                 setTypes([{ title: "Standard", nonMemberPrice: "", memberPrice: "" }]);
                 setSelectedCategories([]);
                 setShowTreatmentForm(true);
@@ -686,6 +703,38 @@ export default function TreatmentsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Individual Treatment External Booking Link (Only shown for External SDK Clinics) */}
+                {isExternalSdkClinic && (
+                  <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/80 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                        <LinkIcon className="w-4 h-4 text-amber-600" />
+                        <span>Individual Treatment Booking Link</span>
+                        <span className="text-[10px] font-normal text-neutral-400">(Optional)</span>
+                      </label>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                        External Booking Active
+                      </span>
+                    </div>
+
+                    <input
+                      type="url"
+                      placeholder="https://fresha.com/a/... or https://phorest.com/..."
+                      value={externalBookingUrl}
+                      onChange={(e) => setExternalBookingUrl(e.target.value)}
+                      className="input-modern bg-white text-xs font-mono font-medium focus:border-amber-500 focus:ring-amber-500/20"
+                    />
+
+                    {/* Note with (i) Info icon */}
+                    <div className="flex items-start gap-2 text-[11px] text-amber-900/90 bg-white/90 p-3 rounded-xl border border-amber-200/70 shadow-2xs">
+                      <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="leading-relaxed">
+                        <strong className="font-bold">Info:</strong> Paste the direct booking URL for this specific treatment from your external software (e.g. Fresha, Phorest, Jane App). Upfront payment will be turned off for this service, and patients clicking <em>Book Now</em> will be directed to this URL.
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -851,6 +900,13 @@ export default function TreatmentsPage() {
                   </div>
 
                   <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{t.description || ""}</p>
+
+                  {isExternalSdkClinic && t.externalBookingUrl && (
+                    <div className="mb-3 text-[11px] font-mono text-amber-800 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/80 flex items-center gap-1.5 truncate">
+                      <LinkIcon className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <span className="truncate">{t.externalBookingUrl}</span>
+                    </div>
+                  )}
 
                   {t.features && t.features.length > 0 && (
                     <div className="space-y-1 mb-3">

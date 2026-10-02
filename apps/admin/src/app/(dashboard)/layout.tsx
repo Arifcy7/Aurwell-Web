@@ -84,6 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (cached.clinicId) setClinicId(cached.clinicId);
         if (cached.clinicName) setClinicName(cached.clinicName);
         if (cached.logoUrl !== undefined) setLogoUrl(cached.logoUrl);
+        if (cached.hasCustomBooking !== undefined) setHasCustomBooking(Boolean(cached.hasCustomBooking));
         setLoading(false);
       }
     } catch (e) {
@@ -114,6 +115,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           let freshName = "Aurwell Clinic";
           let freshLogo = "";
+          let freshHasCustom = false;
 
           if (freshClinicId) {
             const clinicDoc = await getDoc(doc(db, "clinics", freshClinicId));
@@ -124,8 +126,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               freshLogo = cData.logoUrl || "";
 
               const sys = cData.bookingConfig?.systemType;
-              const hasCustom = sys === "aurwell_custom" || sys === "custom";
-              setHasCustomBooking(hasCustom);
+              freshHasCustom = sys === "aurwell_custom" || sys === "custom";
+              setHasCustomBooking(freshHasCustom);
             }
           }
 
@@ -139,6 +141,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               clinicId: freshClinicId,
               clinicName: freshName,
               logoUrl: freshLogo,
+              hasCustomBooking: freshHasCustom,
             })
           );
         } else {
@@ -442,8 +445,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </Link>
           </motion.div>
-          {/* Bookings Collapsible Section (Shown only if custom booking is enabled or user is super admin) */}
-          {(hasCustomBooking || isSuperAdmin) && (
+          {/* Bookings Collapsible Section (Shown only if native custom booking is enabled for this clinic) */}
+          {hasCustomBooking && (
             <div>
               <motion.button
                 whileHover={{ x: 3 }}

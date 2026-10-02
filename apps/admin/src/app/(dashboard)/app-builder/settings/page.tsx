@@ -71,7 +71,7 @@ export default function SettingsPage() {
 
   const [brandColor, setBrandColor] = useState("#111827");
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [treatmentListText, setTreatmentListText] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [description, setDescription] = useState("");
   const [currency, setCurrency] = useState(CURRENCIES[0].code);
   const [timezone, setTimezone] = useState(TIMEZONES[0].value);
@@ -123,11 +123,7 @@ export default function SettingsPage() {
             // Branding & Details
             setBrandColor(data.brandColor || data.primaryColor || "#111827");
             setWebsiteUrl(data.websiteUrl || "");
-            if (Array.isArray(data.treatmentList)) {
-              setTreatmentListText(data.treatmentList.join(", "));
-            } else if (typeof data.treatmentList === "string") {
-              setTreatmentListText(data.treatmentList);
-            }
+            setWhatsappNumber(data.whatsappNumber || "");
             setDescription(data.description || "");
 
             // Regional & Currency
@@ -196,10 +192,7 @@ export default function SettingsPage() {
         logoUrl: finalLogoUrl || "",
         brandColor,
         websiteUrl,
-        treatmentList: treatmentListText
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean),
+        whatsappNumber: whatsappNumber.trim(),
         description,
         currency,
         timezone,
@@ -304,19 +297,6 @@ export default function SettingsPage() {
               onChange={(e) => setDescription(e.target.value)}
               className="textarea-modern"
               placeholder="Describe your clinic services and patient values..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
-              Treatment Tags <span className="text-[10px] text-neutral-400 font-normal">(comma-separated)</span>
-            </label>
-            <input
-              type="text"
-              value={treatmentListText}
-              onChange={(e) => setTreatmentListText(e.target.value)}
-              className="input-modern"
-              placeholder="e.g. Laser, Botox, Chemical Peel, Facial"
             />
           </div>
 
@@ -461,15 +441,32 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Google Maps Location URL</label>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5 flex items-center justify-between">
+                <span>WhatsApp Booking Number</span>
+                <span className="text-[10px] text-neutral-400 font-normal">(Optional)</span>
+              </label>
               <input
-                type="url"
-                value={googleMapUrl}
-                onChange={(e) => setGoogleMapUrl(e.target.value)}
+                type="tel"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
                 className="input-modern"
-                placeholder="https://maps.google.com/?q=51.5173,-0.1472"
+                placeholder="e.g. +44 7123 456789"
               />
+              <p className="text-[11px] text-neutral-500 mt-1 leading-snug">
+                Note: Phone number and WhatsApp number can be the same. This field is optional — if your clinic does not use WhatsApp for booking, leave it empty.
+              </p>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Google Maps Location URL</label>
+            <input
+              type="url"
+              value={googleMapUrl}
+              onChange={(e) => setGoogleMapUrl(e.target.value)}
+              className="input-modern"
+              placeholder="https://maps.google.com/?q=51.5173,-0.1472"
+            />
           </div>
         </div>
 

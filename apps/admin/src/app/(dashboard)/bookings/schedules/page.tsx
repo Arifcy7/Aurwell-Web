@@ -8,6 +8,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
+import BookingAccessGuard from "@/components/bookings/BookingAccessGuard";
 import {
   Plus,
   Trash2,
@@ -369,7 +370,8 @@ export default function SchedulesPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-5 pb-24">
+    <BookingAccessGuard>
+      <div className="max-w-6xl mx-auto space-y-5 pb-24">
       {/* ── Top Header Card with Integrated Stats & Actions ──────────────── */}
       <div className="bg-white p-3.5 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col lg:flex-row lg:items-stretch justify-between gap-3.5">
         {/* Title, Subtitle & Actions */}
@@ -1000,5 +1002,6 @@ export default function SchedulesPage() {
         </div>
       )}
     </div>
+    </BookingAccessGuard>
   );
 }

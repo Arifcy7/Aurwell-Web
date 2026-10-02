@@ -34,6 +34,7 @@ import {
   Clock,
   User,
   Phone,
+  MessageCircle,
   Mail,
   CheckCircle2,
   AlertCircle,
@@ -96,6 +97,7 @@ interface ClinicData {
   brandColor?: string;
   address?: string;
   phone?: string;
+  whatsappNumber?: string;
   currency?: string;
   stripe?: {
     enabled?: boolean;
@@ -1509,15 +1511,29 @@ export default function ClinicBookingPage() {
             </div>
           </div>
 
-          {clinic.phone && (
-            <a
-              href={`tel:${clinic.phone}`}
-              className="hidden sm:inline-flex items-center gap-2 text-xs font-bold text-neutral-700 bg-neutral-100 hover:bg-neutral-200/70 px-4 py-2 rounded-full transition"
-            >
-              <Phone className="w-3.5 h-3.5" style={{ color: brandColor }} />
-              <span>{clinic.phone}</span>
-            </a>
-          )}
+          <div className="flex items-center gap-2">
+            {clinic.whatsappNumber && (
+              <a
+                href={`https://wa.me/${clinic.whatsappNumber.replace(/[^0-9]/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-3.5 py-2 rounded-full transition"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                <span>WhatsApp Booking</span>
+              </a>
+            )}
+
+            {clinic.phone && (
+              <a
+                href={`tel:${clinic.phone}`}
+                className="hidden sm:inline-flex items-center gap-2 text-xs font-bold text-neutral-700 bg-neutral-100 hover:bg-neutral-200/70 px-4 py-2 rounded-full transition"
+              >
+                <Phone className="w-3.5 h-3.5" style={{ color: brandColor }} />
+                <span>{clinic.phone}</span>
+              </a>
+            )}
+          </div>
         </div>
       </header>
 
@@ -1983,6 +1999,10 @@ export default function ClinicBookingPage() {
                     <div
                       key={t.id}
                       onClick={() => {
+                        if (t.externalBookingUrl && t.externalBookingUrl.trim()) {
+                          window.open(t.externalBookingUrl.trim(), "_blank", "noopener,noreferrer");
+                          return;
+                        }
                         setSelectedTreatment(t);
                         if (!isTreatmentSelected || !selectedVariant) {
                           setSelectedVariant(variants[0]);
@@ -2030,6 +2050,10 @@ export default function ClinicBookingPage() {
                                     type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
+                                      if (t.externalBookingUrl && t.externalBookingUrl.trim()) {
+                                        window.open(t.externalBookingUrl.trim(), "_blank", "noopener,noreferrer");
+                                        return;
+                                      }
                                       setSelectedTreatment(t);
                                       setSelectedVariant(v);
                                     }}
@@ -2057,20 +2081,26 @@ export default function ClinicBookingPage() {
                         <span className="flex items-center gap-1.5 text-neutral-600">
                           <Clock className="w-3.5 h-3.5" style={{ color: brandColor }} /> {t.durationMinutes || 30} mins
                         </span>
-                        <span
-                          className="font-bold flex items-center gap-1"
-                          style={{ color: brandColor }}
-                        >
-                          {isTreatmentSelected ? (
-                            <>
-                              <Check className="w-3.5 h-3.5" /> Selected
-                            </>
-                          ) : (
-                            <>
-                              Select <ArrowRight className="w-3 h-3" />
-                            </>
-                          )}
-                        </span>
+                        {t.externalBookingUrl && t.externalBookingUrl.trim() ? (
+                          <span className="font-bold flex items-center gap-1 text-amber-700 hover:underline">
+                            External Booking <ExternalLink className="w-3.5 h-3.5" />
+                          </span>
+                        ) : (
+                          <span
+                            className="font-bold flex items-center gap-1"
+                            style={{ color: brandColor }}
+                          >
+                            {isTreatmentSelected ? (
+                              <>
+                                <Check className="w-3.5 h-3.5" /> Selected
+                              </>
+                            ) : (
+                              <>
+                                Select <ArrowRight className="w-3 h-3" />
+                              </>
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
