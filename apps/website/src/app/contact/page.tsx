@@ -113,7 +113,7 @@ export default function ContactPage() {
             </h1>
 
             <p className="text-neutral-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-normal">
-              Have questions about building your aesthetic clinic app, custom branding, enterprise partnerships, or support? Schedule a meeting or email us directly.
+              Have questions about custom clinic pricing, tailored plans, enterprise onboarding, or support? Schedule a consultation or reach out directly.
             </p>
           </motion.div>
         </div>
