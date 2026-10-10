@@ -2,7 +2,7 @@
 
 > **Enterprise Multi-Tenant Clinic Patient & Loyalty Platform**  
 > A premium solution for aesthetic clinics across the USA & Europe.
-//cicd trigger 3
+//cicd trigger 4
 ---
 
 ## 🏗️ System Architecture & Data Isolation
