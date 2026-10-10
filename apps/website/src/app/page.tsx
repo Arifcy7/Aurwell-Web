@@ -298,8 +298,48 @@ export default function Home() {
     };
   }, []);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aurwell.app";
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: homeFaqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.a,
+      },
+    })),
+  };
+
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Aurwell",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "iOS, Android, Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    description:
+      "Bespoke branded mobile apps, automated VIP memberships, and patient retention software for aesthetic clinics and medical spas.",
+    url: siteUrl,
+  };
+
   return (
     <div className="min-h-screen bg-white text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white">
+      {/* Search Engine Optimization: Structured Data Schemas */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+      />
       {/* Full-Screen Fast & Elegant Splash Screen */}
       <AnimatePresence>
         {showSplash && (
@@ -462,7 +502,16 @@ export default function Home() {
               </motion.header>
 
               {/* Center Group: Hero Heading, Subheading & CTAs */}
-              <div className="my-auto py-6 sm:py-10 space-y-5 max-w-md">
+              <div className="my-auto py-6 sm:py-10 space-y-4 sm:space-y-5 max-w-md">
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f6f1] border border-[#dce8dd] text-[#2c5a34] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em]">
+                    Aesthetic Clinic Patient Apps & Retention
+                  </span>
+                </motion.div>
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -477,7 +526,7 @@ export default function Home() {
                   transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                   className="text-neutral-600 text-sm sm:text-base leading-relaxed font-normal"
                 >
-                  Create memorable client experiences with rewards, personalized offers, and automated engagement—all from one platform.
+                  Create memorable client experiences with custom-branded mobile apps, automated reward tiers, VIP memberships, and frictionless booking—all from one platform.
                 </motion.p>
 
                 {/* Action Buttons */}
