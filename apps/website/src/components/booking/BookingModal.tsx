@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 
 const CALENDAR_EMBED_URL =
-  "https://calendar.google.com/calendar/appointments/schedules/AcZssZ3Qoyi_oPxXlvrt5ncSeEuuyv8nk2LsABMutyNDD0NnDyAST-iXGcLIggfxl6_iTPbA8nBJ5fyu?gv=true";
+  "https://calendar.app.google/RKZkDjKQvjdYNjrf7";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
             {/* Top Floating Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-3.5 right-3.5 z-20 p-2 rounded-full bg-neutral-100/90 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 backdrop-blur-md transition-all focus:outline-none focus:ring-2 focus:ring-neutral-400 cursor-pointer shadow-xs"
+              className="absolute top-3.5 right-3.5 z-30 p-2 rounded-full bg-neutral-100/90 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 backdrop-blur-md transition-all focus:outline-none focus:ring-2 focus:ring-neutral-400 cursor-pointer shadow-xs"
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />
@@ -69,8 +70,27 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
             {/* Modal Body with Embedded Google Calendar Appointment Scheduler */}
             <div className="flex-1 w-full h-full bg-white relative overflow-hidden">
+              {/* Branded Native Aurwell Header Overlay */}
+              <div className="absolute top-0 left-0 right-0 h-[58px] bg-white border-b border-neutral-100 px-4 sm:px-6 flex items-center justify-between z-10 select-none">
+                <div className="flex items-center gap-2.5">
+                  <Image
+                    src="/logo-black.png"
+                    alt="Aurwell"
+                    width={110}
+                    height={28}
+                    className="h-5 sm:h-6 w-auto object-contain"
+                  />
+                  <span className="h-3.5 w-px bg-neutral-300" />
+                  <span className="text-xs sm:text-sm font-semibold text-neutral-800 tracking-tight">
+                    Demo Call
+                  </span>
+                </div>
+                {/* Spacer for floating modal close button */}
+                <div className="w-10" />
+              </div>
+
               {isLoading && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white gap-3">
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white gap-3">
                   <Loader2 className="w-8 h-8 text-neutral-900 animate-spin" />
                   <p className="text-xs font-semibold text-neutral-600">
                     Loading appointment schedule...

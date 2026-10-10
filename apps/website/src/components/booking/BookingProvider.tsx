@@ -5,7 +5,7 @@ import BookingModal from "./BookingModal";
 import { logBookingTrigger, logCtaClick } from "@/lib/firebase/analytics";
 
 const CALENDAR_BOOKING_URL =
-  "https://calendar.google.com/calendar/appointments/schedules/AcZssZ3Qoyi_oPxXlvrt5ncSeEuuyv8nk2LsABMutyNDD0NnDyAST-iXGcLIggfxl6_iTPbA8nBJ5fyu?gv=true";
+  "https://calendar.app.google/RKZkDjKQvjdYNjrf7";
 
 interface BookingContextType {
   isOpen: boolean;
