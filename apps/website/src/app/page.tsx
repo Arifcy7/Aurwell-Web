@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import MotionButton from "@/components/ui/motion-button";
 import AppDemoPhone from "@/components/demo/AppDemoPhone";
 import { useBookingModal } from "@/components/booking/BookingProvider";
+import LandingBlogSection from "@/components/blog/LandingBlogSection";
 import { logFeatureInteraction, logCtaClick } from "@/lib/firebase/analytics";
 import {
   ArrowRight,
@@ -403,49 +404,49 @@ export default function Home() {
                 className="flex items-center justify-between gap-2 sm:gap-2.5 w-full py-0.5"
               >
                 {/* Left Group: Logo and Nav Links */}
-                <div className="flex items-center gap-2 sm:gap-4 lg:gap-5">
-                  <Link href="/" className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="flex items-center gap-3 sm:gap-6">
+                  <Link href="/" className="flex items-center flex-shrink-0 group">
                     <Image
                       src="/logo-black.png"
                       alt="Aurwell Logo"
-                      width={140}
-                      height={36}
-                      className="h-7 sm:h-9 w-auto object-contain select-none"
+                      width={44}
+                      height={44}
+                      className="h-8 sm:h-9 md:h-10 w-auto object-contain select-none transition-transform group-hover:scale-105"
                       draggable={false}
                       priority
                       loading="eager"
                     />
                   </Link>
 
-                  <nav className="hidden sm:flex items-center gap-2 sm:gap-3 text-[11px] sm:text-sm font-bold text-neutral-900">
+                  <nav className="hidden sm:flex items-center gap-4 text-xs sm:text-[13px] font-medium text-neutral-500">
                     <Link
                       href="#features"
-                      className="hover:text-neutral-600 transition-colors"
+                      className="hover:text-neutral-900 transition-colors"
                     >
                       Features
                     </Link>
                     <Link
-                      href="#how-it-works"
-                      className="hover:text-neutral-600 transition-colors"
+                      href="#blog"
+                      className="hover:text-neutral-900 transition-colors"
                     >
-                      How It Works
+                      Journal
                     </Link>
-                    <Link
-                      href="#faq"
-                      className="hover:text-neutral-600 transition-colors"
+                    <button
+                      onClick={() => openBookingModal("header_nav_contact")}
+                      className="hover:text-neutral-900 transition-colors cursor-pointer"
                     >
-                      FAQ
-                    </Link>
+                      Contact
+                    </button>
                   </nav>
                 </div>
 
                 {/* Right Group: Action Buttons */}
-                <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                   <Link
                     href={`${adminUrl}/login`}
                     data-cta-name="Clinic Login"
                     data-cta-location="Header Navbar"
-                    className="hidden sm:inline-flex bg-neutral-100 hover:bg-neutral-200/80 text-neutral-900 font-semibold px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-[11px] sm:text-xs transition-all"
+                    className="hidden sm:inline-flex text-xs font-semibold text-neutral-600 hover:text-neutral-900 transition-colors px-2 py-1.5"
                   >
                     Login
                   </Link>
@@ -453,7 +454,7 @@ export default function Home() {
                     onClick={() => openBookingModal("header_nav_build_app")}
                     data-cta-name="Build App CTA"
                     data-cta-location="Header Navbar"
-                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-[13px] shadow-sm transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-2 rounded-full text-xs shadow-xs transition-all flex items-center gap-1 cursor-pointer flex-shrink-0"
                   >
                     <span>Build app</span>
                   </button>
@@ -1647,12 +1648,15 @@ export default function Home() {
 
       </div>
 
+      {/* Aurwell Journal & Published Blog Dispatches */}
+      <LandingBlogSection />
+
       {/* Footer Section (Full Width, with centered links and edge-to-edge typography inside) */}
       <footer
         id="about"
         data-analytics-section="footer-and-cta"
         data-analytics-title="Footer & Final Call to Action"
-        className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-12 pt-12 sm:pt-16 overflow-hidden scroll-mt-6"
+        className="w-full bg-[#F3F4F6] border-t border-neutral-200/60 mt-0 pt-12 sm:pt-16 overflow-hidden scroll-mt-6"
       >
         {/* Call to Action Banner */}
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 mb-12 sm:mb-16">
@@ -1747,6 +1751,11 @@ export default function Home() {
               Company
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm text-neutral-500">
+              <li>
+                <Link href="/blog" className="hover:text-neutral-900 transition-colors">
+                  Blog
+                </Link>
+              </li>
               <li>
                 <Link href="/contact" className="hover:text-neutral-900 transition-colors">
                   Contact
