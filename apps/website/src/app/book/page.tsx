@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, Sparkles, Loader2, ExternalLink } from "lucide-react";
 
 const CALENDAR_EMBED_URL =
-  "https://calendar.app.google/RKZkDjKQvjdYNjrf7";
+  "https://calendar.app.google/RqQrnuP5svthVcg19";
 
 export default function BookPage() {
   const [isLoading, setIsLoading] = useState(true);

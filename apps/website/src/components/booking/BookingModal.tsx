@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2 } from "lucide-react";
 
 const CALENDAR_EMBED_URL =
-  "https://calendar.app.google/RKZkDjKQvjdYNjrf7";
+  "https://calendar.app.google/RqQrnuP5svthVcg19";
 
 interface BookingModalProps {
   isOpen: boolean;
