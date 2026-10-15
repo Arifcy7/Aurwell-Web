@@ -29,21 +29,51 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) {
     return {
       title: "Story Not Found — Aurwell Journal",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
   const imageUrl = post.mainImage ? urlForImage(post.mainImage) : null;
+  const postSlug = post.slug?.current || slug;
+  const canonicalPath = `/blog/${postSlug}`;
 
   return {
     title: `${post.title} — Aurwell Journal`,
     description: post.excerpt || "Read insightful perspectives on the Aurwell Journal.",
+    alternates: {
+      canonical: canonicalPath,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
+      url: canonicalPath,
       publishedTime: post.publishedAt,
       authors: post.author?.name ? [post.author.name] : ["Aurwell"],
-      images: imageUrl ? [{ url: imageUrl }] : undefined,
+      images: imageUrl
+        ? [
+            {
+              url: imageUrl,
+              width: 1200,
+              height: 630,
+              alt: post.mainImage?.alt || post.title,
+            },
+          ]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -77,8 +107,42 @@ export default async function BlogPostPage({ params }: PageProps) {
     year: "numeric",
   });
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aurwell.app";
+  const postSlug = post.slug?.current || slug;
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt || "Aurwell Journal Article",
+    image: mainImageUrl ? [mainImageUrl] : undefined,
+    datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
+    author: {
+      "@type": "Person",
+      name: post.author?.name || "Aurwell Editorial",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Aurwell",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/logo-black.png`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${siteUrl}/blog/${postSlug}`,
+    },
+  };
+
   return (
     <div className="min-h-screen bg-[#f8faf8] flex flex-col justify-between">
+      {/* Blog Article Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <div>
         <BlogHeader showBackToArticles />
 
