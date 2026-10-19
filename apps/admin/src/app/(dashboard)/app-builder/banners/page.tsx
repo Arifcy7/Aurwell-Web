@@ -27,6 +27,7 @@ import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
 import { motion, AnimatePresence } from "framer-motion";
+import { Edit2, Trash2, ExternalLink, Sparkles, ChevronRight } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -134,7 +135,7 @@ export default function BannersPage() {
     e.preventDefault();
     if (!title || !clinicId) return;
 
-    setLoading(true);
+    setIsSaving(true);
     try {
       let finalImageUrl = imageUrl;
       let shouldDeleteOriginal = false;
@@ -192,7 +193,7 @@ export default function BannersPage() {
     } catch (err) {
       console.error("Error saving banner:", err);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -248,12 +249,12 @@ export default function BannersPage() {
   };
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-6 w-full">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">App Promotional Banners</h2>
-          <p className="text-sm text-neutral-500">Configure visual carousel banners displayed at the top of your patient mobile app</p>
+          <h2 className="text-lg font-bold tracking-tight text-neutral-900">App Promotional Banners</h2>
+          <p className="text-xs text-neutral-500 mt-0.5">Configure visual carousel banners displayed at the top of your patient mobile app.</p>
         </div>
         <button
           onClick={() => {
@@ -264,11 +265,11 @@ export default function BannersPage() {
             setImageFile(null);
             setTargetType("treatment");
             if (treatments.length > 0) setTargetId(treatments[0].id);
-            setShowForm(!showForm);
+            setShowForm(true);
           }}
-          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition self-start cursor-pointer"
+          className="btn-primary px-4 py-2 text-xs font-semibold self-start cursor-pointer shadow-xs"
         >
-          {showForm ? "Cancel" : "Add App Banner"}
+          Add App Banner
         </button>
       </div>
 
@@ -278,160 +279,166 @@ export default function BannersPage() {
         onClose={() => setShowForm(false)}
         title={editId ? "Edit App Banner" : "Add App Banner"}
         subtitle="Promotional Banners"
-        maxWidth="max-w-6xl"
+        maxWidth="max-w-xl"
       >
-        <form onSubmit={handleSaveBanner} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left Column (7 cols): Text Details & Action Setup */}
-            <div className="lg:col-span-7 space-y-5">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Banner Title</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="input-modern"
-                  placeholder="e.g. Summer Skincare Sale"
-                />
-              </div>
-
-              {/* Target Click Action Setup */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Banner Click Action</label>
-                  <select
-                    value={targetType}
-                    onChange={(e) => setTargetType(e.target.value as any)}
-                    className="select-modern"
-                  >
-                    <option value="treatment">Open Specific Treatment Product</option>
-                    <option value="link">Open External URL / Website Link</option>
-                  </select>
-                </div>
-
-                {targetType === "treatment" ? (
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Target Treatment Product</label>
-                    <select
-                      value={targetId}
-                      onChange={(e) => setTargetId(e.target.value)}
-                      className="select-modern"
-                    >
-                      {treatments.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.title}
-                        </option>
-                      ))}
-                      {treatments.length === 0 && (
-                        <option value="">No treatments available</option>
-                      )}
-                    </select>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Target External URL</label>
-                    <input
-                      type="url"
-                      required
-                      value={targetId}
-                      onChange={(e) => setTargetId(e.target.value)}
-                      className="input-modern"
-                      placeholder="https://example.com/promo-link"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column (5 cols): Banner Image Uploader */}
-            <div className="lg:col-span-5 bg-neutral-50/60 border border-neutral-200/60 rounded-2xl p-4">
-              <ImageUploader
-                file={imageFile}
-                onChange={setImageFile}
-                imageUrl={imageUrl}
-                onClearImage={() => setImageUrl("")}
-                label="Banner Image"
-                heightClass="aspect-[16/9] h-auto w-full"
-              />
-            </div>
+        <form onSubmit={handleSaveBanner} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Banner Title</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input-modern"
+              placeholder="e.g. Summer Skincare Sale"
+            />
           </div>
 
-            <div className="pt-2 flex items-center justify-end gap-3 border-t border-neutral-100 mt-4">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Banner Click Action</label>
+              <select
+                value={targetType}
+                onChange={(e) => setTargetType(e.target.value as any)}
+                className="select-modern text-xs"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer shadow-xs hover:shadow-sm"
-              >
-                {editId ? "Update Banner" : "Save Banner"}
-              </button>
+                <option value="treatment">Open Treatment Product</option>
+                <option value="link">Open External Link</option>
+              </select>
             </div>
+
+            {targetType === "treatment" ? (
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Target Treatment</label>
+                <select
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
+                  className="select-modern text-xs"
+                >
+                  {treatments.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                  {treatments.length === 0 && (
+                    <option value="">No treatments available</option>
+                  )}
+                </select>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Target URL</label>
+                <input
+                  type="url"
+                  required
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
+                  className="input-modern text-xs"
+                  placeholder="https://example.com/promo"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="bg-neutral-50/60 border border-neutral-200/60 rounded-2xl p-3.5">
+            <ImageUploader
+              file={imageFile}
+              onChange={setImageFile}
+              imageUrl={imageUrl}
+              onClearImage={() => setImageUrl("")}
+              label="Banner Image (16:9 Aspect Ratio)"
+              heightClass="aspect-[16/9] h-auto w-full"
+            />
+          </div>
+
+          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-neutral-100 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="btn-primary px-5 py-2 text-xs font-semibold cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : editId ? "Update Banner" : "Save Banner"}
+            </button>
+          </div>
         </form>
       </Modal>
 
-      {/* Banners Listing Cards with Simple Fade Animation */}
+      {/* Banners Listing Cards with Card-in-Card Architecture */}
       {loading ? (
         <CardGridSkeleton count={3} variant="banner" />
       ) : banners.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No promotional banners added yet</p>
-          <p className="text-xs text-neutral-400">Click "Add App Banner" to create your first visual carousel item.</p>
+          <p className="text-xs text-neutral-400">Click &quot;Add App Banner&quot; to create your first visual carousel item.</p>
         </div>
       ) : (
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start">
           {banners.map((b, idx) => (
             <motion.div
               key={b.id}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className={`overflow-hidden rounded-2xl border bg-white shadow-xs hover:shadow-md flex flex-col justify-between transition-all duration-300 ${
-                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200/80"
+              transition={{ duration: 0.22, delay: idx * 0.03 }}
+              className={`rounded-3xl bg-white p-2 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group select-none ${
+                b.isActive === false ? "opacity-75" : ""
               }`}
             >
-              <div>
-                {/* Clean 16:9 Image Preview (Zero dark overlay, zero text on image) */}
-                <div className="relative w-full aspect-[16/9] bg-neutral-100 overflow-hidden border-b border-neutral-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={b.imageUrl}
-                    alt={b.title}
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                </div>
-
-                {/* Card Content Body */}
-                <div className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-bold text-neutral-900 leading-snug line-clamp-2">{b.title}</h3>
-                    <span
-                      className={`shrink-0 px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${
-                        b.isActive !== false
-                          ? "bg-[#768957]/10 text-[#586940] border-[#768957]/25"
-                          : "bg-neutral-100 text-neutral-500 border-neutral-200"
-                      }`}
-                    >
-                      {b.isActive !== false ? "Live in App" : "Inactive"}
-                    </span>
+              {/* Inner Card (Holds all visual & contextual content, soft tinted surface without strokes) */}
+              <div
+                onClick={() => handleEditClick(b)}
+                className="rounded-[1.125rem] overflow-hidden bg-[#f4f5f8] flex-1 flex flex-col justify-between cursor-pointer transition-colors hover:bg-[#edf0f4]"
+              >
+                <div>
+                  {/* 16:9 Image Preview with smooth zoom on hover */}
+                  <div className="relative w-full aspect-[16/9] bg-neutral-200 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={b.imageUrl}
+                      alt={b.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-2.5 right-2.5">
+                      <span
+                        className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md shadow-2xs ${
+                          b.isActive !== false
+                            ? "bg-white/95 text-emerald-700"
+                            : "bg-white/95 text-neutral-500"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${b.isActive !== false ? "bg-emerald-500" : "bg-neutral-400"}`} />
+                        {b.isActive !== false ? "Live" : "Inactive"}
+                      </span>
+                    </div>
                   </div>
 
-                  <p className="text-xs text-neutral-500 font-medium">
-                    <span className="text-neutral-400">Action:</span>{" "}
-                    <span className="text-neutral-700 font-semibold">
-                      {b.targetType === "treatment" ? "Opens Treatment Product" : "External Link"}
-                    </span>
-                  </p>
+                  {/* Card Content Body */}
+                  <div className="p-3.5 space-y-2">
+                    <h3 className="text-sm font-bold text-neutral-900 leading-snug line-clamp-1 group-hover:text-neutral-950">
+                      {b.title}
+                    </h3>
+
+                    <p className="text-xs text-neutral-500 font-medium flex items-center gap-1">
+                      <span className="text-neutral-400">Action:</span>
+                      <span className="text-neutral-700 font-semibold truncate">
+                        {b.targetType === "treatment" ? "Opens Treatment Product" : "External Link"}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Card Footer Bar */}
-              <div className="px-5 py-3.5 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between gap-2">
+              {/* Outside Inner Card at Bottom (Holds active toggle, edit, delete) */}
+              <div
+                className="px-2 pt-2.5 pb-1 flex items-center justify-between gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {/* Status Toggle switch */}
                 <label className="relative inline-flex items-center cursor-pointer select-none">
                   <input
@@ -440,25 +447,31 @@ export default function BannersPage() {
                     onChange={() => handleToggleActive(b)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
-                  <span className="ml-2 text-xs font-semibold text-neutral-700">
+                  <div className="w-8 h-4.5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-neutral-200 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  <span className="ml-2 text-xs font-medium text-neutral-700">
                     {b.isActive !== false ? "Active" : "Inactive"}
                   </span>
                 </label>
 
-                {/* Right-aligned Action Buttons */}
-                <div className="flex items-center gap-2">
+                {/* Right-aligned Unified Action Buttons */}
+                <div className="flex items-center gap-1.5">
                   <button
+                    type="button"
                     onClick={() => handleEditClick(b)}
-                    className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-100 transition cursor-pointer shadow-2xs"
+                    className="btn-card-edit"
+                    title="Edit Banner"
                   >
-                    Edit
+                    <Edit2 className="w-3 h-3 text-neutral-500" />
+                    <span>Edit</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setDeleteTarget(b)}
-                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer shadow-2xs"
+                    className="btn-card-delete"
+                    title="Delete Banner"
                   >
-                    Delete
+                    <Trash2 className="w-3 h-3 text-rose-500" />
+                    <span>Delete</span>
                   </button>
                 </div>
               </div>

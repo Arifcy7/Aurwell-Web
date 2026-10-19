@@ -19,24 +19,51 @@ async function proxyRequest(
 ) {
   try {
     const { path } = await params;
-    const pathStr = Array.isArray(path) ? path.join("/") : path;
+    
+    // Sanitize path segments to prevent directory traversal
+    const safeSegments = (Array.isArray(path) ? path : [path])
+      .map((seg) => String(seg).replace(/[^a-zA-Z0-9_-]/g, ""))
+      .filter(Boolean);
+
+    if (safeSegments.length === 0) {
+      return NextResponse.json({ error: "Invalid booking API endpoint" }, { status: 400 });
+    }
+
+    const pathStr = safeSegments.join("/");
     const url = new URL(req.url);
     const targetUrl = `${getTargetUrl()}/api/booking/${pathStr}${url.search}`;
 
-    const headers: Record<string, string> = {
-      "Content-Type": req.headers.get("content-type") || "application/json",
-    };
-
     // Verify incoming Firebase Auth token from Admin Panel
     const authHeader = req.headers.get("authorization");
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split("Bearer ")[1]?.trim();
-      try {
-        await adminAuth.verifyIdToken(token);
-      } catch (authErr: any) {
-        console.warn("Admin proxy auth token warning:", authErr.message);
-      }
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "Unauthorized: Missing or malformed authorization header" },
+        { status: 401 }
+      );
     }
+
+    const token = authHeader.split("Bearer ")[1]?.trim();
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized: Missing bearer token" },
+        { status: 401 }
+      );
+    }
+
+    try {
+      await adminAuth.verifyIdToken(token);
+    } catch (authErr: any) {
+      console.warn("Admin proxy auth token error:", authErr.message);
+      return NextResponse.json(
+        { error: "Unauthorized: Invalid or expired session token" },
+        { status: 401 }
+      );
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": req.headers.get("content-type") || "application/json",
+      Authorization: `Bearer ${token}`,
+    };
 
     const init: RequestInit = {
       method: req.method,
@@ -62,11 +89,6 @@ async function proxyRequest(
 
     return NextResponse.json(data, {
       status: backendRes.status,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
     });
   } catch (error: any) {
     console.error("Booking API proxy error:", error);
@@ -94,14 +116,11 @@ export async function DELETE(req: NextRequest, ctx: any) {
 }
 
 export async function OPTIONS() {
-  return NextResponse.json(
-    {},
-    {
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-      },
-    }
-  );
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
 }

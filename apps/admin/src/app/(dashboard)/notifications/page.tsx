@@ -1,110 +1,69 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { collection, query, getDocs, doc, getDoc, orderBy, onSnapshot } from "firebase/firestore";
+import { useState, useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, getDocs, doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
-import AdminSplashScreen from "@/components/AdminSplashScreen";
-import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile } from "@/lib/firebase/upload";
-import { TableSkeleton } from "@/components/Loader";
+import ImageUploader from "@/components/ImageUploader";
+import AdminSplashScreen from "@/components/AdminSplashScreen";
+import { Send } from "lucide-react";
+import { MotionContainer, MotionCard } from "@/components/ui/motion-container";
 
-interface ClientProfile {
+interface Client {
   id: string;
   name: string;
+  email: string;
   visitsCount: number;
 }
 
-interface NotificationHistory {
-  id: string;
-  title: string;
-  body: string;
-  imageUrl?: string;
-  sentAt: any;
-  targetAudience: string;
-  visitsCriteria: string;
-  recipientCount: number;
-  successCount: number;
-  failureCount: number;
-}
-
 export default function NotificationsPage() {
-  const [clinicId, setClinicId] = useState<string>("");
-  const [clients, setClients] = useState<ClientProfile[]>([]);
-  const [history, setHistory] = useState<NotificationHistory[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // Form states
-  const [title, setTitle] = useState<string>("");
-  const [body, setBody] = useState<string>("");
-  const [imageUrl, setImageUrl] = useState<string>("");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState("");
   const [targetType, setTargetType] = useState<"all" | "visits">("all");
   const [operator, setOperator] = useState<">=" | "<=" | "==">(">=");
-  const [visitsValue, setVisitsValue] = useState<string>("5");
-  const [isSending, setIsSending] = useState<boolean>(false);
-  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [visitsValue, setVisitsValue] = useState<string>("1");
 
-  // Load clinic and client data
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [clinicId, setClinicId] = useState("");
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-          const cId = userDoc.data().clinicId;
-          setClinicId(cId);
+          const uClinicId = userDoc.data().clinicId;
+          setClinicId(uClinicId);
 
-          // 1. Fetch clients for real-time count estimation
-          const patientsSnapshot = await getDocs(collection(db, "clinics", cId, "patients"));
-          const loadedClients: ClientProfile[] = [];
-          patientsSnapshot.forEach((d) => {
-            const data = d.data();
-            loadedClients.push({
-              id: d.id,
-              name: data.name || "Anonymous Client",
-              visitsCount: typeof data.visitsCount === "number" ? data.visitsCount : 0,
-            });
-          });
-          setClients(loadedClients);
-
-          // 2. Set up realtime listener for notifications history
-          const histQuery = query(
-            collection(db, "clinics", cId, "notifications"),
-            orderBy("sentAt", "desc")
-          );
-
-          const unsubHistory = onSnapshot(
-            histQuery,
-            (snapshot) => {
-              const loadedHistory: NotificationHistory[] = [];
-              snapshot.forEach((d) => {
-                const data = d.data();
-                loadedHistory.push({
-                  id: d.id,
-                  title: data.title,
-                  body: data.body,
-                  imageUrl: data.imageUrl || "",
-                  sentAt: data.sentAt,
-                  targetAudience: data.targetAudience,
-                  visitsCriteria: data.visitsCriteria,
-                  recipientCount: data.recipientCount || 0,
-                  successCount: data.successCount || 0,
-                  failureCount: data.failureCount || 0,
-                });
+          if (uClinicId) {
+            const clientsSnapshot = await getDocs(
+              query(collection(db, "clinics", uClinicId, "patients"))
+            );
+            const clientsList: Client[] = [];
+            clientsSnapshot.forEach((docSnap) => {
+              const data = docSnap.data();
+              clientsList.push({
+                id: docSnap.id,
+                name: data.name || "Unnamed Client",
+                email: data.email || "",
+                visitsCount: data.visitsCount || 0,
               });
-              setHistory(loadedHistory);
-            },
-            (err) => {
-              console.warn("Notifications listener warning:", err);
-            }
-          );
-
-          return () => unsubHistory();
+            });
+            setClients(clientsList);
+          }
         }
       } catch (err) {
-        console.error("Error loading panel data:", err);
+        console.error("Error fetching clients:", err);
       } finally {
         setLoading(false);
       }
@@ -113,74 +72,63 @@ export default function NotificationsPage() {
     return () => unsubscribe();
   }, []);
 
-  // Compute matched clients in real-time
-  const matchedClients = useMemo(() => {
-    if (targetType === "all") {
-      return clients;
-    }
-    const val = Number(visitsValue);
-    if (isNaN(val)) return [];
-
-    return clients.filter((c) => {
-      if (operator === ">=") return c.visitsCount >= val;
-      if (operator === "<=") return c.visitsCount <= val;
-      if (operator === "==") return c.visitsCount === val;
-      return false;
-    });
-  }, [clients, targetType, operator, visitsValue]);
-
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !body.trim() || !clinicId) return;
+    if (!title || !body) return;
 
     setIsSending(true);
     setStatusMessage(null);
 
     try {
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) {
-        throw new Error("Authentication credentials not found");
+      // 1. Get current user Auth ID Token for server verification
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("You must be logged in as an administrator to dispatch notifications.");
       }
+      const token = await currentUser.getIdToken();
 
       let finalImageUrl = imageUrl;
       if (imageFile) {
         finalImageUrl = await uploadImageFile(imageFile, "notifications");
       }
 
-      const response = await fetch("/api/notifications/send", {
+      const res = await fetch("/api/notifications/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          clinicId,
           title,
           body,
-          imageUrl: finalImageUrl.trim() || undefined,
+          imageUrl: finalImageUrl,
           targetType,
           operator,
-          visitsValue,
+          visitsValue: parseInt(visitsValue, 10) || 0,
+          visitsFilter:
+            targetType === "visits"
+              ? {
+                  operator,
+                  value: parseInt(visitsValue, 10) || 0,
+                }
+              : undefined,
         }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send notification.");
 
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to send notifications");
-      }
-
+      const dispatchedCount = data.sentCount ?? data.recipientCount ?? 0;
       setStatusMessage({
         type: "success",
-        text: data.message || "Notification sent successfully!",
+        text: `Success! Broadcast dispatched to ${dispatchedCount} active client devices.`,
       });
-
-      // Clear input fields
       setTitle("");
       setBody("");
-      setImageUrl("");
       setImageFile(null);
+      setImageUrl("");
     } catch (err: any) {
-      console.error(err);
       setStatusMessage({
         type: "error",
         text: err.message || "An unexpected error occurred while sending.",
@@ -190,27 +138,36 @@ export default function NotificationsPage() {
     }
   };
 
+  // Filter clients locally for real-time live estimation
+  const matchedClients = clients.filter((c) => {
+    if (targetType === "all") return true;
+    const v = parseInt(visitsValue, 10);
+    if (isNaN(v)) return true;
+    if (operator === ">=") return c.visitsCount >= v;
+    if (operator === "<=") return c.visitsCount <= v;
+    if (operator === "==") return c.visitsCount === v;
+    return true;
+  });
+
   if (loading) {
     return (
-      <div className="relative w-full min-h-[500px]">
+      <div className="w-full min-h-[calc(100vh-12rem)] flex items-center justify-center">
         <AdminSplashScreen fullScreen={false} label="Loading notifications..." />
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 max-w-6xl mx-auto">
-      <div>
-        <h2 className="text-lg font-bold tracking-tight">Push Notifications</h2>
-        <p className="text-sm text-neutral-500">Broadcast updates or targeted loyalty reminders directly to client devices</p>
-      </div>
-
+    <MotionContainer className="space-y-4 max-w-6xl mx-auto" staggerDelay={0.08}>
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Send Notification Form */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-neutral-200/80 p-6 shadow-xs space-y-5">
-          <h3 className="text-md font-bold tracking-tight text-neutral-900 border-b border-neutral-100 pb-3">
-            Compose Broadcast
-          </h3>
+        <MotionCard className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 space-y-5" hoverLift={false}>
+          <div>
+            <h3 className="text-base sm:text-lg font-bold tracking-tight text-neutral-900">
+              Compose Broadcast
+            </h3>
+            <p className="text-xs text-neutral-400 font-normal">Send instant announcements or targeted reminders</p>
+          </div>
 
           <form onSubmit={handleSendNotification} className="space-y-4">
             <div>
@@ -220,7 +177,7 @@ export default function NotificationsPage() {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Exclusive Weekend Offer! 🌟"
+                placeholder="e.g. Exclusive Weekend Offer! ✨"
                 className="input-modern"
               />
             </div>
@@ -246,34 +203,34 @@ export default function NotificationsPage() {
             />
 
             {/* Targeting controls */}
-            <div className="bg-neutral-50/80 rounded-2xl p-4 border border-neutral-200/60 space-y-4">
+            <div className="bg-neutral-50 rounded-2xl p-4 space-y-3">
               <span className="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
                 Target Audience Configuration
               </span>
 
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-medium text-neutral-700 cursor-pointer">
                   <input
                     type="radio"
                     checked={targetType === "all"}
                     onChange={() => setTargetType("all")}
-                    className="h-4 w-4 border-neutral-300 text-[#768957] focus:ring-[#768957]"
+                    className="accent-neutral-900 h-4 w-4"
                   />
                   All Clients
                 </label>
-                <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-medium text-neutral-700 cursor-pointer">
                   <input
                     type="radio"
                     checked={targetType === "visits"}
                     onChange={() => setTargetType("visits")}
-                    className="h-4 w-4 border-neutral-300 text-[#768957] focus:ring-[#768957]"
+                    className="accent-neutral-900 h-4 w-4"
                   />
                   Target by Visits Count
                 </label>
               </div>
 
               {targetType === "visits" && (
-                <div className="flex items-center gap-3 animate-fadeIn flex-wrap">
+                <div className="flex items-center gap-2.5 animate-fadeIn flex-wrap pt-1">
                   <span className="text-xs text-neutral-600">Clients with visits</span>
                   <select
                     value={operator}
@@ -289,7 +246,7 @@ export default function NotificationsPage() {
                     min="0"
                     value={visitsValue}
                     onChange={(e) => setVisitsValue(e.target.value)}
-                    className="input-modern text-xs px-3 py-1.5 w-24"
+                    className="input-modern text-xs px-3 py-1.5 w-20"
                   />
                   <span className="text-xs text-neutral-600">session(s)</span>
                 </div>
@@ -298,10 +255,11 @@ export default function NotificationsPage() {
 
             {statusMessage && (
               <div
-                className={`rounded-xl px-4 py-2 text-xs font-semibold ${statusMessage.type === "success"
-                  ? "bg-[#768957]/10 text-[#586940] border border-[#768957]/25"
-                  : "bg-red-50 text-red-800 border border-red-200"
-                  }`}
+                className={`rounded-2xl px-4 py-3 text-xs font-semibold ${
+                  statusMessage.type === "success"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-rose-100 text-rose-800"
+                }`}
               >
                 {statusMessage.text}
               </div>
@@ -311,136 +269,53 @@ export default function NotificationsPage() {
               <button
                 type="submit"
                 disabled={isSending || matchedClients.length === 0}
-                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                className="btn-primary"
               >
                 {isSending ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
-                    Dispatching Broadcast...
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                    <span>Dispatching...</span>
                   </>
                 ) : (
-                  `Send Push Broadcast (${matchedClients.length} Recipients)`
+                  <>
+                    <Send className="w-4 h-4 text-white" />
+                    <span>Send Broadcast ({matchedClients.length} Recipients)</span>
+                  </>
                 )}
               </button>
             </div>
           </form>
-        </div>
+        </MotionCard>
 
         {/* Live Estimator Sidebar Card */}
-        <div className="bg-[#768957] text-white rounded-2xl p-6 flex flex-col justify-between shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-8 -translate-y-8"></div>
-
-          <div className="space-y-4 z-10">
-            <span className="bg-white/10 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-white/20 uppercase tracking-wider inline-block">
-              Audience Estimate
-            </span>
-            <div className="space-y-1">
-              <div className="text-5xl font-black tracking-tight">{matchedClients.length}</div>
-              <p className="text-sm text-neutral-200 font-medium">Estimated Target Recipients</p>
+        <MotionCard className="bg-white border border-neutral-200/80 rounded-3xl p-6 sm:p-7 flex flex-col justify-between shadow-xs relative overflow-hidden" hoverLift={false}>
+          <div className="space-y-4">
+            <div>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-neutral-400">
+                Audience Preview
+              </span>
+              <h4 className="text-xl font-bold mt-1 text-neutral-900 tracking-tight">Live Recipient Estimate</h4>
             </div>
-            <p className="text-xs text-neutral-200 leading-relaxed border-t border-white/15 pt-3">
-              This represents active clients within your database meeting the defined parameters. Push notifications are only received by users with valid device registrations.
+
+            <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200/70 space-y-1">
+              <span className="text-xs font-medium text-neutral-500">Matching Clients</span>
+              <div className="text-3xl font-extrabold text-neutral-900 tracking-tight">
+                {matchedClients.length}{" "}
+                <span className="text-xs font-normal text-neutral-400">/ {clients.length} total</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              Targeted notifications are delivered in real-time to client iOS and Android devices via Firebase Cloud Messaging.
             </p>
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-4 space-y-2.5 z-10">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-white/60">Total Clients:</span>
-              <span className="font-semibold">{clients.length}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-white/60">Filter Applied:</span>
-              <span className="font-semibold text-white capitalize">
-                {targetType === "all" ? "None (All Clients)" : `Visits ${operator} ${visitsValue}`}
-              </span>
-            </div>
+          <div className="pt-6 border-t border-neutral-100 text-[11px] text-neutral-400 flex items-center justify-between">
+            <span>Powered by Aurwell FCM</span>
+            <span className="font-mono text-[10px] text-neutral-400">v2.4 Engine</span>
           </div>
-        </div>
+        </MotionCard>
       </div>
-
-      {/* Dispatch History log */}
-      <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-xs overflow-hidden">
-        <div className="p-6 border-b border-neutral-200">
-          <h3 className="text-md font-bold tracking-tight text-neutral-900">Broadcast Dispatch History</h3>
-          <p className="text-xs text-neutral-500">Track and review delivery logs for previously sent messages</p>
-        </div>
-
-        {loading ? (
-          <TableSkeleton rows={4} cols={4} />
-        ) : history.length === 0 ? (
-          <div className="p-8 text-center text-sm text-neutral-400">No push notifications have been sent yet.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-neutral-200 text-left">
-              <thead className="bg-neutral-50">
-                <tr>
-                  <th className="px-6 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                    Message Details
-                  </th>
-                  <th className="px-6 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                    Target Criteria
-                  </th>
-                  <th className="px-6 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
-                    Date Sent
-                  </th>
-                  <th className="px-6 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wider text-right">
-                    FCM Delivery Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-200 bg-white text-sm">
-                {history.map((h) => {
-                  const dateStr = h.sentAt
-                    ? new Date(h.sentAt.seconds * 1000).toLocaleString()
-                    : "Pending...";
-
-                  return (
-                    <tr key={h.id} className="hover:bg-neutral-50/50 transition-colors">
-                      <td className="px-6 py-4 max-w-sm">
-                        <div className="flex items-start gap-3">
-                          {h.imageUrl && (
-                            <div className="h-10 w-10 flex-shrink-0 rounded-md overflow-hidden bg-neutral-100 border border-neutral-200">
-                              <img
-                                src={h.imageUrl}
-                                alt="Sent media"
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-neutral-900 text-sm truncate">{h.title}</div>
-                            <div className="text-xs text-neutral-500 mt-1 line-clamp-2 leading-relaxed">{h.body}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-neutral-700 text-xs">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 border border-neutral-200 text-neutral-800">
-                          {h.visitsCriteria}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-neutral-500 text-xs">
-                        {dateStr}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-xs">
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="font-semibold text-neutral-900">
-                            {h.recipientCount} target(s)
-                          </span>
-                          <span className="text-[10px] text-neutral-500">
-                            <span className="text-green-600 font-semibold">{h.successCount} success</span>
-                            {" · "}
-                            <span className="text-red-500 font-semibold">{h.failureCount} failed</span>
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
+    </MotionContainer>
   );
 }

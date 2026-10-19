@@ -4,7 +4,7 @@ import { getAllPosts } from "@/sanity/lib/sanityFetch";
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aurwell.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.aurwell.app";
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

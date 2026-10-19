@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── HELPER FUNCTIONS ──────────────────────────────────────────────────
+    // ── HELPER FUNCTIONS ──────────────────────────────────────────────
 
     function isSignedIn() {
       return request.auth != null;
@@ -17,36 +17,47 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isAdmin() {
+    function isSuperAdmin() {
       return isSignedIn() && (
-        (request.auth.token.keys().hasAll(['role']) && request.auth.token.role == 'clinic_admin') ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == 'clinic_admin')
+        exists(/databases/$(database)/documents/admin/$(request.auth.uid)) ||
+        (request.auth.token.keys().hasAll(['role']) && (request.auth.token.role == 'super_admin' || request.auth.token.role == 'superadmin'))
+      );
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isSignedIn() && (
+          (request.auth.token.keys().hasAll(['role']) && (request.auth.token.role == 'clinic_admin' || request.auth.token.role == 'admin')) ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserData().role == 'clinic_admin' || getUserData().role == 'admin'))
+        )
       );
     }
 
     function isClinicAdmin(clinicId) {
-      return isAdmin() && (
-        request.auth.uid == clinicId ||
-        clinicId == 'clinic_' + request.auth.uid ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().clinicId == clinicId) ||
-        (exists(/databases/$(database)/documents/clinics/$(clinicId)) && get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerUid == request.auth.uid)
+      return isSuperAdmin() || (
+        isAdmin() && (
+          request.auth.uid == clinicId ||
+          clinicId == 'clinic_' + request.auth.uid ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().clinicId == clinicId) ||
+          (exists(/databases/$(database)/documents/clinics/$(clinicId)) && get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerUid == request.auth.uid)
+        )
       );
     }
 
-    // ── 1. USERS COLLECTION ──────────────────────────────────────────────
+    // ── 1. USERS COLLECTION ────────────────────────────────────────────
     match /users/{userId} {
       allow read: if isUser(userId) || isAdmin();
       allow create, update: if isUser(userId) || isAdmin();
-      allow delete: if isAdmin();
+      allow delete: if isSuperAdmin();
     }
 
-    // ── 2. SUBDOMAINS COLLECTION (Public Lookup) ─────────────────────────
+    // ── 2. SUBDOMAINS COLLECTION (Public Lookup) ───────────────────────
     match /subdomains/{subdomain} {
       allow read: if true; // Publicly readable for subdomain tenant routing
       allow write: if isAdmin();
     }
 
-    // ── 3. CLINICS COLLECTION & SUBCOLLECTIONS ───────────────────────────
+    // ── 3. CLINICS COLLECTION & SUBCOLLECTIONS ─────────────────────────
     match /clinics/{clinicId} {
       allow read: if true; // Publicly readable for public clinic booking & branded pages
       allow write: if isClinicAdmin(clinicId);
@@ -87,7 +98,7 @@ service cloud.firestore {
       }
 
       match /notifications/{notificationId} {
-        allow read: if isSignedIn();
+        allow read: if isClinicAdmin(clinicId);
         allow write: if isClinicAdmin(clinicId);
       }
 
@@ -130,41 +141,48 @@ service cloud.firestore {
         allow update, delete: if isClinicAdmin(clinicId);
       }
 
+      match /orders/{orderId} {
+        allow read: if isClinicAdmin(clinicId) || (isSignedIn() && resource.data.userUid == request.auth.uid);
+        allow create: if isClinicAdmin(clinicId) || (isSignedIn() && request.resource.data.userUid == request.auth.uid);
+        allow update, delete: if isClinicAdmin(clinicId);
+      }
+
       match /active_memberships/{memberId} {
         allow read: if isClinicAdmin(clinicId) || (isSignedIn() && resource.data.userUid == request.auth.uid);
         allow create: if isClinicAdmin(clinicId) || (isSignedIn() && request.resource.data.userUid == request.auth.uid);
         allow update, delete: if isClinicAdmin(clinicId);
       }
 
-      // Recursive fallback for any subcollections under /clinics/{clinicId}
+      // Secure subcollection fallback: only clinic admin or super admin can access
       match /{subcollection=**} {
-        allow read, write: if isSignedIn();
+        allow read, write: if isClinicAdmin(clinicId);
       }
     }
 
-    // ── 4. REFERRALS COLLECTION ──────────────────────────────────────────
+    // ── 4. REFERRALS COLLECTION ─────────────────────────────────────────
     match /referrals/{referralCode} {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && (isClinicAdmin(request.resource.data.clinicId) || request.auth.uid == request.resource.data.uid);
-      allow delete: if isAdmin();
+      allow delete: if isSuperAdmin();
     }
 
-    // ── 5. B2B REFERRALS COLLECTION ──────────────────────────────────────
+    // ── 5. B2B REFERRALS COLLECTION ─────────────────────────────────────
     match /b2b_referrals/{referralId} {
       allow read: if isSignedIn();
       allow create, update: if isSignedIn() && (isAdmin() || request.auth.uid == request.resource.data.referrerUid);
-      allow delete: if isAdmin();
+      allow delete: if isSuperAdmin();
     }
 
-    // ── 6. ADMINS (SUPER ADMIN ACCESS) ──────────────────────────────────
+    // ── 6. ADMINS (SUPER ADMIN ACCESS ONLY) ─────────────────────────────
     match /admin/{adminDoc} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      // Super admin creation / deletion is restricted to existing Super Admins
+      allow write: if isSuperAdmin();
     }
 
-    // ── DEV INTEGRATION TESTING ──────────────────────────────────────────
+    // ── 7. DEV INTEGRATION TESTING ──────────────────────────────────────
     match /test_writes/{doc} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isSuperAdmin();
     }
   }
 }

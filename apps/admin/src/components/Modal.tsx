@@ -11,7 +11,7 @@ interface ModalProps {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
-  maxWidth?: string; // Default: "max-w-6xl"
+  maxWidth?: string; // Default: "max-w-2xl"
 }
 
 export default function Modal({
@@ -20,7 +20,7 @@ export default function Modal({
   title,
   subtitle,
   children,
-  maxWidth = "max-w-6xl",
+  maxWidth = "max-w-2xl",
 }: ModalProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -32,56 +32,67 @@ export default function Modal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", handleKeyDown);
+      };
     } else {
       document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   if (!mounted) return null;
 
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 w-screen h-screen z-[9999] flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/65 backdrop-blur-sm overflow-hidden">
-          {/* Backdrop Click */}
-          <div
-            className="absolute inset-0 cursor-pointer"
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto">
+          {/* Animated Backdrop with Hardware Acceleration */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="fixed inset-0 bg-neutral-950/45 backdrop-blur-sm transform-gpu will-change-[opacity] cursor-pointer"
             onClick={onClose}
           />
 
+          {/* Modal Dialog Card */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            initial={{ opacity: 0, scale: 0.95, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`relative z-10 w-[94vw] ${maxWidth} max-h-[88vh] sm:max-h-[90vh] bg-white rounded-2xl border border-neutral-100 shadow-2xl flex flex-col overflow-hidden my-auto`}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className={`relative z-10 w-[94vw] ${maxWidth} max-h-[88vh] sm:max-h-[90vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden my-auto border border-neutral-100 transform-gpu will-change-[transform,opacity]`}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-5 border-b border-neutral-100 bg-white shrink-0">
+            <div className="flex items-center justify-between px-6 sm:px-8 py-4 sm:py-5 bg-white border-b border-neutral-100 shrink-0">
               <div>
                 {subtitle && (
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block mb-0.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400 block mb-0.5">
                     {subtitle}
                   </span>
                 )}
-                <h3 className="text-lg sm:text-xl font-extrabold text-neutral-900 tracking-tight">
+                <h3 className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight">
                   {title}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 transition cursor-pointer"
+                className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 flex items-center justify-center transition-all duration-150 cursor-pointer"
+                aria-label="Close dialog"
               >
-                <X className="w-5 h-5 text-neutral-500" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Body Container with Inset Visible Scrollbar */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-neutral-50 [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-5 sm:py-6 space-y-6 custom-scrollbar">
               {children}
             </div>
           </motion.div>

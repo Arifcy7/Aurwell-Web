@@ -297,6 +297,7 @@ export default function AppointmentsPage() {
     const dayStart = `${selectedDate}T00:00:00.000Z`;
     const dayEnd = `${selectedDate}T23:59:59.999Z`;
 
+    let fallbackUnsub: (() => void) | null = null;
     const aptQuery = query(
       collection(db, "clinics", clinicId, "appointments"),
       where("schedule.startDateTime", ">=", dayStart),
@@ -312,7 +313,7 @@ export default function AppointmentsPage() {
       (err) => {
         console.error("Error fetching appointments:", err);
         // Fallback without range filter if composite index is missing
-        onSnapshot(collection(db, "clinics", clinicId, "appointments"), (allSnap) => {
+        fallbackUnsub = onSnapshot(collection(db, "clinics", clinicId, "appointments"), (allSnap) => {
           const list = allSnap.docs
             .map((d) => ({ id: d.id, ...d.data() } as any))
             .filter((apt) => apt.schedule?.startDateTime?.startsWith(selectedDate));
@@ -326,6 +327,9 @@ export default function AppointmentsPage() {
       doctorsUnsub();
       treatmentsUnsub();
       aptUnsub();
+      if (fallbackUnsub) {
+        (fallbackUnsub as any)();
+      }
     };
   }, [clinicId, selectedDate]);
 

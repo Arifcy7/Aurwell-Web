@@ -161,51 +161,51 @@ export default function BookingSettingsPage() {
     <BookingAccessGuard>
       <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl font-black text-neutral-900 tracking-tight">Subdomain & Booking Settings</h1>
+          <h1 className="text-lg font-bold text-neutral-900 tracking-tight">Subdomain & Booking Settings</h1>
           <p className="text-xs text-neutral-500 mt-0.5">
-            Configure your public online booking engine, public URL domain, and payment policies
+            Configure your public online booking engine, public URL domain, and payment policies.
           </p>
         </div>
       </div>
 
       {statusMessage && (
-        <div className="bg-emerald-50 text-emerald-800 p-4 rounded-2xl border border-emerald-200 text-xs font-bold flex items-center gap-2 shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+        <div className="bg-emerald-50 text-emerald-800 p-3 sm:p-3.5 rounded-xl border border-emerald-200 text-xs font-medium flex items-center gap-2 shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
           {statusMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="bg-rose-50 text-rose-800 p-4 rounded-2xl border border-rose-200 text-xs font-bold flex items-center gap-2 shadow-xs">
-          <AlertCircle className="w-4 h-4 text-rose-600" />
+        <div className="bg-rose-50 text-rose-800 p-3 sm:p-3.5 rounded-xl border border-rose-200 text-xs font-medium flex items-center gap-2 shadow-xs">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           {errorMessage}
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-4">
         {/* Subdomain */}
-        <div className="bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs space-y-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-xs space-y-3.5">
           <div>
-            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">Public Web Address</h2>
+            <h2 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider">Public Web Address</h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Patients visit this link to view treatments, select practitioners, and book appointments
+              Patients visit this link to view treatments, select practitioners, and book appointments.
             </p>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-neutral-700">Aurwell Hosted Subdomain *</label>
-            <div className="flex items-center mt-1">
+            <label className="text-xs font-semibold text-neutral-700 mb-1 block">Aurwell Hosted Subdomain *</label>
+            <div className="flex items-center">
               <input
                 type="text"
                 required
                 value={subdomain}
                 onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="harleystreet"
-                className="border border-r-0 border-neutral-200 rounded-l-xl p-2.5 text-xs font-mono font-bold text-neutral-900 bg-neutral-50 w-48 focus:bg-white focus:outline-none focus:border-[#768957] focus:ring-1 focus:ring-[#768957]"
+                className="input-modern rounded-r-none border-r-0 w-48 font-mono text-xs font-semibold"
               />
-              <span className="bg-neutral-100 border border-neutral-200 rounded-r-xl px-3 py-2.5 text-xs text-neutral-600 font-mono font-bold">
+              <span className="bg-neutral-100 border border-neutral-200 rounded-r-lg px-3 py-1.5 text-xs text-neutral-600 font-mono font-medium">
                 .aurwell.app
               </span>
             </div>
@@ -216,37 +216,37 @@ export default function BookingSettingsPage() {
         </div>
 
         {/* Booking Rules & Payment Policies */}
-        <div className="bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs space-y-5">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-xs space-y-4">
           <div>
-            <h2 className="text-sm font-black text-neutral-900 uppercase tracking-wider">
+            <h2 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider">
               Booking Rules & Payment Policies
             </h2>
             <p className="text-xs text-neutral-500 mt-0.5">
-              Stripe deposit requirements, cancellation thresholds, and calendar increment rules
+              Stripe deposit requirements, cancellation thresholds, and calendar increment rules.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
+          <div className="flex items-center gap-2.5 p-3 bg-neutral-50/80 rounded-xl border border-neutral-200/80">
             <input
               type="checkbox"
               id="reqPayment"
               checked={requirePayment}
               onChange={(e) => setRequirePayment(e.target.checked)}
-              className="rounded text-[#768957] focus:ring-[#768957] h-4 w-4 cursor-pointer"
+              className="rounded text-neutral-900 focus:ring-neutral-900 h-4 w-4 cursor-pointer"
             />
-            <label htmlFor="reqPayment" className="text-xs font-bold text-neutral-900 cursor-pointer">
+            <label htmlFor="reqPayment" className="text-xs font-medium text-neutral-900 cursor-pointer">
               Require upfront deposit / full payment via Stripe during online booking
             </label>
           </div>
 
           {requirePayment && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-neutral-50 rounded-2xl border border-neutral-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-neutral-50/80 rounded-xl border border-neutral-200/80">
               <div>
-                <label className="text-xs font-bold text-neutral-800">Deposit Calculation Type</label>
+                <label className="text-xs font-semibold text-neutral-800 mb-1 block">Deposit Calculation Type</label>
                 <select
                   value={depositType}
                   onChange={(e) => setDepositType(e.target.value as any)}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-white font-semibold focus:outline-none focus:border-[#768957]"
+                  className="select-modern w-full"
                 >
                   <option value="percentage">Percentage of Treatment Price (%)</option>
                   <option value="fixed">Fixed Currency Amount (£/€/$)</option>
@@ -254,7 +254,7 @@ export default function BookingSettingsPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-neutral-800">
+                <label className="text-xs font-semibold text-neutral-800 mb-1 block">
                   Deposit Amount ({depositType === "percentage" ? "%" : "Fixed Amount"})
                 </label>
                 <input
@@ -263,19 +263,19 @@ export default function BookingSettingsPage() {
                   max={depositType === "percentage" ? 100 : 10000}
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(Number(e.target.value))}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-white font-semibold focus:outline-none focus:border-[#768957]"
+                  className="input-modern w-full"
                 />
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs font-bold text-neutral-700">Slot Interval</label>
+              <label className="text-xs font-semibold text-neutral-700 mb-1 block">Slot Interval</label>
               <select
                 value={slotInterval}
                 onChange={(e) => setSlotInterval(Number(e.target.value))}
-                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+                className="select-modern w-full"
               >
                 <option value={15}>15 Minutes</option>
                 <option value={30}>30 Minutes</option>
@@ -285,49 +285,49 @@ export default function BookingSettingsPage() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-neutral-700">Min Notice (Hours)</label>
+              <label className="text-xs font-semibold text-neutral-700 mb-1 block">Min Notice (Hours)</label>
               <input
                 type="number"
                 min="0"
                 value={minNotice}
                 onChange={(e) => setMinNotice(Number(e.target.value))}
-                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+                className="input-modern w-full"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-neutral-700">Max Advance (Days)</label>
+              <label className="text-xs font-semibold text-neutral-700 mb-1 block">Max Advance (Days)</label>
               <input
                 type="number"
                 min="1"
                 max="365"
                 value={maxAdvance}
                 onChange={(e) => setMaxAdvance(Number(e.target.value))}
-                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+                className="input-modern w-full"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-neutral-700">Free Cancel (Hours)</label>
+              <label className="text-xs font-semibold text-neutral-700 mb-1 block">Free Cancel (Hours)</label>
               <input
                 type="number"
                 min="0"
                 value={cancellationHours}
                 onChange={(e) => setCancellationHours(Number(e.target.value))}
-                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 font-semibold focus:outline-none"
+                className="input-modern w-full"
               />
             </div>
           </div>
         </div>
 
         {/* Save Bar */}
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end pt-1">
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 bg-[#768957] hover:bg-[#65774a] text-white px-8 py-3 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+            className="btn-primary px-5 py-2 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
           >
-            <Save className="w-4 h-4" /> {saving ? "Saving Configuration..." : "Save All Settings"}
+            <Save className="w-3.5 h-3.5" /> {saving ? "Saving Configuration..." : "Save All Settings"}
           </button>
         </div>
       </form>

@@ -200,23 +200,23 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl space-y-6 flex flex-col justify-between">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/40 backdrop-blur-xs p-4">
+      <div className="relative w-full max-w-md overflow-hidden p-6 sm:p-7 bg-white rounded-3xl shadow-2xl space-y-5 flex flex-col justify-between border-0">
 
         {/* Modal Header */}
-        <div className="flex justify-between items-center pb-3 border-b border-neutral-100">
+        <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-md font-bold text-neutral-900">Live QR Scanner</h3>
-            <p className="text-xs text-neutral-400">Scan membership cards to check in patients</p>
+            <h3 className="text-base font-bold text-neutral-900 tracking-tight">Live QR Scanner</h3>
+            <p className="text-xs text-neutral-500">Scan membership cards to check in patients</p>
           </div>
           <button
             onClick={() => {
               handleReset();
               onClose();
             }}
-            className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-[#768957] transition"
+            className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 transition cursor-pointer"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -224,28 +224,28 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
 
         {/* Success State */}
         {successResult ? (
-          <div className="space-y-6 py-4 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50 border border-green-200 text-green-600">
+          <div className="space-y-4 py-2 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1">
               <h4 className="text-sm font-bold text-neutral-900">Scan Successful!</h4>
               <p className="text-xs text-neutral-500">Visit registered for patient profile.</p>
             </div>
 
-            <div className="rounded-xl bg-neutral-50 border border-neutral-100 p-4 text-left text-xs space-y-2">
-              <div className="flex justify-between"><span className="text-neutral-400">Client Name:</span> <strong className="text-neutral-800">{successResult.patientName}</strong></div>
-              <div className="flex justify-between"><span className="text-neutral-400">Client ID:</span> <span className="font-mono text-neutral-600 select-all">{successResult.userId}</span></div>
-              <div className="flex justify-between"><span className="text-neutral-400">Total Visits:</span> <strong className="text-neutral-800">{successResult.newVisits}</strong></div>
-              <div className="flex justify-between items-baseline"><span className="text-neutral-400">Points Awarded:</span> <span className="text-green-600 font-bold">+{successResult.pointsAwarded} pts</span></div>
-              <div className="flex justify-between border-t border-neutral-200/60 pt-2 mt-2 font-semibold text-neutral-900"><span className="text-neutral-700">RTDB Loyalty Balance:</span> <span>{successResult.newLoyaltyBalance} pts</span></div>
+            <div className="admin-card-inner p-4 rounded-2xl text-left text-xs space-y-2.5">
+              <div className="flex justify-between"><span className="text-neutral-400">Client Name:</span> <strong className="text-neutral-900">{successResult.patientName}</strong></div>
+              <div className="flex justify-between"><span className="text-neutral-400">Client ID:</span> <span className="font-mono text-neutral-700 select-all">{successResult.userId}</span></div>
+              <div className="flex justify-between"><span className="text-neutral-400">Total Visits:</span> <strong className="text-neutral-900">{successResult.newVisits}</strong></div>
+              <div className="flex justify-between items-baseline"><span className="text-neutral-400">Points Awarded:</span> <span className="text-emerald-600 font-bold">+{successResult.pointsAwarded} pts</span></div>
+              <div className="flex justify-between pt-2 mt-2 font-semibold text-neutral-900 border-t border-neutral-200/50"><span className="text-neutral-700">RTDB Loyalty Balance:</span> <span>{successResult.newLoyaltyBalance} pts</span></div>
             </div>
 
             <button
               onClick={handleReset}
-              className="w-full rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition cursor-pointer"
+              className="btn-primary w-full py-2.5 text-xs font-semibold"
             >
               Scan Another Card
             </button>
@@ -254,20 +254,20 @@ export default function QRScannerModal({ isOpen, onClose, clinicId }: QRScannerM
           <div className="space-y-4">
             {/* Error Message */}
             {errorMsg && (
-              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+              <div className="rounded-2xl bg-rose-50 p-3.5 text-xs text-rose-800">
                 {errorMsg}
               </div>
             )}
 
             {processing ? (
-              <div className="flex justify-center items-center gap-2 text-xs text-neutral-500 py-12">
-                <div className="h-4 w-4 animate-spin rounded-full border border-neutral-300 border-t-[#768957]"></div>
+              <div className="flex justify-center items-center gap-2.5 text-xs text-neutral-600 py-12">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-900"></div>
                 Updating client profile and loyalty points...
               </div>
             ) : (
-              <div className="relative rounded-xl border border-neutral-200 bg-neutral-50 overflow-hidden flex flex-col justify-center items-center p-2.5 min-h-[300px]">
-                <div id="qr-reader-viewport" className="w-full max-w-sm rounded-lg overflow-hidden [&_video]:w-full [&_video]:h-full [&_video]:object-cover" />
-                <p className="text-[10px] text-neutral-400 mt-3 text-center px-4 leading-normal">
+              <div className="relative rounded-2xl bg-neutral-100 overflow-hidden flex flex-col justify-center items-center p-3 min-h-[280px]">
+                <div id="qr-reader-viewport" className="w-full max-w-sm rounded-xl overflow-hidden [&_video]:w-full [&_video]:h-full [&_video]:object-cover" />
+                <p className="text-[11px] text-neutral-500 mt-3 text-center px-4 leading-normal">
                   Place the client's check-in QR code directly in front of the camera to scan.
                 </p>
               </div>

@@ -363,7 +363,7 @@ export default function SchedulesPage() {
   if (loading && !clinicId) {
     return (
       <div className="max-w-5xl mx-auto py-24 text-center space-y-3">
-        <div className="w-10 h-10 border-3 border-[#768957] border-t-transparent rounded-full animate-spin mx-auto" />
+        <div className="w-10 h-10 border-3 border-neutral-900 border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-xs text-neutral-400 font-medium">Loading clinic operating schedules...</p>
       </div>
     );
@@ -372,99 +372,100 @@ export default function SchedulesPage() {
   return (
     <BookingAccessGuard>
       <div className="max-w-6xl mx-auto space-y-5 pb-24">
-      {/* ── Top Header Card with Integrated Stats & Actions ──────────────── */}
-      <div className="bg-white p-3.5 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col lg:flex-row lg:items-stretch justify-between gap-3.5">
-        {/* Title, Subtitle & Actions */}
-        <div className="space-y-3 max-w-md flex flex-col justify-between py-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <span className="p-2 rounded-xl bg-[#768957]/10 text-[#586940]">
-                <Clock className="w-5 h-5" />
-              </span>
-              <h1 className="text-2xl font-black text-neutral-900 tracking-tight">
-                Operating Hours & Shifts
-              </h1>
+        {/* ── Top Header Card with Integrated Stats & Actions ──────────────── */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Title, Subtitle & Actions */}
+          <div className="space-y-3 max-w-md">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5">
+                <span className="p-1.5 rounded-lg bg-neutral-100 text-neutral-800">
+                  <Clock className="w-4 h-4" />
+                </span>
+                <h1 className="text-lg font-bold text-neutral-900 tracking-tight">
+                  Operating Hours & Shifts
+                </h1>
+              </div>
+              <p className="text-xs text-neutral-500 leading-relaxed">
+                Configure weekly clinic opening times, split shifts, and holiday closures.
+              </p>
             </div>
-            <p className="text-xs text-neutral-500 leading-relaxed">
-              Configure weekly clinic opening times, split shifts, and holiday closures.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-2.5 pt-1">
-            <button
-              onClick={handleSave}
-              disabled={saving || !hasUnsavedChanges}
-              className={`btn-primary px-5 py-2.5 text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs transition ${!hasUnsavedChanges ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-            >
-              <Save className="w-3.5 h-3.5" />
-              {saving ? "Saving..." : "Save Schedule"}
-            </button>
-
-            {hasUnsavedChanges && (
+            <div className="flex items-center gap-2 pt-0.5">
               <button
-                onClick={handleDiscard}
-                className="px-3.5 py-2 text-xs font-semibold text-neutral-500 hover:text-neutral-800 transition cursor-pointer"
+                onClick={handleSave}
+                disabled={saving || !hasUnsavedChanges}
+                className={`btn-primary px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs transition ${
+                  !hasUnsavedChanges ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
-                Discard
+                <Save className="w-3.5 h-3.5" />
+                {saving ? "Saving..." : "Save Schedule"}
               </button>
-            )}
 
-            {savedSuccess && (
-              <span className="text-xs font-semibold text-[#586940] flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-[#768957]" />
-                Saved!
-              </span>
-            )}
+              {hasUnsavedChanges && (
+                <button
+                  onClick={handleDiscard}
+                  className="px-3 py-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-800 transition cursor-pointer"
+                >
+                  Discard
+                </button>
+              )}
+
+              {savedSuccess && (
+                <span className="text-xs font-medium text-neutral-900 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-neutral-900" />
+                  Saved!
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Right side: Two Prominent Stat Cards */}
+          <div className="flex flex-col sm:flex-row items-stretch gap-3">
+            {/* Stat 1: Weekly Hours */}
+            <div className="p-3.5 sm:p-4 rounded-xl bg-neutral-50/80 border border-neutral-200/80 shadow-2xs flex flex-col justify-between sm:w-48 shrink-0">
+              <div>
+                <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
+                  Weekly Hours
+                </span>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <p className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+                    {weeklyStats.totalHoursStr}
+                  </p>
+                  <span className="text-xs text-neutral-400 font-medium">/ week</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-neutral-900 font-medium flex items-center gap-1 pt-1">
+                <Clock className="w-3 h-3" /> Active operating capacity
+              </p>
+            </div>
+
+            {/* Stat 2: Open Days */}
+            <div className="p-3.5 sm:p-4 rounded-xl bg-neutral-50/80 border border-neutral-200/80 shadow-2xs flex flex-col justify-between sm:w-48 shrink-0">
+              <div>
+                <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider block">
+                  Open Days
+                </span>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <p className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+                    {weeklyStats.openDaysCount}
+                  </p>
+                  <span className="text-xs text-neutral-400 font-medium">/ 7 days active</span>
+                </div>
+              </div>
+              <p className="text-[11px] text-neutral-500 font-medium pt-1">
+                {7 - weeklyStats.openDaysCount} days marked closed
+              </p>
+            </div>
           </div>
         </div>
-
-        {/* Right side: Two Prominent Stat Cards */}
-        <div className="flex flex-col sm:flex-row items-stretch gap-3.5">
-          {/* Stat 1: Weekly Hours */}
-          <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 shadow-2xs flex flex-col justify-between sm:w-52 shrink-0">
-            <div>
-              <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
-                Weekly Hours
-              </span>
-              <div className="flex items-baseline gap-1.5 mt-0.5">
-                <p className="text-2xl font-black text-neutral-900 tracking-tight">
-                  {weeklyStats.totalHoursStr}
-                </p>
-                <span className="text-xs text-neutral-400 font-medium">/ week</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-[#586940] font-semibold flex items-center gap-1.5 pt-1.5">
-              <Clock className="w-3 h-3" /> Active operating capacity
-            </p>
-          </div>
-
-          {/* Stat 2: Open Days */}
-          <div className="p-4 rounded-xl bg-neutral-50 border border-neutral-200/80 shadow-2xs flex flex-col justify-between sm:w-52 shrink-0">
-            <div>
-              <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block">
-                Open Days
-              </span>
-              <div className="flex items-baseline gap-1.5 mt-0.5">
-                <p className="text-2xl font-black text-neutral-900 tracking-tight">
-                  {weeklyStats.openDaysCount}
-                </p>
-                <span className="text-xs text-neutral-400 font-medium">/ 7 days active</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-neutral-500 font-medium pt-1.5">
-              {7 - weeklyStats.openDaysCount} days marked closed
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* ── View Navigation Tabs (Weekly Matrix vs Holiday Overrides) ─────── */}
       <div className="flex items-center gap-2 border-b border-neutral-200">
         <button
           onClick={() => setActiveTab("weekly")}
           className={`pb-3 px-3 text-xs font-bold flex items-center gap-2 border-b-2 transition cursor-pointer ${activeTab === "weekly"
-              ? "border-[#768957] text-[#586940]"
+              ? "border-neutral-900 text-neutral-900 font-semibold"
               : "border-transparent text-neutral-500 hover:text-neutral-800"
             }`}
         >
@@ -475,14 +476,14 @@ export default function SchedulesPage() {
         <button
           onClick={() => setActiveTab("overrides")}
           className={`pb-3 px-3 text-xs font-bold flex items-center gap-2 border-b-2 transition cursor-pointer ${activeTab === "overrides"
-              ? "border-[#768957] text-[#586940]"
+              ? "border-neutral-900 text-neutral-900 font-semibold"
               : "border-transparent text-neutral-500 hover:text-neutral-800"
             }`}
         >
           <Calendar className="w-4 h-4" />
           Holiday & Date Overrides
           {dateOverrides.length > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#768957]/10 text-[#586940]">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-neutral-100 text-neutral-800">
               {dateOverrides.length}
             </span>
           )}
@@ -491,7 +492,7 @@ export default function SchedulesPage() {
 
       {/* ── TAB 1: WEEKLY OPERATING SCHEDULE ───────────────────────────────── */}
       {activeTab === "weekly" && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {DAYS.map((day) => {
             const schedule = weeklyHours[day.id] || { isOpen: false, slots: [] };
             const isOpen = schedule.isOpen;
@@ -507,47 +508,51 @@ export default function SchedulesPage() {
             return (
               <div
                 key={day.id}
-                className={`bg-white rounded-2xl border transition-all p-4.5 sm:p-5 shadow-xs ${isOpen
-                    ? "border-neutral-200/90 hover:border-[#768957]/30"
-                    : "border-neutral-200/50 bg-neutral-50/60 opacity-80"
-                  }`}
+                className={`bg-white rounded-2xl border transition-all p-3.5 sm:p-4 shadow-xs ${
+                  isOpen
+                    ? "border-neutral-200/90 hover:border-neutral-900/30"
+                    : "border-neutral-200/60 bg-neutral-50/50 opacity-80"
+                }`}
               >
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  {/* Left: Perfectly Straight Toggle + Day Badge & Label */}
-                  <div className="flex items-center gap-3.5 w-52 shrink-0">
-                    {/* Modern iOS-Style Slider Toggle - perfectly aligned on the left */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+                  {/* Left: Toggle + Day Badge & Label */}
+                  <div className="flex items-center gap-3 w-48 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleToggleDay(day.id)}
-                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isOpen ? "bg-[#768957]" : "bg-neutral-300"
-                        }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isOpen ? "bg-neutral-950" : "bg-neutral-300"
+                      }`}
                       role="switch"
                       aria-checked={isOpen}
                     >
                       <span
                         aria-hidden="true"
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${isOpen ? "translate-x-5" : "translate-x-0"
-                          }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                          isOpen ? "translate-x-4" : "translate-x-0"
+                        }`}
                       />
                     </button>
 
                     {/* Day Badge & Label */}
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs transition-colors shrink-0 ${isOpen
-                            ? "bg-[#768957]/10 text-[#586940] border border-[#768957]/20"
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors shrink-0 ${
+                          isOpen
+                            ? "bg-neutral-100 text-neutral-800"
                             : "bg-neutral-100 text-neutral-400 border border-neutral-200/60"
-                          }`}
+                        }`}
                       >
                         {day.short}
                       </span>
                       <div className="min-w-0">
-                        <h3 className={`text-sm font-bold truncate ${isOpen ? "text-neutral-900" : "text-neutral-500"}`}>
+                        <h3 className={`text-xs font-semibold truncate ${isOpen ? "text-neutral-900" : "text-neutral-500"}`}>
                           {day.label}
                         </h3>
                         <span
-                          className={`text-[11px] font-semibold ${isOpen ? "text-[#586940]" : "text-neutral-400"
-                            }`}
+                          className={`text-[10px] font-medium ${
+                            isOpen ? "text-neutral-900" : "text-neutral-400"
+                          }`}
                         >
                           {isOpen ? formatDuration(dayTotalMinutes) : "Closed"}
                         </span>
@@ -567,10 +572,11 @@ export default function SchedulesPage() {
                             <div key={idx} className="flex flex-wrap items-center gap-2">
                               {/* Shift Window Box */}
                               <div
-                                className={`flex items-center gap-2 bg-neutral-50 border rounded-xl px-3 py-2 transition ${isInvalid
+                                className={`flex items-center gap-1.5 bg-neutral-50/80 border rounded-lg px-2.5 py-1.5 transition ${
+                                  isInvalid
                                     ? "border-rose-300 bg-rose-50/50"
-                                    : "border-neutral-200 hover:border-[#768957]/40"
-                                  }`}
+                                    : "border-neutral-200/80 hover:border-neutral-900/40"
+                                }`}
                               >
                                 <Clock className="w-3.5 h-3.5 text-neutral-400" />
                                 <input
@@ -579,18 +585,18 @@ export default function SchedulesPage() {
                                   onChange={(e) =>
                                     handleUpdateSlot(day.id, idx, "start", e.target.value)
                                   }
-                                  className="bg-transparent text-xs font-bold text-neutral-800 focus:outline-none cursor-pointer"
+                                  className="bg-transparent text-xs font-semibold text-neutral-800 focus:outline-none cursor-pointer"
                                 />
-                                <span className="text-xs text-neutral-400 font-medium px-1">to</span>
+                                <span className="text-[11px] text-neutral-400 font-medium px-0.5">to</span>
                                 <input
                                   type="time"
                                   value={slot.end}
                                   onChange={(e) =>
                                     handleUpdateSlot(day.id, idx, "end", e.target.value)
                                   }
-                                  className="bg-transparent text-xs font-bold text-neutral-800 focus:outline-none cursor-pointer"
+                                  className="bg-transparent text-xs font-semibold text-neutral-800 focus:outline-none cursor-pointer"
                                 />
-                                <span className="text-[10px] font-bold text-[#586940] bg-[#768957]/10 px-2 py-0.5 rounded-md ml-1">
+                                <span className="text-[10px] font-semibold text-neutral-900 bg-neutral-100 px-1.5 py-0.5 rounded ml-1">
                                   {isInvalid ? (
                                     <span className="text-rose-600 font-bold">Invalid</span>
                                   ) : (
@@ -603,14 +609,14 @@ export default function SchedulesPage() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveSlot(day.id, idx)}
-                                className="p-1.5 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                                className="p-1 text-neutral-400 hover:text-rose-600 rounded-md hover:bg-rose-50 transition cursor-pointer"
                                 title="Remove time slot"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
 
                               {isInvalid && (
-                                <span className="text-[10px] text-rose-600 font-bold flex items-center gap-1">
+                                <span className="text-[10px] text-rose-600 font-medium flex items-center gap-1">
                                   <AlertCircle className="w-3 h-3" /> End must be after start
                                 </span>
                               )}
@@ -623,7 +629,7 @@ export default function SchedulesPage() {
                           <button
                             type="button"
                             onClick={() => handleAddSlot(day.id)}
-                            className="text-xs font-bold text-[#586940] hover:text-[#465433] flex items-center gap-1.5 cursor-pointer"
+                            className="text-xs font-semibold text-neutral-900 hover:text-[#465433] flex items-center gap-1.5 cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" /> Add Split Shift / Break
                           </button>
@@ -638,12 +644,12 @@ export default function SchedulesPage() {
 
                   {/* Right: Visual Mini Timeline Bar (08:00 to 20:00) */}
                   {isOpen && (
-                    <div className="hidden xl:block w-36 shrink-0 pl-2">
+                    <div className="hidden xl:block w-32 shrink-0 pl-2">
                       <div className="text-[9px] text-neutral-400 font-mono mb-1 flex justify-between">
                         <span>8 AM</span>
                         <span>8 PM</span>
                       </div>
-                      <div className="h-2 w-full bg-neutral-100 rounded-full relative overflow-hidden flex">
+                      <div className="h-1.5 w-full bg-neutral-100 rounded-full relative overflow-hidden flex">
                         {schedule.slots.map((s, idx) => {
                           const baseStart = 8 * 60; // 08:00
                           const baseTotal = 12 * 60; // 12 hrs
@@ -657,7 +663,7 @@ export default function SchedulesPage() {
                             <div
                               key={idx}
                               style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
-                              className="absolute h-full bg-[#768957] rounded-sm"
+                              className="absolute h-full bg-neutral-950 rounded-sm"
                               title={`${s.start} - ${s.end}`}
                             />
                           );
@@ -676,9 +682,9 @@ export default function SchedulesPage() {
       {activeTab === "overrides" && (
         <div className="space-y-4">
           {/* Controls Bar */}
-          <div className="bg-white p-5 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-sm font-black text-neutral-900 tracking-tight">
+              <h2 className="text-sm font-bold text-neutral-900 tracking-tight">
                 Scheduled Date Overrides & Closures
               </h2>
               <p className="text-xs text-neutral-500">
@@ -686,27 +692,30 @@ export default function SchedulesPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               {/* Filter Tabs */}
-              <div className="flex items-center bg-neutral-100 p-1 rounded-xl border border-neutral-200/80 text-xs font-bold">
+              <div className="flex items-center bg-neutral-100 p-0.5 rounded-lg border border-neutral-200/80 text-xs font-medium">
                 <button
                   onClick={() => setOverrideFilter("upcoming")}
-                  className={`px-3 py-1 rounded-lg transition cursor-pointer ${overrideFilter === "upcoming" ? "bg-white text-neutral-900 shadow-2xs" : "text-neutral-500"
-                    }`}
+                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    overrideFilter === "upcoming" ? "bg-white text-neutral-900 shadow-2xs font-semibold" : "text-neutral-500"
+                  }`}
                 >
                   Upcoming
                 </button>
                 <button
                   onClick={() => setOverrideFilter("all")}
-                  className={`px-3 py-1 rounded-lg transition cursor-pointer ${overrideFilter === "all" ? "bg-white text-neutral-900 shadow-2xs" : "text-neutral-500"
-                    }`}
+                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    overrideFilter === "all" ? "bg-white text-neutral-900 shadow-2xs font-semibold" : "text-neutral-500"
+                  }`}
                 >
                   All ({dateOverrides.length})
                 </button>
                 <button
                   onClick={() => setOverrideFilter("past")}
-                  className={`px-3 py-1 rounded-lg transition cursor-pointer ${overrideFilter === "past" ? "bg-white text-neutral-900 shadow-2xs" : "text-neutral-500"
-                    }`}
+                  className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    overrideFilter === "past" ? "bg-white text-neutral-900 shadow-2xs font-semibold" : "text-neutral-500"
+                  }`}
                 >
                   Past
                 </button>
@@ -715,7 +724,7 @@ export default function SchedulesPage() {
               {/* Add Override Button */}
               <button
                 onClick={() => setIsOverrideModalOpen(true)}
-                className="btn-primary px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs"
+                className="btn-primary px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Date Override
               </button>
@@ -724,11 +733,11 @@ export default function SchedulesPage() {
 
           {/* Overrides Cards List */}
           {filteredOverrides.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-neutral-200/80 p-12 text-center shadow-xs space-y-3">
-              <span className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
-                <CalendarOff className="w-6 h-6" />
+            <div className="bg-white rounded-2xl border border-neutral-200/80 p-10 text-center shadow-xs space-y-2.5">
+              <span className="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-400 flex items-center justify-center mx-auto">
+                <CalendarOff className="w-5 h-5" />
               </span>
-              <h3 className="text-sm font-bold text-neutral-900">
+              <h3 className="text-xs font-semibold text-neutral-900">
                 No {overrideFilter !== "all" ? overrideFilter : ""} overrides configured
               </h3>
               <p className="text-xs text-neutral-500 max-w-sm mx-auto">
@@ -736,13 +745,13 @@ export default function SchedulesPage() {
               </p>
               <button
                 onClick={() => setIsOverrideModalOpen(true)}
-                className="btn-outline px-4 py-2 text-xs font-bold inline-flex items-center gap-2 cursor-pointer mt-2"
+                className="btn-outline px-3.5 py-1.5 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer mt-1"
               >
                 <Plus className="w-3.5 h-3.5" /> Add New Override
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {filteredOverrides.map((item) => {
                 const dateDisplay = formatDateDisplay(item.date);
                 const isPast = item.date < new Date().toISOString().split("T")[0];
@@ -750,21 +759,22 @@ export default function SchedulesPage() {
                 return (
                   <div
                     key={item.date}
-                    className={`bg-white rounded-2xl border p-4.5 shadow-xs flex items-center justify-between gap-4 transition ${isPast
+                    className={`bg-white rounded-xl border p-3.5 shadow-xs flex items-center justify-between gap-3 transition ${
+                      isPast
                         ? "opacity-60 border-neutral-200"
-                        : "border-neutral-200/90 hover:border-[#768957]/30"
-                      }`}
+                        : "border-neutral-200/80 hover:border-neutral-900/30"
+                    }`}
                   >
-                    <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex items-center gap-3 min-w-0">
                       {/* Date Badge */}
-                      <div className="w-12 h-13 rounded-xl bg-neutral-100 border border-neutral-200 flex flex-col items-center justify-center shrink-0">
-                        <span className="text-[9px] font-black text-neutral-500 tracking-wider">
+                      <div className="w-11 h-12 rounded-lg bg-neutral-100 border border-neutral-200 flex flex-col items-center justify-center shrink-0">
+                        <span className="text-[9px] font-bold text-neutral-500 tracking-wider">
                           {dateDisplay.month}
                         </span>
-                        <span className="text-base font-black text-neutral-900 leading-tight">
+                        <span className="text-sm font-bold text-neutral-900 leading-tight">
                           {dateDisplay.day}
                         </span>
-                        <span className="text-[8px] font-bold text-neutral-400">
+                        <span className="text-[8px] font-medium text-neutral-400">
                           {dateDisplay.weekday}
                         </span>
                       </div>
@@ -772,21 +782,22 @@ export default function SchedulesPage() {
                       {/* Content */}
                       <div className="min-w-0 space-y-1">
                         <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-bold text-neutral-900 truncate">
+                          <h4 className="text-xs font-semibold text-neutral-900 truncate">
                             {item.reason}
                           </h4>
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${item.isClosed
+                            className={`notion-pill ${
+                              item.isClosed
                                 ? "bg-rose-50 text-rose-700 border-rose-200/80"
-                                : "bg-[#768957]/10 text-[#586940] border-[#768957]/30"
-                              }`}
+                                : "bg-neutral-100 text-neutral-800"
+                            }`}
                           >
                             {item.isClosed ? "CLOSED ALL DAY" : "MODIFIED HOURS"}
                           </span>
                           {!item.isClosed && item.slots?.[0] && (
-                            <span className="text-[11px] font-bold text-neutral-700">
+                            <span className="text-[11px] font-semibold text-neutral-700">
                               {item.slots[0].start} – {item.slots[0].end}
                             </span>
                           )}
@@ -797,10 +808,10 @@ export default function SchedulesPage() {
                     {/* Delete Button */}
                     <button
                       onClick={() => handleRemoveOverride(item.date)}
-                      className="p-2 text-neutral-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
+                      className="p-1.5 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
                       title="Remove date override"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 );
@@ -812,22 +823,22 @@ export default function SchedulesPage() {
 
       {/* ── FLOATING UNSAVED CHANGES BAR ─────────────────────────────────────── */}
       {hasUnsavedChanges && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-5 border border-neutral-800 animate-in fade-in slide-in-from-bottom-4 duration-200">
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-[#768957] animate-ping" />
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-neutral-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-4 border border-neutral-800 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2 text-xs font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-neutral-950 animate-ping" />
             <span>You have unsaved schedule changes</span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDiscard}
-              className="px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white rounded-xl hover:bg-neutral-800 transition cursor-pointer"
+              className="px-2.5 py-1 text-xs font-medium text-neutral-300 hover:text-white rounded-lg hover:bg-neutral-800 transition cursor-pointer"
             >
               Discard
             </button>
             <button
               onClick={handleSave}
               disabled={saving}
-              className="btn-primary px-4 py-1.5 text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="btn-primary px-3 py-1 text-xs font-semibold shadow-xs cursor-pointer flex items-center gap-1.5"
             >
               <Save className="w-3.5 h-3.5" />
               {saving ? "Saving..." : "Save Now"}
@@ -838,7 +849,7 @@ export default function SchedulesPage() {
 
       {/* ── TOAST NOTIFICATION ON SUCCESSFUL SAVE ─────────────────────────────── */}
       {savedSuccess && (
-        <div className="fixed top-6 right-6 z-50 bg-[#768957] text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold border border-[#65774a] animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-5 right-5 z-50 bg-neutral-950 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2.5 text-xs font-semibold border-0 animate-in fade-in slide-in-from-top-4 duration-200">
           <CheckCircle2 className="w-4 h-4" />
           Operating hours saved successfully!
         </div>
@@ -846,14 +857,14 @@ export default function SchedulesPage() {
 
       {/* ── ADD DATE OVERRIDE MODAL ─────────────────────────────────────────── */}
       {isOverrideModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-neutral-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleAddOverride}
-            className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-neutral-100 animate-in fade-in zoom-in-95 duration-150"
+            className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-xl border border-neutral-200/80 animate-in fade-in zoom-in-95 duration-150"
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-black text-neutral-900 tracking-tight">
+                <h3 className="text-sm font-bold text-neutral-900 tracking-tight">
                   Add Date Override
                 </h3>
                 <p className="text-xs text-neutral-500 mt-0.5">
@@ -863,7 +874,7 @@ export default function SchedulesPage() {
               <button
                 type="button"
                 onClick={() => setIsOverrideModalOpen(false)}
-                className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 cursor-pointer"
+                className="p-1 rounded-lg hover:bg-neutral-100 text-neutral-400 hover:text-neutral-700 cursor-pointer"
               >
                 ✕
               </button>
@@ -871,10 +882,10 @@ export default function SchedulesPage() {
 
             {/* Quick Holiday Suggestion Pills */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide">
+              <label className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wide">
                 Quick Holiday Presets
               </label>
-              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+              <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto pr-1">
                 {HOLIDAY_PRESETS.map((preset) => (
                   <button
                     key={preset.label}
@@ -888,7 +899,7 @@ export default function SchedulesPage() {
                         setOverrideEndTime(preset.end);
                       }
                     }}
-                    className="px-2.5 py-1 text-[11px] font-semibold bg-neutral-100 hover:bg-[#768957]/10 hover:text-[#586940] rounded-lg text-neutral-700 transition cursor-pointer"
+                    className="px-2 py-0.5 text-[10px] font-medium bg-neutral-100 hover:bg-neutral-100 hover:text-neutral-900 rounded-md text-neutral-700 transition cursor-pointer"
                   >
                     {preset.label}
                   </button>
@@ -898,7 +909,7 @@ export default function SchedulesPage() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-neutral-700 mb-1 block">
+                <label className="text-xs font-semibold text-neutral-700 mb-1 block">
                   Override Date *
                 </label>
                 <input
@@ -911,7 +922,7 @@ export default function SchedulesPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-neutral-700 mb-1 block">
+                <label className="text-xs font-semibold text-neutral-700 mb-1 block">
                   Reason / Holiday Title
                 </label>
                 <input
@@ -924,18 +935,19 @@ export default function SchedulesPage() {
               </div>
 
               {/* Segmented Closure vs Adjusted Hours Toggle */}
-              <div className="pt-1">
-                <label className="text-xs font-bold text-neutral-700 mb-1.5 block">
+              <div className="pt-0.5">
+                <label className="text-xs font-semibold text-neutral-700 mb-1 block">
                   Operating Status
                 </label>
-                <div className="grid grid-cols-2 gap-2 bg-neutral-100 p-1 rounded-xl">
+                <div className="grid grid-cols-2 gap-1.5 bg-neutral-100 p-0.5 rounded-lg border border-neutral-200/60">
                   <button
                     type="button"
                     onClick={() => setOverrideIsClosed(true)}
-                    className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${overrideIsClosed
+                    className={`py-1.5 text-xs font-semibold rounded-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                      overrideIsClosed
                         ? "bg-rose-50 text-rose-700 shadow-2xs border border-rose-200"
                         : "text-neutral-600 hover:text-neutral-900"
-                      }`}
+                    }`}
                   >
                     <CalendarOff className="w-3.5 h-3.5" />
                     Closed All Day
@@ -943,10 +955,11 @@ export default function SchedulesPage() {
                   <button
                     type="button"
                     onClick={() => setOverrideIsClosed(false)}
-                    className={`py-2 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${!overrideIsClosed
-                        ? "bg-white text-[#586940] shadow-2xs border border-neutral-200"
+                    className={`py-1.5 text-xs font-semibold rounded-md transition cursor-pointer flex items-center justify-center gap-1.5 ${
+                      !overrideIsClosed
+                        ? "bg-white text-neutral-900 shadow-2xs border border-neutral-200"
                         : "text-neutral-600 hover:text-neutral-900"
-                      }`}
+                    }`}
                   >
                     <Clock className="w-3.5 h-3.5" />
                     Adjusted Shifts
@@ -956,9 +969,9 @@ export default function SchedulesPage() {
 
               {/* Adjusted Hours Range */}
               {!overrideIsClosed && (
-                <div className="grid grid-cols-2 gap-3 pt-2">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <div>
-                    <label className="text-xs font-bold text-neutral-700 mb-1 block">
+                    <label className="text-xs font-semibold text-neutral-700 mb-1 block">
                       Opening Time
                     </label>
                     <input
@@ -969,7 +982,7 @@ export default function SchedulesPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-neutral-700 mb-1 block">
+                    <label className="text-xs font-semibold text-neutral-700 mb-1 block">
                       Closing Time
                     </label>
                     <input
@@ -983,17 +996,17 @@ export default function SchedulesPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-100">
               <button
                 type="button"
                 onClick={() => setIsOverrideModalOpen(false)}
-                className="btn-secondary px-4 py-2 text-xs font-bold cursor-pointer"
+                className="btn-secondary px-3.5 py-1.5 text-xs font-semibold cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="btn-primary px-5 py-2 text-xs font-bold cursor-pointer shadow-xs"
+                className="btn-primary px-4 py-1.5 text-xs font-semibold cursor-pointer shadow-xs"
               >
                 Add Override
               </button>

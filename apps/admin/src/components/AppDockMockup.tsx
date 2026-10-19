@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import mockupImg from "@/assets/mockup.png";
+import { UploadCloud } from "lucide-react";
 
 interface AppDockMockupProps {
   file: File | null;
@@ -20,10 +21,13 @@ export default function AppDockMockup({
 }: AppDockMockupProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Generate instant local blob URL for file preview if file selected
-  const currentPreview = file
-    ? URL.createObjectURL(file)
-    : imageUrl || null;
+  // Generate a local object URL for preview if a file is uploaded
+  const previewUrl = file ? URL.createObjectURL(file) : null;
+  const currentPreview = previewUrl || imageUrl;
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -31,62 +35,46 @@ export default function AppDockMockup({
     }
   };
 
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange(null);
-    if (onClearImage) onClearImage();
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="block text-xs font-semibold text-neutral-700">
-          {label}
-        </label>
-        {currentPreview && (
+    <div className="space-y-1.5 w-full">
+      <div className="flex justify-between items-center">
+        <label className="block text-xs font-semibold text-neutral-700">{label}</label>
+        {currentPreview && onClearImage && (
           <button
             type="button"
-            onClick={handleRemove}
-            className="text-[11px] font-semibold text-red-600 hover:text-red-800 transition-colors cursor-pointer"
+            onClick={onClearImage}
+            className="text-[11px] text-rose-500 hover:text-rose-700 font-medium focus:outline-none transition-colors"
           >
             Remove Logo
           </button>
         )}
       </div>
 
-      {/* Interactive Phone Dock Mockup Container as the Logo Uploader */}
-      <div className="relative w-full aspect-[3/2] overflow-hidden rounded-2xl border border-neutral-200/80 bg-neutral-50 shadow-xs group">
-        {/* Base Mockup Image */}
+      {/* Mockup Frame with Interactive Dock Icon Position */}
+      <div className="relative w-full rounded-2xl overflow-hidden bg-neutral-100 flex items-center justify-center p-2 group">
+        {/* Mockup Base Background Image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={mockupImg.src}
-          alt="App Dock Mockup"
-          className="w-full h-full object-cover block select-none pointer-events-none"
+          alt="App Home Mockup"
+          className="w-full h-auto object-contain max-h-[300px] select-none pointer-events-none rounded-xl"
         />
 
-        {/* Overlaid App Icon - Positioned exactly over dock icon with clean edges */}
+        {/* Absolute Dock Icon Container - Positioned identically to the 1st app icon in dock */}
         <div
           onClick={handleButtonClick}
-          className="absolute rounded-[22%] overflow-hidden bg-white flex items-center justify-center border-0 cursor-pointer group/icon shadow-2xs"
-          style={{
-            left: "16.85%",
-            top: "49.50%",
-            width: "12.55%",
-            height: "18.55%",
-          }}
+          className="absolute left-[31.5%] top-[77.4%] w-[8.2%] aspect-square rounded-[22%] bg-neutral-900 overflow-hidden shadow-xs border border-white/20 cursor-pointer group/icon transition-transform hover:scale-105 active:scale-95 flex items-center justify-center"
+          title="Click to change clinic app logo"
         >
           {currentPreview ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={currentPreview}
-              alt="Clinic App Logo"
+              alt="App Icon"
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="relative w-full h-full bg-gradient-to-tr from-neutral-950 via-neutral-800 to-neutral-700 flex items-center justify-center">
+            <div className="w-full h-full bg-neutral-950 flex items-center justify-center">
               <span className="text-white font-black text-xs sm:text-sm">
                 +
               </span>
@@ -100,13 +88,14 @@ export default function AppDockMockup({
         </div>
 
         {/* Corner Action Button */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-2.5 right-2.5">
           <button
             type="button"
             onClick={handleButtonClick}
-            className="px-3.5 py-1.5 bg-[#768957]/90 hover:bg-[#768957] text-white text-xs font-semibold rounded-full backdrop-blur-md shadow-xs transition-all cursor-pointer"
+            className="btn-primary"
           >
-            {currentPreview ? "Change Logo" : "Upload App Logo"}
+            <UploadCloud className="w-4 h-4 text-white" />
+            <span>{currentPreview ? "Change Logo" : "Upload App Logo"}</span>
           </button>
         </div>
 

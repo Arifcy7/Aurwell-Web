@@ -25,7 +25,7 @@ import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
 import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Edit2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface IncludedItem {
@@ -278,12 +278,12 @@ export default function MembershipTiersPage() {
   };
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-6 w-full">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">Membership Tier Configuration</h2>
-          <p className="text-sm text-neutral-500">Design recurring subscription plans and bundled session perks for your clinic patients</p>
+          <h2 className="text-lg font-bold tracking-tight text-neutral-900">Membership Tier Configuration</h2>
+          <p className="text-xs text-neutral-500 mt-0.5">Design recurring subscription plans and bundled session perks for your clinic patients.</p>
         </div>
         <button
           onClick={() => {
@@ -301,7 +301,7 @@ export default function MembershipTiersPage() {
             setTerms("");
             setShowForm(!showForm);
           }}
-          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition self-start cursor-pointer"
+          className="btn-primary px-3.5 py-1.5 text-xs font-semibold self-start cursor-pointer "
         >
           {showForm ? "Cancel" : "Create Membership Tier"}
         </button>
@@ -313,7 +313,7 @@ export default function MembershipTiersPage() {
         onClose={() => setShowForm(false)}
         title={editId ? "Edit Membership Tier" : "New Membership Tier"}
         subtitle="Membership Configuration"
-        maxWidth="max-w-6xl"
+        maxWidth="max-w-2xl"
       >
         <form onSubmit={handleSaveTier} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -458,7 +458,7 @@ export default function MembershipTiersPage() {
                   <button
                     type="button"
                     onClick={handleAddTreatmentRow}
-                    className="text-xs text-[#768957] font-semibold hover:underline cursor-pointer"
+                    className="text-xs text-neutral-900 font-semibold hover:underline cursor-pointer"
                   >
                     + Add Session
                   </button>
@@ -530,170 +530,182 @@ export default function MembershipTiersPage() {
             </div>
           </div>
 
-            <div className="pt-2 flex items-center justify-end gap-3 border-t border-neutral-100 mt-4">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>{editId ? "Updating Bundle..." : "Creating Bundle..."}</span>
-                  </>
-                ) : (
-                  editId ? "Update Bundle" : "Create Bundle"
-                )}
-              </button>
-            </div>
-          </form>
-        </Modal>
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-neutral-100 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="btn-primary transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isSaving ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>{editId ? "Updating Bundle..." : "Creating Bundle..."}</span>
+                </>
+              ) : (
+                editId ? "Update Bundle" : "Create Bundle"
+              )}
+            </button>
+          </div>
+        </form>
+      </Modal>
 
-      {/* Tiers Listing Cards with Simple Fade Animation */}
+      {/* Tiers Listing Cards with Card-in-Card Architecture matching Blogs & Articles aspect ratio */}
       {loading ? (
-        <CardGridSkeleton count={2} variant="membership" />
+        <CardGridSkeleton count={3} variant="membership" />
       ) : tiers.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No membership tiers established yet</p>
-          <p className="text-xs text-neutral-400">Click "Create Membership Tier" to offer recurring patient subscriptions.</p>
+          <p className="text-xs text-neutral-400">Click &quot;Create Membership Tier&quot; to offer recurring patient subscriptions.</p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
           {tiers.map((t, idx) => (
             <motion.div
               key={t.id}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className={`rounded-2xl border bg-white shadow-xs hover:shadow-md flex flex-col justify-between overflow-hidden transition-all duration-300 ${
-                t.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200/80"
+              transition={{ duration: 0.22, delay: idx * 0.03 }}
+              className={`rounded-3xl bg-white p-2 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group select-none ${
+                t.isActive === false ? "opacity-75" : ""
               }`}
             >
-              <div>
-                {/* Card Cover Header Banner */}
-                <div className="relative h-44 sm:h-48 w-full bg-[#768957] overflow-hidden">
-                  {t.imageUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={t.imageUrl}
-                      alt={t.title}
-                      className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-950 p-6 flex flex-col justify-end">
-                      <span className="text-white/40 font-mono text-xs uppercase tracking-widest">Aurwell Luxury Membership</span>
-                    </div>
-                  )}
-
-                  {/* Dark overlay gradient for contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-black/30 pointer-events-none" />
-
-                  {/* Badges on Top of Cover Image */}
-                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between gap-2 z-10">
-                    {Boolean(t.minCommitmentMonths) && Number(t.minCommitmentMonths) > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-md text-neutral-900 text-[11px] font-bold px-3 py-1 rounded-full shadow-md border border-white/40">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                        {t.minCommitmentMonths}-Month Minimum
-                      </span>
+              {/* Inner Card (Holds all visual & contextual content, soft tinted surface without strokes) */}
+              <div
+                onClick={() => handleEditClick(t)}
+                className="rounded-[1.125rem] overflow-hidden bg-[#f4f5f8] flex-1 flex flex-col justify-between cursor-pointer transition-colors hover:bg-[#edf0f4]"
+              >
+                <div>
+                  {/* Card Cover Header Banner (16:9 aspect ratio matching Blogs & Articles) */}
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-200">
+                    {t.imageUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={t.imageUrl}
+                        alt={t.title}
+                        className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      />
                     ) : (
-                      <div />
+                      <div className="w-full h-full bg-gradient-to-br from-neutral-200/70 via-neutral-100 to-neutral-200/50 p-4 flex flex-col justify-between">
+                        <div className="flex items-center gap-1.5 text-neutral-400">
+                          <Sparkles className="w-4 h-4 text-neutral-400" />
+                          <span className="font-mono text-[10px] uppercase tracking-widest font-semibold">Tier Plan</span>
+                        </div>
+                        <span className="text-neutral-600 font-bold text-sm tracking-tight">{t.title}</span>
+                      </div>
                     )}
 
-                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-md ${
-                      t.isActive !== false
-                        ? "bg-emerald-500/90 text-white"
-                        : "bg-[#65774a]/90 text-white"
-                    }`}>
-                      {t.isActive !== false ? "Active Tier" : "Inactive"}
-                    </span>
-                  </div>
-
-                  {/* Price & Title Overlay on Cover Header */}
-                  <div className="absolute bottom-4 left-6 right-6 flex justify-between items-end z-10 text-white">
-                    <div>
-                      <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white drop-shadow-md">
-                        {t.title}
-                      </h3>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">€{t.monthlyPrice}</span>
-                        <span className="text-xs font-semibold text-white/80">/mo</span>
-                      </div>
-                      {t.annualPrice && (
-                        <span className="text-[11px] font-semibold text-white/80 block">
-                          €{t.annualPrice} / year
+                    {/* Badges on Top of Cover Image */}
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5 z-10">
+                      {Boolean(t.minCommitmentMonths) && Number(t.minCommitmentMonths) > 0 ? (
+                        <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-md text-neutral-900 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          {t.minCommitmentMonths}m Min
                         </span>
+                      ) : (
+                        <div />
                       )}
+
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-md shadow-2xs ${
+                        t.isActive !== false
+                          ? "bg-white/95 text-emerald-700"
+                          : "bg-white/95 text-neutral-500"
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${t.isActive !== false ? "bg-emerald-500" : "bg-neutral-400"}`} />
+                        {t.isActive !== false ? "Active Tier" : "Inactive"}
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Card Content Body */}
-                <div className="p-6 sm:p-7 space-y-5">
-                  {/* Tagline Description */}
-                  {t.description && (
-                    <p className="text-xs text-neutral-600 font-medium leading-relaxed">
-                      {t.description}
-                    </p>
-                  )}
-
-                  {/* Included Treatments Badge List */}
-                  {t.includedTreatments && t.includedTreatments.length > 0 && (
-                    <div className="space-y-2.5 pt-1 border-t border-neutral-100">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
-                        Bundled Monthly Treatments
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {t.includedTreatments.map((inc, i) => {
-                          const tr = treatments.find((item) => item.id === inc.treatmentId);
-                          return (
-                            <span
-                              key={i}
-                              className="inline-flex items-center gap-1.5 bg-[#768957] text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs"
-                            >
-                              <span className="text-emerald-400 font-bold">{inc.sessionsCount}x</span>
-                              <span>{tr ? tr.title : "Treatment"}</span>
-                            </span>
-                          );
-                        })}
+                  {/* Card Content Body */}
+                  <div className="p-3.5 space-y-3">
+                    {/* Title & Pricing Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-bold text-neutral-900 tracking-tight leading-snug group-hover:text-neutral-950 truncate">
+                          {t.title}
+                        </h3>
+                        {t.description && (
+                          <p className="text-xs text-neutral-500 mt-0.5 line-clamp-1 leading-relaxed">
+                            {t.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="flex items-baseline gap-0.5 justify-end">
+                          <span className="text-base font-bold text-neutral-900 tracking-tight">€{t.monthlyPrice}</span>
+                          <span className="text-[10px] font-semibold text-neutral-400">/mo</span>
+                        </div>
+                        {t.annualPrice && (
+                          <span className="text-[10px] font-medium text-neutral-400 block">
+                            €{t.annualPrice}/yr
+                          </span>
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* Member Perks */}
-                  {t.benefits && t.benefits.length > 0 && (
-                    <div className="space-y-2.5 pt-1 border-t border-neutral-100">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
-                        Member Perks & Benefits
-                      </span>
-                      <div className="grid grid-cols-1 gap-2">
-                        {t.benefits.map((b, i) => (
-                          <div key={i} className="flex items-start gap-2 text-xs text-neutral-700 font-medium">
-                            <div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 border border-emerald-200/80">
-                              ✓
+                    {/* Included Treatments: Clean White Floating Pills */}
+                    {t.includedTreatments && t.includedTreatments.length > 0 && (
+                      <div className="space-y-1.5">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 block">
+                          Included Sessions
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {t.includedTreatments.map((inc, i) => {
+                            const tr = treatments.find((item) => item.id === inc.treatmentId);
+                            return (
+                              <div
+                                key={i}
+                                className="inline-flex items-center gap-1.5 bg-white text-neutral-800 text-[11px] font-medium px-2.5 py-1 rounded-lg shadow-2xs"
+                              >
+                                <span className="text-emerald-700 font-bold text-[10px]">{inc.sessionsCount}x</span>
+                                <span className="truncate max-w-[110px]">{tr ? tr.title : "Treatment"}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Member Perks: Minimal Modern Checkmarks */}
+                    {t.benefits && t.benefits.length > 0 && (
+                      <div className="space-y-1.5 pt-2 border-t border-neutral-200/50">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400 block">
+                          Member Benefits
+                        </span>
+                        <div className="space-y-1">
+                          {t.benefits.slice(0, 3).map((b, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs text-neutral-700 font-medium">
+                              <span className="text-emerald-600 font-bold text-xs shrink-0">✓</span>
+                              <span className="truncate">{b}</span>
                             </div>
-                            <span className="leading-snug">{b}</span>
-                          </div>
-                        ))}
+                          ))}
+                          {t.benefits.length > 3 && (
+                            <span className="text-[10px] text-neutral-400 font-medium pl-4 block">
+                              +{t.benefits.length - 3} more perks
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Footer Actions Bar */}
-              <div className="px-6 py-4 bg-neutral-50/50 border-t border-neutral-100 flex items-center justify-between gap-3">
+              {/* Outside Inner Card at Bottom (Holds active toggle, edit, delete) */}
+              <div
+                className="px-2 pt-2.5 pb-1 flex items-center justify-between gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <label className="relative inline-flex items-center cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -701,25 +713,30 @@ export default function MembershipTiersPage() {
                     onChange={() => handleToggleActive(t)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
-                  <span className="ml-2.5 text-xs font-semibold text-neutral-700">
+                  <div className="w-8 h-4.5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-neutral-200 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  <span className="ml-2 text-xs font-medium text-neutral-700">
                     {t.isActive !== false ? "Active Tier" : "Inactive"}
                   </span>
                 </label>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
+                    type="button"
                     onClick={() => handleEditClick(t)}
-                    className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-800 hover:bg-neutral-100 transition cursor-pointer shadow-2xs"
+                    className="btn-card-edit"
+                    title="Edit Membership Tier"
                   >
-                    Edit
+                    <Edit2 className="w-3 h-3 text-neutral-500" />
+                    <span>Edit</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setDeleteTarget(t)}
-                    className="rounded-full border border-red-200 bg-red-50 px-3.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    className="btn-card-delete"
+                    title="Delete Membership Tier"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
+                    <Trash2 className="w-3 h-3 text-rose-500" />
+                    <span>Delete</span>
                   </button>
                 </div>
               </div>

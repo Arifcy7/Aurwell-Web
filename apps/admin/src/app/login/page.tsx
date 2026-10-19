@@ -1,124 +1,203 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
-import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, db } from "@/lib/firebase/client";
+import { doc, getDoc } from "firebase/firestore";
+import { checkIsSuperAdmin } from "@/lib/firebase/booking";
+import { ArrowLeft, LogIn } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const landingPageUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://www.aurwell.app";
+  const landingPageUrl = process.env.NEXT_PUBLIC_LANDING_PAGE_URL || "https://aurwell.com";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-
     setStatus("loading");
-    setError("");
+    setError(null);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Verify admin role or super admin privilege
+      const isSuper = await checkIsSuperAdmin(user.uid);
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const uData = userDoc.exists() ? userDoc.data() : null;
+      const role = uData?.role;
+
+      if (!isSuper && role !== "clinic_admin" && role !== "admin") {
+        await signOut(auth);
+        setStatus("error");
+        setError("Access denied: This portal is restricted to authorized clinic administrators.");
+        return;
+      }
+
+      let clinicId = "";
+      let clinicName = "Aurwell Clinic";
+      let logoUrl = "";
+      let hasCustomBooking = false;
+
+      if (uData) {
+        clinicId = uData.clinicId || "";
+        if (clinicId) {
+          const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
+          if (clinicDoc.exists()) {
+            const cData = clinicDoc.data();
+            clinicName = cData.merchantName || "Aurwell Clinic";
+            logoUrl = cData.logoUrl || "";
+            const sys = cData.bookingConfig?.systemType;
+            hasCustomBooking = sys === "aurwell_custom" || sys === "custom";
+          }
+        }
+      }
+
+      localStorage.setItem(
+        "aurwell_admin_profile",
+        JSON.stringify({
+          clinicId,
+          clinicName,
+          logoUrl,
+          hasCustomBooking,
+        })
+      );
+
       router.push("/dashboard");
     } catch (err: any) {
+      console.error(err);
       setStatus("error");
-      setError(err?.message || "Invalid email or password");
+      setError(err.message || "Failed to sign in. Please verify your credentials.");
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] px-4 text-black">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
-        <a
+    <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 flex flex-col justify-between p-4 sm:p-6 selection:bg-neutral-900 selection:text-white">
+      {/* Top Header */}
+      <div className="flex items-center justify-between max-w-5xl w-full mx-auto py-2">
+        <Link
           href={landingPageUrl}
-          className="absolute left-6 top-6 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 shadow-2xs"
-          aria-label="Back to landing page"
-          title="Back to landing page"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
-        </a>
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-[#768957] text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
-            A
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Aurwell</span>
+        </Link>
+        <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-neutral-200/70 text-neutral-700">
+          Admin Portal
+        </span>
+      </div>
+
+      {/* Main Centered Login Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        style={{ willChange: "transform, opacity" }}
+        className="w-full max-w-sm mx-auto bg-white rounded-3xl p-7 sm:p-8 space-y-6 select-none"
+      >
+        {/* Brand Header */}
+        <div className="text-center space-y-2.5">
+          <div className="flex items-center justify-center">
+            <Image
+              src="/logo-black.png"
+              alt="Aurwell Logo"
+              width={56}
+              height={56}
+              className="h-12 w-auto object-contain mx-auto select-none transition-transform duration-200 hover:scale-105"
+              priority
+            />
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Clinic Admin Sign In</h2>
-          <p className="text-xs text-neutral-500 font-medium">
-            Sign in to manage your clinic and application settings
-          </p>
+          <h1 className="text-xl font-bold tracking-tight text-neutral-900 pt-1">Welcome back</h1>
+          <p className="text-xs text-neutral-500">Sign in to manage your clinic dashboard</p>
         </div>
 
-        <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-xs font-semibold text-neutral-700 mb-1.5">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={status === "loading"}
-                className="input-modern"
-                placeholder="name@example.com"
-              />
-            </div>
+        {error && (
+          <div className="rounded-2xl bg-rose-50 p-3.5 text-xs text-rose-800">
+            {error}
+          </div>
+        )}
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="password" className="block text-xs font-semibold text-neutral-700">
-                  Password
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs text-neutral-500 hover:text-[#768957] hover:underline font-medium"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={status === "loading"}
-                className="input-modern"
-                placeholder="••••••••"
-              />
-            </div>
+        {/* Login Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-neutral-700">Work Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="clinic@aurwell.app"
+              className="input-modern"
+            />
           </div>
 
-          {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
-              {error}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-neutral-700">Password</label>
+              <Link
+                href="/forgot-password"
+                className="text-[11px] font-medium text-neutral-500 hover:text-neutral-900 transition-colors"
+              >
+                Forgot password?
+              </Link>
             </div>
-          )}
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              className="input-modern"
+            />
+          </div>
 
-          <div>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={status === "loading"}
-              className="flex w-full justify-center rounded-xl bg-[#768957] px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] transition disabled:opacity-50 cursor-pointer"
+              className="btn-primary w-full py-3 text-xs font-semibold disabled:opacity-50"
             >
-              {status === "loading" ? "Signing In..." : "Sign In"}
+              {status === "loading" ? (
+                <>
+                  <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 text-white" />
+                  <span>Sign In</span>
+                </>
+              )}
             </button>
           </div>
         </form>
 
-        <div className="text-center text-xs text-neutral-500">
-          Not registered?{" "}
-          <Link href="/signup" className="font-bold text-[#768957] hover:underline">
-            Create an Account
-          </Link>
+        <div className="text-center pt-2">
+          <p className="text-xs text-neutral-500">
+            Not registered?{" "}
+            <Link
+              href="/signup"
+              className="font-semibold text-neutral-900 hover:underline transition"
+            >
+              Create an Account
+            </Link>
+          </p>
         </div>
+      </motion.div>
+
+      {/* Footer */}
+      <div className="text-center py-4">
+        <p className="text-xs text-neutral-400">
+          © {new Date().getFullYear()} Aurwell Healthcare Systems Inc.
+        </p>
       </div>
     </div>
   );

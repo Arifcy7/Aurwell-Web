@@ -6,6 +6,7 @@ import Link from "next/link";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
+import { clearAllAurwellCache } from "@/lib/firebase/versionCache";
 import dynamic from "next/dynamic";
 
 const QRScannerModal = dynamic(() => import("@/components/QRScannerModal"), { ssr: false });
@@ -19,13 +20,10 @@ import {
   Bell,
   Sparkles,
   ChevronDown,
-  ChevronUp,
   LogOut,
   Menu,
   X,
   QrCode,
-  Layers,
-  Wrench,
   Tag,
   Gift,
   FileText,
@@ -74,6 +72,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Reset logo error when logo URL updates
+  useEffect(() => {
+    setLogoError(false);
+  }, [logoUrl]);
+
+  // Synchronize profile changes from other tabs or settings updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const cachedStr = localStorage.getItem("aurwell_admin_profile");
+        if (cachedStr) {
+          const cached = JSON.parse(cachedStr);
+          if (cached.clinicName) setClinicName(cached.clinicName);
+          if (cached.logoUrl !== undefined) {
+            setLogoUrl(cached.logoUrl);
+            setLogoError(false);
+          }
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   useEffect(() => {
     // 1. Immediately hydrate from local profile cache if available
     const CACHE_KEY = "aurwell_admin_profile";
@@ -94,7 +117,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     // 2. Subscribe to Auth state changes and revalidate in background
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        localStorage.removeItem(CACHE_KEY);
+        clearAllAurwellCache();
         router.push("/login");
         return;
       }
@@ -110,6 +133,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         if (userDoc.exists()) {
           const uData = userDoc.data();
+          const role = uData.role;
+
+          // Enforce role-based access control
+          if (!isSuper && role !== "clinic_admin" && role !== "admin") {
+            console.warn("Unauthorized access attempt by non-admin user:", currentUser.uid);
+            clearAllAurwellCache();
+            await signOut(auth);
+            router.push("/login");
+            return;
+          }
+
           const freshClinicId = uData.clinicId || "";
           setClinicId(freshClinicId);
 
@@ -122,8 +156,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             if (clinicDoc.exists()) {
               const cData = clinicDoc.data();
-              freshName = cData.merchantName || "Aurwell Clinic";
-              freshLogo = cData.logoUrl || "";
+              freshName = cData.merchantName || cData.name || cData.clinicName || "Aurwell Clinic";
+              freshLogo =
+                cData.logoUrl ||
+                cData.logo ||
+                cData.clinicLogo ||
+                cData.branding?.logoUrl ||
+                cData.branding?.logo ||
+                cData.appHeroImageUrl ||
+                cData.iconUrl ||
+                cData.imageUrl ||
+                "";
 
               const sys = cData.bookingConfig?.systemType;
               freshHasCustom = sys === "aurwell_custom" || sys === "custom";
@@ -144,8 +187,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               hasCustomBooking: freshHasCustom,
             })
           );
+        } else if (!isSuper) {
+          // If no user doc and not super admin, deny access
+          clearAllAurwellCache();
+          await signOut(auth);
+          router.push("/login");
+          return;
         } else {
-          setClinicName("Aurwell Clinic");
+          setClinicName("Super Admin Portal");
           setLogoUrl("");
         }
       } catch (err) {
@@ -165,7 +214,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     try {
-      localStorage.removeItem("aurwell_admin_profile");
+      clearAllAurwellCache();
       await signOut(auth);
       router.push("/login");
     } catch (err) {
@@ -194,26 +243,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const getBadgeStyle = (variant: "orange" | "green" | "gray") => {
     switch (variant) {
       case "orange":
-        return "bg-[#ffeadb] text-[#ff6b35] border border-[#ffd5b8]";
+        return "bg-orange-100 text-orange-700";
       case "green":
-        return "bg-[#d1fae5] text-[#10b981] border border-[#a7f3d0]";
+        return "bg-emerald-100 text-emerald-800";
       case "gray":
       default:
-        return "bg-neutral-100 text-neutral-600 border border-neutral-200";
+        return "bg-neutral-100 text-neutral-700";
     }
   };
 
-  if (loading) {
-    return <AdminSplashScreen label="Loading Admin Panel..." />;
-  }
-
-  // Sidebar Component for reuse in Desktop and Mobile drawer (Static, zero re-animating on route changes)
+  // Sidebar Component for reuse in Desktop and Mobile drawer
   const SidebarContent = () => (
-    <div className="flex flex-col h-full justify-between py-6 px-4">
-      <div className="space-y-6">
-        {/* Brand Emblem / Top Logo */}
-        <div className="flex items-center gap-3 px-3">
-          <div className="relative w-10 h-10 rounded-md bg-white text-white flex items-center justify-center shadow-md overflow-hidden shrink-0 border-0 outline-none">
+    <div className="flex flex-col h-full overflow-hidden select-none bg-white">
+      {/* Brand Emblem / Top Logo - Rounded Rectangle */}
+      <div className="shrink-0 px-5 pt-5 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="relative w-10 h-10 rounded-xl bg-neutral-950 text-white flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
             {logoUrl && !logoError ? (
               <img
                 src={logoUrl}
@@ -222,299 +267,118 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onError={() => setLogoError(true)}
               />
             ) : (
-              <>
-                {/* Default Aurwell Quad Emblem */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-800 to-neutral-700"></div>
-                <div className="relative grid grid-cols-2 gap-0.5 p-2">
-                  <div className="w-2.5 h-2.5 rounded-tl-full bg-neutral-200/90"></div>
-                  <div className="w-2.5 h-2.5 rounded-tr-full bg-neutral-400/90"></div>
-                  <div className="w-2.5 h-2.5 rounded-bl-full bg-neutral-400/90"></div>
-                  <div className="w-2.5 h-2.5 rounded-br-full bg-neutral-200/90"></div>
-                </div>
-              </>
+              <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex items-center justify-center">
+                <span className="font-extrabold text-base tracking-tight text-white select-none">
+                  {clinicName && clinicName !== "Loading..." && clinicName !== "Aurwell Clinic"
+                    ? clinicName.charAt(0).toUpperCase()
+                    : "A"}
+                </span>
+              </div>
             )}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-bold text-base text-neutral-900 truncate tracking-tight">
+            <span className="font-bold text-sm text-neutral-900 truncate tracking-tight">
               {clinicName}
             </span>
-            <span className="text-[11px] font-semibold text-neutral-400 tracking-wide uppercase">
+            <span className="text-[10px] font-semibold text-neutral-400 tracking-wider uppercase">
               Admin Portal
             </span>
           </div>
         </div>
+      </div>
 
-        {/* Navigation Items (Static, hover nudge only) */}
-        <nav className="space-y-1 pt-2">
-          {/* Dashboard */}
-          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
+      {/* Navigation Items */}
+      <div className="relative flex-1 min-h-0">
+        <div className="h-full overflow-y-auto px-3.5 pt-2 pb-6 custom-scrollbar">
+          <nav className="space-y-1">
+            {/* Dashboard */}
             <Link
               href="/dashboard"
-              className={`group relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/dashboard"
-                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
+              className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                pathname === "/dashboard"
+                  ? "bg-neutral-950 text-white font-semibold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              }`}
             >
               <LayoutDashboard
-                className={`w-5 h-5 transition-colors ${pathname === "/dashboard" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                  }`}
+                className={`w-4 h-4 transition-colors ${
+                  pathname === "/dashboard" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                }`}
               />
               <span>Dashboard</span>
             </Link>
-          </motion.div>
 
-          {/* App Builder Collapsible Section */}
-          <div>
-            <motion.button
-              whileHover={{ x: 3 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => toggleSection("appBuilder")}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${pathname.startsWith("/app-builder")
-                  ? "text-neutral-900"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <Sparkles
-                  className={`w-5 h-5 transition-colors ${pathname.startsWith("/app-builder") ? "text-neutral-900" : "text-neutral-500"
-                    }`}
-                />
-                <span>App Builder</span>
-              </div>
-              <motion.div animate={{ rotate: expandedSections.appBuilder ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <ChevronDown className="w-4 h-4 text-neutral-400" />
-              </motion.div>
-            </motion.button>
-
-            {/* Accordion Sub-Items */}
-            <AnimatePresence initial={false}>
-              {expandedSections.appBuilder && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="relative pl-7 mt-1 space-y-1.5 overflow-hidden"
-                >
-                  {/* Continuous Tree Trunk Line starting from under parent icon */}
-                  <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-neutral-200/90 z-0" />
-
-                  {appBuilderSubItems.map((subItem) => {
-                    const isSubActive = pathname === subItem.href;
-                    return (
-                      <motion.div
-                        key={subItem.href}
-                        whileHover={{ x: 3 }}
-                        transition={{ duration: 0.15 }}
-                        className="relative flex items-center"
-                      >
-                        {/* Curved tree branch connector SVG originating from vertical line */}
-                        <svg
-                          className="absolute left-[-5px] top-[-10px] w-5 h-[34px] text-neutral-200/90 pointer-events-none z-0"
-                          viewBox="0 0 20 34"
-                          fill="none"
-                        >
-                          <path
-                            d="M 1 0 V 16 Q 1 22 8 22 H 12"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            fill="none"
-                          />
-                        </svg>
-
-                        <Link
-                          href={subItem.href}
-                          className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-xl text-xs font-semibold transition-all ${isSubActive
-                              ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                              : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
-                            }`}
-                        >
-                          <div className="flex items-center gap-2.5 truncate">
-                            {subItem.name}
-                          </div>
-
-                          {subItem.badge && (
-                            <span
-                              className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full ${getBadgeStyle(
-                                subItem.badge.variant
-                              )}`}
-                            >
-                              {subItem.badge.text}
-                            </span>
-                          )}
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Clients */}
-          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-            <Link
-              href="/clients"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/clients"
-                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <Users
-                  className={`w-5 h-5 transition-colors ${pathname === "/clients" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                    }`}
-                />
-                <span>Clients</span>
-              </div>
-            </Link>
-          </motion.div>
-
-          {/* Shop Summary */}
-          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-            <Link
-              href="/shop"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/shop"
-                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <ShoppingBag
-                  className={`w-5 h-5 transition-colors ${pathname === "/shop" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                    }`}
-                />
-                <span>Shop</span>
-              </div>
-            </Link>
-          </motion.div>
-
-          {/* Memberships */}
-          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-            <Link
-              href="/memberships"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/memberships"
-                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <CreditCard
-                  className={`w-5 h-5 transition-colors ${pathname === "/memberships" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                    }`}
-                />
-                <span>Memberships</span>
-              </div>
-            </Link>
-          </motion.div>
-
-          {/* Notifications */}
-          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-            <Link
-              href="/notifications"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/notifications"
-                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <Bell
-                  className={`w-5 h-5 transition-colors ${pathname === "/notifications" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                    }`}
-                />
-                <span>Notifications</span>
-              </div>
-            </Link>
-          </motion.div>
-
-          {/* Referrals Program */}
-          <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }}>
-            <Link
-              href="/referrals"
-              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === "/referrals"
-                  ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                  : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                }`}
-            >
-              <div className="flex items-center gap-3.5">
-                <Share2
-                  className={`w-5 h-5 transition-colors ${pathname === "/referrals" ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                    }`}
-                />
-                <span>Referrals Program</span>
-              </div>
-            </Link>
-          </motion.div>
-          {/* Bookings Collapsible Section (Shown only if native custom booking is enabled for this clinic) */}
-          {hasCustomBooking && (
+            {/* App Builder Collapsible Section */}
             <div>
-              <motion.button
-                whileHover={{ x: 3 }}
-                transition={{ duration: 0.15 }}
-                onClick={() => toggleSection("bookings")}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${pathname.startsWith("/bookings")
-                    ? "text-neutral-900"
-                    : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                  }`}
+              <button
+                onClick={() => toggleSection("appBuilder")}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all cursor-pointer ${
+                  pathname.startsWith("/app-builder")
+                    ? "bg-neutral-100 text-neutral-950 font-semibold"
+                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                }`}
               >
-                <div className="flex items-center gap-3.5">
-                  <Calendar
-                    className={`w-5 h-5 transition-colors ${pathname.startsWith("/bookings") ? "text-neutral-900" : "text-neutral-500 group-hover:text-neutral-800"
-                      }`}
+                <div className="flex items-center gap-3">
+                  <Sparkles
+                    className={`w-4 h-4 transition-colors ${
+                      pathname.startsWith("/app-builder") ? "text-neutral-950" : "text-neutral-400"
+                    }`}
                   />
-                  <span>Bookings</span>
+                  <span>App Builder</span>
                 </div>
-                <motion.div animate={{ rotate: expandedSections.bookings ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                  <ChevronDown className="w-4 h-4 text-neutral-400" />
+                <motion.div
+                  animate={{ rotate: expandedSections.appBuilder ? 180 : 0 }}
+                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                >
+                  <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
                 </motion.div>
-              </motion.button>
+              </button>
 
-              {/* Accordion Sub-Items */}
+              {/* Accordion Sub-Items with slide down and sequential item reveal */}
               <AnimatePresence initial={false}>
-                {expandedSections.bookings && (
+                {expandedSections.appBuilder && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="relative pl-7 mt-1 space-y-1.5 overflow-hidden"
+                    transition={{ duration: 0.28, ease: "easeInOut" }}
+                    className="relative pl-4 mt-1 space-y-0.5 overflow-hidden"
                   >
-                    {/* Continuous Tree Trunk Line */}
-                    <div className="absolute left-[23px] top-0 bottom-[18px] w-[1.5px] bg-neutral-200/90 z-0" />
-
-                    {bookingsSubItems.map((subItem) => {
+                    {appBuilderSubItems.map((subItem, sIdx) => {
                       const isSubActive = pathname === subItem.href;
                       return (
                         <motion.div
                           key={subItem.href}
-                          whileHover={{ x: 3 }}
-                          transition={{ duration: 0.15 }}
-                          className="relative flex items-center"
+                          initial={{ opacity: 0, y: -6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: sIdx * 0.025, ease: "easeInOut" }}
                         >
-                          <svg
-                            className="absolute left-[-5px] top-[-10px] w-5 h-[34px] text-neutral-200/90 pointer-events-none z-0"
-                            viewBox="0 0 20 34"
-                            fill="none"
-                          >
-                            <path
-                              d="M 1 0 V 16 Q 1 22 8 22 H 12"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              fill="none"
-                            />
-                          </svg>
-
                           <Link
                             href={subItem.href}
-                            className={`relative z-10 w-full flex items-center justify-between pl-3.5 pr-3 py-2 rounded-xl text-xs font-semibold transition-all ${isSubActive
-                                ? "bg-white text-neutral-900 shadow-xs border border-neutral-200/80 font-bold"
-                                : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
-                              }`}
+                            className={`w-full flex items-center justify-between px-3.5 py-2 rounded-full text-xs transition-all ${
+                              isSubActive
+                                ? "bg-neutral-950 text-white font-semibold"
+                                : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 font-medium"
+                            }`}
                           >
                             <div className="flex items-center gap-2.5 truncate">
-                              {subItem.icon && <span className="text-neutral-400">{subItem.icon}</span>}
+                              {subItem.icon && (
+                                <span className={isSubActive ? "text-white" : "text-neutral-400"}>
+                                  {subItem.icon}
+                                </span>
+                              )}
                               <span>{subItem.name}</span>
                             </div>
+
+                            {subItem.badge && (
+                              <span
+                                className={`px-2 py-0.5 text-[9px] font-bold rounded-full ${getBadgeStyle(
+                                  subItem.badge.variant
+                                )}`}
+                              >
+                                {subItem.badge.text}
+                              </span>
+                            )}
                           </Link>
                         </motion.div>
                       );
@@ -523,53 +387,220 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 )}
               </AnimatePresence>
             </div>
-          )}
 
-          {/* Super Admin Section (Only shown to Super Admins verified from /admin) */}
-          {isSuperAdmin && (
-            <motion.div whileHover={{ x: 3 }} transition={{ duration: 0.15 }} className="pt-2">
+            {/* Clients */}
+            <Link
+              href="/clients"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                pathname === "/clients"
+                  ? "bg-neutral-950 text-white font-semibold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Users
+                  className={`w-4 h-4 transition-colors ${
+                    pathname === "/clients" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                  }`}
+                />
+                <span>Clients</span>
+              </div>
+            </Link>
+
+            {/* Shop */}
+            <Link
+              href="/shop"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                pathname === "/shop"
+                  ? "bg-neutral-950 text-white font-semibold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <ShoppingBag
+                  className={`w-4 h-4 transition-colors ${
+                    pathname === "/shop" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                  }`}
+                />
+                <span>Shop</span>
+              </div>
+            </Link>
+
+            {/* Memberships */}
+            <Link
+              href="/memberships"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                pathname === "/memberships"
+                  ? "bg-neutral-950 text-white font-semibold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <CreditCard
+                  className={`w-4 h-4 transition-colors ${
+                    pathname === "/memberships" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                  }`}
+                />
+                <span>Memberships</span>
+              </div>
+            </Link>
+
+            {/* Notifications */}
+            <Link
+              href="/notifications"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                pathname === "/notifications"
+                  ? "bg-neutral-950 text-white font-semibold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Bell
+                  className={`w-4 h-4 transition-colors ${
+                    pathname === "/notifications" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                  }`}
+                />
+                <span>Notifications</span>
+              </div>
+            </Link>
+
+            {/* Referrals Program */}
+            <Link
+              href="/referrals"
+              className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                pathname === "/referrals"
+                  ? "bg-neutral-950 text-white font-semibold"
+                  : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Share2
+                  className={`w-4 h-4 transition-colors ${
+                    pathname === "/referrals" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                  }`}
+                />
+                <span>Referrals Program</span>
+              </div>
+            </Link>
+
+            {/* Bookings Collapsible Section */}
+            {hasCustomBooking && (
+              <div>
+                <button
+                  onClick={() => toggleSection("bookings")}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all cursor-pointer ${
+                    pathname.startsWith("/bookings")
+                      ? "bg-neutral-100 text-neutral-950 font-semibold"
+                      : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Calendar
+                      className={`w-4 h-4 transition-colors ${
+                        pathname.startsWith("/bookings") ? "text-neutral-950" : "text-neutral-400"
+                      }`}
+                    />
+                    <span>Bookings</span>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: expandedSections.bookings ? 180 : 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                  >
+                    <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
+                  </motion.div>
+                </button>
+
+                {/* Bookings Sub-Items with slide down and sequential item reveal */}
+                <AnimatePresence initial={false}>
+                  {expandedSections.bookings && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.28, ease: "easeInOut" }}
+                      className="relative pl-4 mt-1 space-y-0.5 overflow-hidden"
+                    >
+                      {bookingsSubItems.map((subItem, sIdx) => {
+                        const isSubActive = pathname === subItem.href;
+                        return (
+                          <motion.div
+                            key={subItem.href}
+                            initial={{ opacity: 0, y: -6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2, delay: sIdx * 0.025, ease: "easeInOut" }}
+                          >
+                            <Link
+                              href={subItem.href}
+                              className={`w-full flex items-center justify-between px-3.5 py-2 rounded-full text-xs transition-all ${
+                                isSubActive
+                                  ? "bg-neutral-950 text-white font-semibold"
+                                  : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 font-medium"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 truncate">
+                                {subItem.icon && (
+                                  <span className={isSubActive ? "text-white" : "text-neutral-400"}>
+                                    {subItem.icon}
+                                  </span>
+                                )}
+                                <span>{subItem.name}</span>
+                              </div>
+                            </Link>
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Super Admin Tab */}
+            {isSuperAdmin && (
               <Link
                 href="/super-admin"
-                className={`group relative flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname.startsWith("/super-admin")
-                    ? "bg-[#768957] text-white shadow-xs font-bold"
-                    : "text-neutral-700 hover:text-neutral-900 hover:bg-white/80 border border-neutral-200/60 bg-neutral-100/60"
-                  }`}
+                className={`group flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs sm:text-[13px] font-medium transition-all ${
+                  pathname === "/super-admin"
+                    ? "bg-neutral-950 text-white font-semibold"
+                    : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
+                }`}
               >
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center gap-3">
                   <Shield
-                    className={`w-5 h-5 transition-colors ${pathname.startsWith("/super-admin") ? "text-[#C9A96E]" : "text-[#C9A96E]"
-                      }`}
+                    className={`w-4 h-4 transition-colors ${
+                      pathname === "/super-admin" ? "text-white" : "text-neutral-400 group-hover:text-neutral-700"
+                    }`}
                   />
                   <span>Super Admin</span>
                 </div>
-                <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-full bg-[#C9A96E]/20 text-[#9e7e45] border border-[#C9A96E]/40">
-                  Root
+                <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-neutral-200 text-neutral-800">
+                  Master
                 </span>
               </Link>
-            </motion.div>
-          )}
-        </nav>
+            )}
+          </nav>
+        </div>
       </div>
 
-      {/* Footer Info & Sign Out Button (Static) */}
-      <div className="pt-4 border-t border-neutral-200/80 space-y-3">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center text-xs font-bold text-neutral-700 uppercase">
+      {/* User Session Footer */}
+      <div className="shrink-0 p-4 bg-white space-y-3">
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-800 uppercase shrink-0">
             {user?.email ? user.email[0] : "A"}
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-semibold text-neutral-900 truncate">
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-xs font-semibold text-neutral-900 truncate leading-tight">
               {user?.email}
             </span>
-            <span className="text-[10px] text-neutral-400 font-medium">
-              {isSuperAdmin ? "Super Admin • Logged in" : "Logged in"}
+            <span className="text-[10px] text-neutral-400 font-medium leading-tight">
+              {isSuperAdmin ? "Super Admin" : "Clinic Admin"}
             </span>
           </div>
         </div>
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 rounded-xl border border-neutral-200/80 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 hover:text-neutral-900 shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-2 rounded-full bg-neutral-100 px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-200 hover:text-neutral-900 transition-all cursor-pointer active:scale-[0.98]"
         >
           <LogOut className="w-3.5 h-3.5 text-neutral-500" />
           Sign Out
@@ -599,29 +630,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return "Product overview";
   };
 
+  // If initial auth / clinic session is loading, show desktop sidebar with splash screen directly in middle of main page
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 font-sans flex flex-col md:flex-row">
+        {/* Desktop Sidebar (Left side) - Remains visible during loading */}
+        <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-white sticky top-0 h-screen flex-col overflow-hidden">
+          <SidebarContent />
+        </aside>
+
+        {/* Main Workspace Area with Splash Screen centered directly in the middle (excluding sidebar) */}
+        <main className="flex-1 flex flex-col items-center justify-center min-w-0 bg-[#f0f2f5] min-h-screen p-4 sm:p-8">
+          <AdminSplashScreen fullScreen={false} label="Loading Admin Panel..." />
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#f3f4f6] text-neutral-900 font-sans flex flex-col md:flex-row">
-      {/* Desktop Sidebar (Left side) - Stays static across route changes */}
-      <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-[#f4f5f7] border-r border-neutral-200/60 sticky top-0 h-screen overflow-y-auto">
+    <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 font-sans flex flex-col md:flex-row">
+      {/* Desktop Sidebar (Left side) - Sticky full height, flat white surface on #f0f2f5 background */}
+      <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-white sticky top-0 h-screen flex-col overflow-hidden">
         <SidebarContent />
       </aside>
 
       {/* Mobile Header Bar */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#f4f5f7] border-b border-neutral-200/60 sticky top-0 z-30">
+      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-30">
         <div className="flex items-center gap-2.5">
-          <div className="relative w-8 h-8 rounded-md bg-white text-white flex items-center justify-center text-xs font-bold overflow-hidden shadow-sm shrink-0 border-0 outline-none">
+          <div className="relative w-9 h-9 rounded-xl bg-neutral-950 text-white flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
             {logoUrl && !logoError ? (
               <img
                 src={logoUrl}
                 alt={clinicName}
-                className="w-full h-full object-contain p-1 text-neutral-900"
+                className="w-full h-full object-contain p-1"
                 onError={() => setLogoError(true)}
               />
             ) : (
-              "A"
+              <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 flex items-center justify-center">
+                <span className="font-extrabold text-xs tracking-tight text-white select-none">
+                  {clinicName && clinicName !== "Loading..." && clinicName !== "Aurwell Clinic"
+                    ? clinicName.charAt(0).toUpperCase()
+                    : "A"}
+                </span>
+              </div>
             )}
           </div>
-          <span className="font-bold text-sm text-neutral-900 truncate max-w-[140px]">
+          <span className="font-semibold text-sm text-neutral-900 truncate max-w-[140px]">
             {clinicName}
           </span>
         </div>
@@ -629,16 +683,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowScanner(true)}
-            className="p-2 rounded-xl bg-[#768957] text-white hover:bg-[#65774a] transition shadow-xs flex items-center justify-center cursor-pointer active:scale-[0.98]"
+            className="p-2 rounded-full bg-[#0f0f11] text-white hover:bg-[#27272a] transition flex items-center justify-center cursor-pointer active:scale-[0.98]"
             title="Scan Member QR"
           >
             <QrCode className="w-4 h-4 text-white" />
           </button>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded-full border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50 transition"
+            className="p-2 rounded-full bg-neutral-100 text-neutral-800 hover:bg-neutral-200 transition"
           >
-            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
         </div>
       </div>
@@ -659,7 +713,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="relative flex-1 w-full max-w-xs bg-[#f4f5f7] h-full shadow-2xl flex flex-col z-10"
+              className="relative flex-1 w-full max-w-xs bg-white h-full flex flex-col z-10 overflow-hidden"
             >
               <SidebarContent />
             </motion.div>
@@ -668,11 +722,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </AnimatePresence>
 
       {/* Main Workspace Area */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#f3f4f6] min-h-screen">
+      <main className="flex-1 flex flex-col min-w-0 bg-[#f0f2f5] min-h-screen">
         {/* Main Workspace Header Bar */}
-        <header className="h-20 flex items-center justify-between px-6 sm:px-10 bg-[#f3f4f6] flex-shrink-0">
+        <header className="h-16 flex items-center justify-between px-6 sm:px-8 bg-transparent flex-shrink-0">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-neutral-900">
               {getPageTitle()}
             </h1>
           </div>
@@ -680,7 +734,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="hidden sm:flex items-center gap-3">
             <button
               onClick={() => setShowScanner(true)}
-              className="rounded-xl bg-[#768957] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition-all flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+              className="btn-primary"
             >
               <QrCode className="w-4 h-4 text-white" />
               Scan Member QR
@@ -689,7 +743,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content Container with Smooth Fade Route Transition */}
-        <div className="flex-1 px-4 sm:px-10 pb-12 overflow-x-hidden">
+        <div className="flex-1 px-4 sm:px-6 md:px-8 py-4 pb-12 overflow-x-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

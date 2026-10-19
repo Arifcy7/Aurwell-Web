@@ -7,10 +7,17 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { getAllPosts } from "@/sanity/lib/sanityFetch";
 import { BlogPost } from "@/sanity/lib/types";
 import { urlForImage } from "@/sanity/lib/image";
+import { MOCK_POSTS } from "@/sanity/lib/mockData";
 
-export default function LandingBlogSection() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function LandingBlogSection({
+  initialPosts = [],
+}: {
+  initialPosts?: BlogPost[];
+}) {
+  const [posts, setPosts] = useState<BlogPost[]>(() =>
+    initialPosts.length > 0 ? initialPosts : MOCK_POSTS.slice(0, 4)
+  );
+  const [loading, setLoading] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -27,14 +34,14 @@ export default function LandingBlogSection() {
           setPosts(data);
         } else {
           return getAllPosts().then((fallback) => {
-            if (isMounted && fallback) setPosts(fallback);
+            if (isMounted && fallback && fallback.length > 0) setPosts(fallback);
           });
         }
       })
       .catch((err) => {
         console.warn("API route fetch failed, using fallback:", err);
         getAllPosts().then((fallback) => {
-          if (isMounted && fallback) setPosts(fallback);
+          if (isMounted && fallback && fallback.length > 0) setPosts(fallback);
         });
       })
       .finally(() => {
@@ -259,5 +266,3 @@ export default function LandingBlogSection() {
     </section>
   );
 }
-
-

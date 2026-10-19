@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, doc, setDoc, serverTimestamp, query, where, getDocs, limit } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import { COUNTRIES, CURRENCIES, TIMEZONES } from "@/lib/constants";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -40,23 +42,22 @@ export default function SignUpPage() {
   const [phoneDialCode, setPhoneDialCode] = useState(COUNTRIES[0].dialCode);
   const [phoneNumber, setPhoneNumber] = useState("");
 
-  // 🔑 Detect & Persist Referral Attribution (30-day window)
+  // Check for incoming referral code from URL
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const searchParams = new URLSearchParams(window.location.search);
-      const refCode = searchParams.get("ref");
-      if (refCode) {
-        setReferredByCode(refCode);
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) {
+        setReferredByCode(ref);
         try {
-          localStorage.setItem("aurwell_ref_code", refCode);
-          document.cookie = `aurwell_ref_code=${refCode}; max-age=${30 * 24 * 60 * 60}; path=/`;
-        } catch (err) {
-          console.error("Error saving referral code to browser storage:", err);
+          localStorage.setItem("aurwell_ref_code", ref);
+        } catch (e) {
+          console.error(e);
         }
       } else {
-        const storedRef = localStorage.getItem("aurwell_ref_code");
-        if (storedRef) {
-          setReferredByCode(storedRef);
+        const stored = localStorage.getItem("aurwell_ref_code");
+        if (stored) {
+          setReferredByCode(stored);
         }
       }
     }
@@ -150,7 +151,7 @@ export default function SignUpPage() {
           const snapshot = await getDocs(query(collection(db, "users"), limit(50)));
           let referrerUid = "PLATFORM_ADMIN";
           snapshot.forEach((uDoc) => {
-            const code = `REF-${uDoc.id.substring(0, 6).toUpperCase()}`;
+            const code = `REF-${uDoc.id.substring(0, 6).toUpperCase()}` ;
             if (code === activeRefCode) {
               referrerUid = uDoc.id;
             }
@@ -190,37 +191,74 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] px-4 text-black py-12">
-      <div className="w-full max-w-lg space-y-8 rounded-2xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
-        <a
+    <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 flex flex-col justify-between p-4 sm:p-6 selection:bg-neutral-900 selection:text-white">
+      {/* Top Header */}
+      <div className="flex items-center justify-between max-w-5xl w-full mx-auto py-2">
+        <Link
           href={landingPageUrl}
-          className="absolute left-6 top-6 flex h-9 w-9 items-center justify-center rounded-full border border-neutral-100 bg-neutral-50 text-neutral-600 transition-all hover:bg-neutral-100 hover:text-neutral-900 shadow-2xs"
-          aria-label="Back to landing page"
-          title="Back to landing page"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
-        </a>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Aurwell</span>
+        </Link>
+        <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-neutral-200/70 text-neutral-700">
+          Admin Portal
+        </span>
+      </div>
+
+      {/* Main Centered Signup Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        style={{ willChange: "transform, opacity" }}
+        className="w-full max-w-lg mx-auto bg-white rounded-3xl p-7 sm:p-9 space-y-6 select-none my-6"
+      >
+        {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-[#768957] text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
-            A
+          <div className="flex items-center justify-center">
+            <Image
+              src="/logo-black.png"
+              alt="Aurwell Logo"
+              width={56}
+              height={56}
+              className="h-12 w-auto object-contain mx-auto select-none transition-transform duration-200 hover:scale-105"
+              priority
+            />
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Create Clinic Account</h2>
-          <p className="text-xs text-neutral-500 font-medium">
+          <h2 className="text-xl font-bold tracking-tight text-neutral-900 pt-1">Create Clinic Account</h2>
+          <p className="text-xs text-neutral-500">
             Step {step} of 3 — {step === 1 ? "Owner Details" : step === 2 ? "Clinic Branding" : "Location & Contact"}
           </p>
+
+          {/* Step Pill Indicators */}
+          <div className="flex items-center justify-center gap-2 pt-2">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  s === step
+                    ? "w-8 bg-neutral-900"
+                    : s < step
+                    ? "w-4 bg-neutral-400"
+                    : "w-4 bg-neutral-200"
+                }`}
+              />
+            ))}
+          </div>
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-800">
             {error}
           </div>
         )}
 
         {step === 1 && (
-          <form className="space-y-5" onSubmit={handleNextStep}>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">First Name</label>
+          <form className="space-y-4" onSubmit={handleNextStep}>
+            <div className="grid grid-cols-2 gap-3.5">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-neutral-700">First Name</label>
                 <input
                   type="text"
                   required
@@ -230,8 +268,8 @@ export default function SignUpPage() {
                   placeholder="John"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Last Name</label>
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-neutral-700">Last Name</label>
                 <input
                   type="text"
                   required
@@ -243,8 +281,8 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Email Address</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Email Address</label>
               <input
                 type="email"
                 required
@@ -255,28 +293,31 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Password</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Password</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-modern"
-                placeholder="••••••••"
+                placeholder="••••••••••••"
               />
             </div>
 
-            <button
-              type="submit"
-              className="flex w-full justify-center rounded-xl bg-[#768957] px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] transition cursor-pointer"
-            >
-              Next Step
-            </button>
+            <div className="pt-2">
+              <button
+                type="submit"
+                className="btn-primary w-full py-3 text-xs font-semibold inline-flex items-center justify-center gap-2"
+              >
+                <span>Next Step</span>
+                <ArrowRight className="w-3.5 h-3.5 text-white" />
+              </button>
+            </div>
 
-            <div className="text-center text-xs text-neutral-500">
+            <div className="text-center text-xs text-neutral-500 pt-1">
               Already have an account?{" "}
-              <Link href="/login" className="font-bold text-[#768957] hover:underline">
+              <Link href="/login" className="font-semibold text-neutral-900 hover:underline">
                 Sign In
               </Link>
             </div>
@@ -284,9 +325,9 @@ export default function SignUpPage() {
         )}
 
         {step === 2 && (
-          <form className="space-y-5" onSubmit={handleNextStep}>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Merchant Name</label>
+          <form className="space-y-4" onSubmit={handleNextStep}>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Merchant Name</label>
               <input
                 type="text"
                 value={merchantName}
@@ -300,8 +341,8 @@ export default function SignUpPage() {
               {merchantNameError && <p className="mt-1 text-xs text-red-600">{merchantNameError}</p>}
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brand Color</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Brand Color</label>
               <div className="flex items-center gap-3">
                 <input
                   type="color"
@@ -319,8 +360,8 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">
                 Clinic Website URL <span className="text-[10px] text-neutral-400 font-normal">(optional)</span>
               </label>
               <input
@@ -332,8 +373,8 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Merchant Description</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Merchant Description</label>
               <textarea
                 rows={3}
                 value={description}
@@ -343,8 +384,8 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Base Currency</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Base Currency</label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
@@ -358,28 +399,30 @@ export default function SignUpPage() {
               </select>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3 pt-2">
               <button
                 type="button"
                 onClick={handlePrevStep}
-                className="flex w-1/3 justify-center rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50 transition cursor-pointer"
+                className="btn-outline w-1/3 py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-1.5"
               >
-                Back
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back</span>
               </button>
               <button
                 type="submit"
-                className="flex w-2/3 justify-center rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] transition cursor-pointer"
+                className="btn-primary w-2/3 py-2.5 text-xs font-semibold inline-flex items-center justify-center gap-2"
               >
-                Next Step
+                <span>Next Step</span>
+                <ArrowRight className="w-3.5 h-3.5 text-white" />
               </button>
             </div>
           </form>
         )}
 
         {step === 3 && (
-          <form className="space-y-5" onSubmit={handleSignUp}>
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Timezone</label>
+          <form className="space-y-4" onSubmit={handleSignUp}>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Timezone</label>
               <select
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
@@ -393,8 +436,8 @@ export default function SignUpPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Country</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Country</label>
               <select
                 value={country}
                 onChange={(e) => handleCountryChange(e.target.value)}
@@ -408,8 +451,8 @@ export default function SignUpPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Street Address</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Street Address</label>
               <input
                 type="text"
                 required
@@ -420,8 +463,8 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Postal Code</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Postal Code</label>
               <input
                 type="text"
                 required
@@ -432,14 +475,14 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Phone Number</label>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-700">Phone Number</label>
               <div className="flex gap-2 items-center">
                 <select
                   value={phoneDialCode}
                   onChange={(e) => setPhoneDialCode(e.target.value)}
                   style={{ width: "110px", minWidth: "110px", flexShrink: 0 }}
-                  className="h-10 rounded-xl border border-neutral-200 bg-neutral-50/80 px-3 text-xs font-bold text-neutral-900 focus:outline-none focus:ring-2 focus:ring-[#768957]/20 focus:border-[#768957] focus:bg-white transition-all cursor-pointer"
+                  className="h-10 rounded-xl bg-neutral-100 px-3 text-xs font-bold text-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white transition-all cursor-pointer"
                 >
                   {COUNTRIES.map((c) => (
                     <option key={c.code} value={c.dialCode}>
@@ -462,25 +505,43 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3 pt-2">
               <button
                 type="button"
                 onClick={handlePrevStep}
                 disabled={loading}
-                className="flex w-1/3 justify-center rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50 disabled:opacity-50 transition cursor-pointer"
+                className="btn-outline w-1/3 py-2.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
               >
-                Back
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back</span>
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-2/3 justify-center rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] disabled:opacity-50 transition cursor-pointer"
+                className="btn-primary w-2/3 py-2.5 text-xs font-semibold disabled:opacity-50 inline-flex items-center justify-center gap-2"
               >
-                {loading ? "Creating Account..." : "Create Account"}
+                {loading ? (
+                  <>
+                    <span className="inline-block h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-white" />
+                    <span>Create Account</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
         )}
+      </motion.div>
+
+      {/* Footer */}
+      <div className="text-center py-4">
+        <p className="text-xs text-neutral-400">
+          © {new Date().getFullYear()} Aurwell Healthcare Systems Inc.
+        </p>
       </div>
     </div>
   );

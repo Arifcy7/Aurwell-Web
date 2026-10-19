@@ -63,6 +63,26 @@ function removeStorageItem(key: string): void {
 }
 
 /**
+ * Completely wipe all cached Aurwell data (including patient PII and clinic data) from browser storage.
+ * Called on logout to prevent sensitive data leakage on shared computers.
+ */
+export function clearAllAurwellCache(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("aurwell_") || key.startsWith("aurwell-"))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch (err) {
+    console.error("Failed to clear local cache:", err);
+  }
+}
+
+/**
  * Fetch a collection with smart version-checking.
  * - Reads only 1 small metadata doc (settings/versions).
  * - If version matches local cache, returns cached items in 0ms (0 extra reads).

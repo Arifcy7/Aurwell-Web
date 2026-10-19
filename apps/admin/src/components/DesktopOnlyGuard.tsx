@@ -38,7 +38,7 @@ export default function DesktopOnlyGuard({ children }: DesktopOnlyGuardProps) {
   return (
     <>
       {/* Mobile Blocker Screen: Visible on screens smaller than 1024px (phones & small screens) */}
-      <div className="block lg:hidden fixed inset-0 z-[99999] bg-[#f8f9fa] text-neutral-900 overflow-y-auto selection:bg-neutral-900 selection:text-white">
+      <div className="block lg:hidden fixed inset-0 z-[99999] bg-[#f0f2f5] text-neutral-900 overflow-y-auto selection:bg-neutral-900 selection:text-white">
         <div className="min-h-full flex flex-col justify-between p-6 sm:p-10 max-w-lg mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -56,49 +56,49 @@ export default function DesktopOnlyGuard({ children }: DesktopOnlyGuardProps) {
           </div>
 
           {/* Center Card */}
-          <div className="my-auto py-8">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs space-y-6 text-center">
+          <div className="my-auto py-6">
+            <div className="admin-card rounded-3xl p-6 sm:p-8 space-y-5 text-center">
               {/* Icon */}
-              <div className="w-16 h-16 rounded-2xl bg-[#768957]/10 text-[#768957] border border-[#768957]/20 flex items-center justify-center mx-auto shadow-2xs">
-                <Monitor className="w-8 h-8 stroke-[1.8]" />
+              <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center mx-auto">
+                <Monitor className="w-6 h-6 stroke-[1.8]" />
               </div>
 
               {/* Title & Description */}
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/70 text-amber-800 text-[11px] font-bold uppercase tracking-wider">
+              <div className="space-y-2.5">
+                <div className="notion-pill bg-amber-50 text-amber-800 text-[10px] uppercase tracking-wider inline-flex">
                   Desktop Experience Required
                 </div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-neutral-900 tracking-tight">
+                <h2 className="text-xl font-bold text-neutral-900 tracking-tight">
                   Please Open on a Desktop
                 </h2>
-                <p className="text-neutral-600 text-xs sm:text-sm leading-relaxed">
+                <p className="text-neutral-500 text-xs leading-relaxed max-w-sm mx-auto">
                   The Aurwell Clinic Admin Panel is built for larger displays with clinic configuration tools, calendars, and member management. Access from phones is temporarily restricted.
                 </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-col gap-2.5 sm:gap-3">
+              <div className="pt-1 flex flex-col gap-2.5">
                 <Link
                   href={websiteUrl}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-3 rounded-xl text-xs sm:text-sm shadow-xs transition-all active:scale-[0.99]"
+                  className="btn-primary w-full py-2.5 text-xs inline-flex items-center justify-center gap-2"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Back to Aurwell Home</span>
                 </Link>
 
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200/80 text-neutral-800 font-semibold px-4 py-3 rounded-xl text-xs sm:text-sm border border-neutral-200 transition-all cursor-pointer active:scale-[0.99]"
+                  className="btn-secondary w-full py-2.5 text-xs inline-flex items-center justify-center gap-2"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-4 h-4 text-[#768957]" />
-                      <span className="text-[#768957]">Link Copied to Clipboard!</span>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-600 font-medium">Link Copied to Clipboard!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-4 h-4 text-neutral-500" />
+                      <Copy className="w-3.5 h-3.5 text-neutral-500" />
                       <span>Copy Admin Link for Desktop</span>
                     </>
                   )}
@@ -112,7 +112,7 @@ export default function DesktopOnlyGuard({ children }: DesktopOnlyGuardProps) {
           </div>
 
           {/* Footer */}
-          <div className="text-center text-[11px] text-neutral-400 pt-4 border-t border-neutral-200/60">
+          <div className="text-center text-[11px] text-neutral-400 pt-4">
             © {new Date().getFullYear()} Aurwell Healthcare Systems Inc.
           </div>
         </div>

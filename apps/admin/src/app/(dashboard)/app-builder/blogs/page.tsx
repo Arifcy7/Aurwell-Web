@@ -22,6 +22,7 @@ import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
 import { motion, AnimatePresence } from "framer-motion";
+import { Edit2, Trash2, ExternalLink, BookOpen } from "lucide-react";
 
 interface Blog {
   id: string;
@@ -126,12 +127,12 @@ export default function BlogsPage() {
 
     try {
       await updateDoc(doc(db, "clinics", clinicId), {
-        blogSectionTitle,
+        blogSectionTitle: blogSectionTitle.trim(),
       });
-      setTitleSuccessMsg("Section title updated successfully!");
+      setTitleSuccessMsg("Display title updated successfully in your mobile app!");
       setTimeout(() => setTitleSuccessMsg(""), 3000);
     } catch (err) {
-      console.error("Error updating section title:", err);
+      console.error("Error saving section title:", err);
     } finally {
       setSavingTitle(false);
     }
@@ -139,7 +140,7 @@ export default function BlogsPage() {
 
   const handleSaveBlog = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !clinicId) return;
+    if (!title || !description || !clinicId) return;
 
     setIsSaving(true);
     try {
@@ -156,7 +157,7 @@ export default function BlogsPage() {
       const blogData = {
         title,
         description,
-        imageUrl: finalImageUrl || "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600",
+        imageUrl: finalImageUrl || "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800",
         articleUrl,
       };
 
@@ -172,10 +173,7 @@ export default function BlogsPage() {
       } else {
         // Create new blog
         const fullData = { ...blogData, isActive: true, createdAt: serverTimestamp() };
-        const docRef = await addDoc(
-          collection(db, "clinics", clinicId, "blogs"),
-          fullData
-        );
+        const docRef = await addDoc(collection(db, "clinics", clinicId, "blogs"), fullData);
         const newBlog = { id: docRef.id, ...fullData } as any;
         setBlogs((prev) => [newBlog, ...prev]);
         updateLocalCache<Blog>(clinicId, "blogs", (prev) => [newBlog, ...prev]);
@@ -248,23 +246,19 @@ export default function BlogsPage() {
       await incrementCollectionVersion(clinicId, "blogs");
       setDeleteTarget(null);
     } catch (err) {
-      console.error("Error deleting blog:", err);
+      console.error("Error deleting blog article:", err);
     } finally {
       setIsDeleting(false);
     }
   };
 
-  if (loading && blogs.length === 0) {
-    return <CardGridSkeleton count={3} />;
-  }
-
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-6 w-full">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h2 className="text-lg font-bold tracking-tight">Blog & Article Management</h2>
-          <p className="text-sm text-neutral-500">Add resources, guides, or informational articles for patient education</p>
+          <h2 className="text-lg font-bold tracking-tight text-neutral-900">Blog & Educational Articles</h2>
+          <p className="text-xs text-neutral-500 mt-0.5">Share skincare education, post-op guidance, and clinic news with your app patients.</p>
         </div>
         <button
           onClick={() => {
@@ -275,29 +269,30 @@ export default function BlogsPage() {
             setOriginalImageUrl("");
             setImageFile(null);
             setArticleUrl("");
-            setShowForm(!showForm);
+            setShowForm(true);
           }}
-          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition self-start cursor-pointer"
+          className="btn-primary px-4 py-2 text-xs font-semibold self-start cursor-pointer shadow-xs"
         >
-          {showForm ? "Cancel" : "Create Blog Article"}
+          Create Blog Article
         </button>
       </div>
 
-      {/* App Section Label Customizer */}
+      {/* Customize Mobile Tab Label Card */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-4"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border border-neutral-200/80 bg-white p-5 space-y-4 shadow-xs"
       >
         <div>
-          <h3 className="text-sm font-bold tracking-tight text-neutral-900">Custom Mobile App Tab Label</h3>
-          <p className="text-xs text-neutral-500">Configure how the blog page displays in your patients' Android app (e.g. "Read Blogs", "Educate Yourself").</p>
+          <h3 className="text-sm font-bold text-neutral-900">Customize Mobile Tab Label</h3>
+          <p className="text-xs text-neutral-500 mt-0.5">
+            Rename how this educational section appears to patients in your mobile app navigation (e.g. &quot;Articles&quot;, &quot;Skincare Tips&quot;, &quot;Clinic Journal&quot;).
+          </p>
         </div>
 
-        <form onSubmit={handleSaveSectionTitle} className="flex flex-col sm:flex-row gap-3 items-end max-w-lg">
-          <div className="flex-1 w-full">
-            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Mobile Tab Display Title</label>
+        <form onSubmit={handleSaveSectionTitle} className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+          <div className="flex-1 max-w-sm">
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">Mobile Tab Display Title</label>
             <input
               type="text"
               required
@@ -310,14 +305,14 @@ export default function BlogsPage() {
           <button
             type="submit"
             disabled={savingTitle}
-            className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] transition shadow-xs hover:shadow-sm h-10 flex items-center justify-center min-w-[120px] cursor-pointer"
+            className="btn-primary px-4 py-2 text-xs font-semibold h-9 min-w-[100px] flex items-center justify-center cursor-pointer shadow-xs disabled:opacity-50"
           >
             {savingTitle ? "Saving..." : "Save Label"}
           </button>
         </form>
 
         {titleSuccessMsg && (
-          <div className="max-w-lg rounded-xl border border-[#768957]/25 bg-[#768957]/10 px-4 py-2 text-xs text-[#586940] font-medium">
+          <div className="max-w-lg rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs text-emerald-800 font-medium">
             {titleSuccessMsg}
           </div>
         )}
@@ -329,159 +324,182 @@ export default function BlogsPage() {
         onClose={() => setShowForm(false)}
         title={editId ? "Edit Blog Article" : "Create New Blog Article"}
         subtitle="Blogs & Articles"
-        maxWidth="max-w-6xl"
+        maxWidth="max-w-xl"
       >
-        <form onSubmit={handleSaveBlog} className="space-y-6">
-            <div className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Article Title</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="input-modern"
-                  placeholder="e.g. The Science of Hydrafacials"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brief Description</label>
-                <textarea
-                  required
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="textarea-modern"
-                  placeholder="Write a short summary to hook patients..."
-                />
-              </div>
+        <form onSubmit={handleSaveBlog} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Article Title</label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input-modern"
+              placeholder="e.g. The Science of Hydrafacials"
+            />
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ImageUploader
-                  file={imageFile}
-                  onChange={setImageFile}
-                  imageUrl={imageUrl}
-                  onClearImage={() => setImageUrl("")}
-                  label="Banner Image"
-                />
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Full Article Link</label>
-                  <input
-                    type="url"
-                    required
-                    value={articleUrl}
-                    onChange={(e) => setArticleUrl(e.target.value)}
-                    className="input-modern"
-                    placeholder="https://yourwebsite.com/blog/article-name"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="pt-2 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="rounded-xl border border-neutral-200 bg-white px-5 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition disabled:bg-neutral-300 disabled:text-neutral-500 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow-sm"
-              >
-                {isSaving ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>{editId ? "Updating Article..." : "Saving Article..."}</span>
-                  </>
-                ) : (
-                  editId ? "Update Article" : "Save Article"
-                )}
-              </button>
-            </div>
-          </form>
-        </Modal>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Brief Description</label>
+            <textarea
+              required
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="textarea-modern text-xs"
+              placeholder="Write a short summary to hook patients..."
+            />
+          </div>
 
-      {/* Blogs Listing Cards with Simple Fade Animation */}
-      {blogs.length === 0 ? (
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">Full Article Link</label>
+            <input
+              type="url"
+              required
+              value={articleUrl}
+              onChange={(e) => setArticleUrl(e.target.value)}
+              className="input-modern text-xs"
+              placeholder="https://yourwebsite.com/blog/article-name"
+            />
+          </div>
+
+          <div className="bg-neutral-50/60 border border-neutral-200/60 rounded-2xl p-3.5">
+            <ImageUploader
+              file={imageFile}
+              onChange={setImageFile}
+              imageUrl={imageUrl}
+              onClearImage={() => setImageUrl("")}
+              label="Article Cover Image"
+              heightClass="aspect-[16/9] h-auto w-full"
+            />
+          </div>
+          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-neutral-100">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="btn-primary px-5 py-2 text-xs font-semibold cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              {isSaving ? "Saving..." : editId ? "Update Article" : "Save Article"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Blogs Listing Cards with Card-in-Card Architecture */}
+      {loading ? (
+        <CardGridSkeleton count={3} variant="blog" />
+      ) : blogs.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-neutral-300 p-12 text-center bg-white/50">
           <p className="text-sm text-neutral-500 font-medium mb-1">No articles created yet</p>
-          <p className="text-xs text-neutral-400">Click "Create Blog Article" to add your first post.</p>
+          <p className="text-xs text-neutral-400">Click &quot;Create Blog Article&quot; to add your first post.</p>
         </div>
       ) : (
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-start">
           {blogs.map((b, idx) => (
             <motion.div
               key={b.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: idx * 0.04 }}
-              className={`overflow-hidden rounded-2xl border bg-white shadow-xs flex flex-col justify-between transition-all hover:shadow-md ${
-                b.isActive === false ? "border-neutral-200 opacity-60" : "border-neutral-200/80"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: idx * 0.03 }}
+              className={`rounded-3xl bg-white p-2 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group select-none ${
+                b.isActive === false ? "opacity-75" : ""
               }`}
             >
+              {/* Inner Card (Holds all visual & contextual content, soft tinted surface without strokes) */}
               <div
-                className="h-44 bg-cover bg-center"
-                style={{ backgroundImage: `url(${b.imageUrl})` }}
-              />
-              <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <h3 className="text-md font-bold text-neutral-900 line-clamp-1">{b.title}</h3>
-                  <p className="text-xs text-neutral-500 line-clamp-3 leading-relaxed">{b.description}</p>
-                </div>
+                onClick={() => handleEditClick(b)}
+                className="rounded-[1.125rem] overflow-hidden bg-[#f4f5f8] flex-1 flex flex-col justify-between cursor-pointer transition-colors hover:bg-[#edf0f4]"
+              >
+                <div>
+                  {/* Thumbnail Header with Smooth Zoom */}
+                  <div className="relative aspect-[16/9] w-full bg-neutral-200 overflow-hidden">
+                    <div
+                      className="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                      style={{ backgroundImage: `url(${b.imageUrl})` }}
+                    />
+                    <div className="absolute top-2.5 right-2.5">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md shadow-2xs ${
+                          b.isActive !== false
+                            ? "bg-white/95 text-emerald-700"
+                            : "bg-white/95 text-neutral-500"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${b.isActive !== false ? "bg-emerald-500" : "bg-neutral-400"}`} />
+                        {b.isActive !== false ? "Active" : "Draft"}
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="pt-3 border-t border-neutral-100 space-y-4">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-neutral-400 uppercase tracking-wider text-[10px]">
-                      Article Reference
-                    </span>
+                  {/* Card Content Body */}
+                  <div className="p-3.5 space-y-1.5">
+                    <h3 className="text-sm font-bold text-neutral-900 line-clamp-1 group-hover:text-neutral-950">
+                      {b.title}
+                    </h3>
+                    <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                      {b.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Outside Inner Card at Bottom (Holds active toggle, edit, delete) */}
+              <div
+                className="px-2 pt-2.5 pb-1 flex items-center justify-between gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Left: Active Toggle Switch */}
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={b.isActive !== false}
+                    onChange={() => handleToggleActive(b)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4.5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-neutral-200 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  <span className="ml-2 text-xs font-medium text-neutral-700">
+                    {b.isActive !== false ? "Active" : "Inactive"}
+                  </span>
+                </label>
+
+                {/* Right: Article link and Action buttons */}
+                <div className="flex items-center gap-1.5">
+                  {b.articleUrl && (
                     <a
                       href={b.articleUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#768957] font-semibold hover:underline flex items-center gap-0.5 text-xs"
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition mr-0.5"
+                      title="Read full article in new tab"
                     >
-                      Read full article ↗
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </a>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    {/* Toggle switch */}
-                    <div className="flex items-center gap-2">
-                      <label className="relative inline-flex items-center cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={b.isActive !== false}
-                          onChange={() => handleToggleActive(b)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
-                        <span className="ml-2 text-xs font-medium text-neutral-500">
-                          {b.isActive !== false ? "Active" : "Inactive"}
-                        </span>
-                      </label>
-                    </div>
-
-                    {/* Edit & Delete Action buttons */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEditClick(b)}
-                        className="rounded-full border border-neutral-200 bg-white px-4 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(b)}
-                        className="rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleEditClick(b)}
+                    className="btn-card-edit"
+                    title="Edit Blog Article"
+                  >
+                    <Edit2 className="w-3 h-3 text-neutral-500" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(b)}
+                    className="btn-card-delete"
+                    title="Delete Blog Article"
+                  >
+                    <Trash2 className="w-3 h-3 text-rose-500" />
+                    <span>Delete</span>
+                  </button>
                 </div>
               </div>
             </motion.div>

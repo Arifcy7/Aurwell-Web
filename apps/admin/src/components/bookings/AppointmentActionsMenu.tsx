@@ -67,13 +67,13 @@ export function AppointmentActionsMenu({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={loading}
-        className="p-1.5 hover:bg-neutral-100 rounded-xl text-neutral-600 transition cursor-pointer border border-neutral-200/80 bg-white shadow-2xs"
+        className="p-1.5 hover:bg-neutral-100 rounded-lg text-neutral-600 transition cursor-pointer border border-neutral-200/80 bg-white"
         title="Appointment Options"
       >
         {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin text-neutral-700" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-700" />
         ) : (
-          <MoreVertical className="w-4 h-4" />
+          <MoreVertical className="w-3.5 h-3.5" />
         )}
       </button>
 
@@ -85,7 +85,7 @@ export function AppointmentActionsMenu({
             onClick={() => setIsOpen(false)}
           />
 
-          <div className="absolute right-0 mt-1.5 w-56 bg-white rounded-2xl shadow-xl border border-neutral-200/90 py-1.5 z-50 animate-in fade-in duration-100">
+          <div className="admin-card absolute right-0 mt-1 w-52 rounded-xl shadow-lg border border-neutral-200/80 p-1 z-50">
             {/* 1. Mark Completed */}
             {currentStatus === "confirmed" && (
               <button
@@ -94,9 +94,9 @@ export function AppointmentActionsMenu({
                   setIsOpen(false);
                   onOpenCompleteModal(appointment);
                 }}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition cursor-pointer text-left"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition cursor-pointer text-left"
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 Mark as Completed
               </button>
             )}
@@ -106,9 +106,9 @@ export function AppointmentActionsMenu({
               <button
                 type="button"
                 onClick={handleMarkNoShow}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-amber-700 hover:bg-amber-50 transition cursor-pointer text-left"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer text-left"
               >
-                <UserX className="w-4 h-4 text-amber-600" />
+                <UserX className="w-3.5 h-3.5 text-amber-600" />
                 Mark as No-Show
               </button>
             )}
@@ -121,9 +121,9 @@ export function AppointmentActionsMenu({
                   setIsOpen(false);
                   onOpenRescheduleModal(appointment);
                 }}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-neutral-800 hover:bg-neutral-50 transition cursor-pointer text-left"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-100/70 rounded-lg transition cursor-pointer text-left"
               >
-                <Calendar className="w-4 h-4 text-neutral-700" />
+                <Calendar className="w-3.5 h-3.5 text-neutral-600" />
                 Reschedule Slot
               </button>
             )}
@@ -136,9 +136,9 @@ export function AppointmentActionsMenu({
                   setIsOpen(false);
                   onOpenCancelModal(appointment);
                 }}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition border-t border-neutral-100 cursor-pointer text-left"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition border-t border-neutral-100 cursor-pointer text-left mt-0.5 pt-1.5"
               >
-                <Ban className="w-4 h-4 text-rose-600" />
+                <Ban className="w-3.5 h-3.5 text-rose-600" />
                 Cancel & Refund Policy
               </button>
             )}

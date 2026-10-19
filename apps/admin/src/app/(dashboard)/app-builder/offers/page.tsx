@@ -21,7 +21,6 @@ import {
 } from "@/lib/firebase/versionCache";
 import ImageUploader from "@/components/ImageUploader";
 import { uploadImageFile, deleteImageFile } from "@/lib/firebase/upload";
-import { CardGridSkeleton } from "@/components/Loader";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 import Modal from "@/components/Modal";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -149,39 +148,36 @@ export default function AutomatedOffersPage() {
           const offersSnapshot = await getDocs(collection(db, "clinics", cId, "automated_offers"));
           let loadedOffersMap: Record<string, AutomatedOffer> = {};
 
-          offersSnapshot.forEach((d) => {
-            const data = d.data();
-            loadedOffersMap[d.id] = {
-              id: d.id,
-              occasion: data.occasion || data.title || "Special Occasion",
-              title: data.title || data.occasion || "Special Occasion",
+          offersSnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            loadedOffersMap[docSnap.id] = {
+              id: docSnap.id,
+              occasion: data.occasion || docSnap.id,
+              title: data.title || docSnap.id,
               isActive: Boolean(data.isActive),
               discountType: "percentage",
-              discountValue: Number(data.discountValue || 0),
-              maxDiscountAmount: data.maxDiscountAmount ? Number(data.maxDiscountAmount) : null,
+              discountValue: Number(data.discountValue) || 0,
+              maxDiscountAmount: data.maxDiscountAmount !== undefined ? data.maxDiscountAmount : null,
               allProductsIncluded: data.allProductsIncluded !== false,
               includedProductIds: Array.isArray(data.includedProductIds) ? data.includedProductIds : [],
               startDate: data.startDate || null,
               endDate: data.endDate || null,
               imageUrl: data.imageUrl || null,
               isCustom: Boolean(data.isCustom),
-              createdAt: data.createdAt,
-              updatedAt: data.updatedAt,
             };
           });
 
-          // Check defaults / presets and ensure seeded
-          const list: AutomatedOffer[] = [];
-          for (const preset of DEFAULT_OCCASIONS) {
-            if (loadedOffersMap[preset.id]) {
-              list.push(loadedOffersMap[preset.id]);
-              delete loadedOffersMap[preset.id];
+          // Merge preset defaults if not created yet
+          const merged: AutomatedOffer[] = [];
+          for (const def of DEFAULT_OCCASIONS) {
+            if (loadedOffersMap[def.id]) {
+              merged.push(loadedOffersMap[def.id]);
+              delete loadedOffersMap[def.id];
             } else {
-              // Seed default offer doc
-              const newOffer: AutomatedOffer = {
-                id: preset.id,
-                occasion: preset.occasion,
-                title: preset.title,
+              merged.push({
+                id: def.id,
+                occasion: def.occasion,
+                title: def.title,
                 isActive: false,
                 discountType: "percentage",
                 discountValue: 0,
@@ -192,22 +188,13 @@ export default function AutomatedOffersPage() {
                 endDate: null,
                 imageUrl: null,
                 isCustom: false,
-              };
-              setDoc(doc(db, "clinics", cId, "automated_offers", preset.id), {
-                ...newOffer,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-              }).catch(() => {});
-              list.push(newOffer);
+              });
             }
           }
 
-          // Add remaining custom offers
-          Object.values(loadedOffersMap).forEach((customOff) => {
-            list.push(customOff);
-          });
-
-          return list;
+          // Append any custom offers created by the clinic
+          const remainingCustomOffers = Object.values(loadedOffersMap);
+          return [...merged, ...remainingCustomOffers];
         }
       );
 
@@ -221,64 +208,33 @@ export default function AutomatedOffersPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) return;
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           const cId = userDoc.data().clinicId;
           setClinicId(cId);
           await loadData(cId);
-        } else {
-          setLoading(false);
         }
       } catch (err) {
-        console.error("Auth initialization error:", err);
-        setLoading(false);
+        console.error("Error initializing offers:", err);
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Quick Active/Inactive Toggle directly from row button
-  const handleQuickToggleActive = async (offer: AutomatedOffer, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!clinicId) return;
-
-    const newActiveState = !offer.isActive;
-    // Optimistic Update
-    setOffers((prev) =>
-      prev.map((o) => (o.id === offer.id ? { ...o, isActive: newActiveState } : o))
-    );
-    updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
-      prev.map((o) => (o.id === offer.id ? { ...o, isActive: newActiveState } : o))
-    );
-
-    try {
-      await updateDoc(doc(db, "clinics", clinicId, "automated_offers", offer.id), {
-        isActive: newActiveState,
-        updatedAt: serverTimestamp(),
-      });
-      await incrementCollectionVersion(clinicId, "automated_offers");
-    } catch (err) {
-      console.error("Error updating active status:", err);
-      // Revert on error
-      setOffers((prev) =>
-        prev.map((o) => (o.id === offer.id ? { ...o, isActive: offer.isActive } : o))
-      );
-    }
-  };
-
-  // Open Edit Modal for an Offer
+  // Open Edit Modal and prefill form
   const openEditModal = (offer: AutomatedOffer) => {
     setSelectedOffer(offer);
-    setFormTitle(offer.title || offer.occasion);
+    setFormTitle(offer.title);
     setFormIsActive(offer.isActive);
     setFormDiscountValue(String(offer.discountValue || 0));
-    setFormMaxDiscountAmount(offer.maxDiscountAmount ? String(offer.maxDiscountAmount) : "");
+    setFormMaxDiscountAmount(
+      offer.maxDiscountAmount !== null && offer.maxDiscountAmount !== undefined
+        ? String(offer.maxDiscountAmount)
+        : ""
+    );
     setFormAllProductsIncluded(offer.allProductsIncluded);
     setFormIncludedProductIds(offer.includedProductIds || []);
     setFormStartDate(offer.startDate || "");
@@ -290,128 +246,152 @@ export default function AutomatedOffersPage() {
     setIsEditing(true);
   };
 
-  // Save Edit Form
-  const handleSaveOffer = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!clinicId || !selectedOffer) return;
+  // Quick toggle active directly from list item
+  const handleQuickToggleActive = async (offer: AutomatedOffer, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!clinicId) return;
 
-    setIsSaving(true);
-    const parsedVal = Math.max(0, parseFloat(formDiscountValue) || 0);
-    const parsedMax = formMaxDiscountAmount ? Math.max(0, parseFloat(formMaxDiscountAmount) || 0) : null;
-
-    let finalImageUrl = formImageUrl;
+    const newActive = !offer.isActive;
+    const offerRef = doc(db, "clinics", clinicId, "automated_offers", offer.id);
 
     try {
-      // If a custom offer and new image file is selected, upload to Firebase Storage
+      await setDoc(
+        offerRef,
+        {
+          id: offer.id,
+          occasion: offer.occasion,
+          title: offer.title,
+          isActive: newActive,
+          discountType: "percentage",
+          discountValue: offer.discountValue,
+          maxDiscountAmount: offer.maxDiscountAmount ?? null,
+          allProductsIncluded: offer.allProductsIncluded,
+          includedProductIds: offer.includedProductIds,
+          startDate: offer.startDate || null,
+          endDate: offer.endDate || null,
+          imageUrl: offer.imageUrl || null,
+          isCustom: Boolean(offer.isCustom),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      setOffers((prev) =>
+        prev.map((o) => (o.id === offer.id ? { ...o, isActive: newActive } : o))
+      );
+      updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
+        prev.map((o) => (o.id === offer.id ? { ...o, isActive: newActive } : o))
+      );
+      await incrementCollectionVersion(clinicId, "automated_offers");
+    } catch (err) {
+      console.error("Error toggling active state:", err);
+    }
+  };
+
+  // Save changes from Edit Modal
+  const handleSaveOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOffer || !clinicId) return;
+
+    setIsSaving(true);
+    try {
+      let finalImageUrl = formImageUrl;
+      let shouldDeleteOldImage = false;
+
+      // Handle custom artwork file upload if applicable
       if (selectedOffer.isCustom && formImageFile) {
-        finalImageUrl = await uploadImageFile(formImageFile, "automated_offers");
-        if (originalImageUrl && originalImageUrl !== finalImageUrl) {
-          await deleteImageFile(originalImageUrl);
-        }
+        finalImageUrl = await uploadImageFile(formImageFile, "offers");
+        shouldDeleteOldImage = true;
       } else if (selectedOffer.isCustom && !formImageUrl && originalImageUrl) {
-        // If image was removed
-        await deleteImageFile(originalImageUrl);
-        finalImageUrl = "";
+        shouldDeleteOldImage = true;
       }
 
-      const updatedData = {
+      const parsedDiscount = Math.min(100, Math.max(0, Number(formDiscountValue) || 0));
+      const parsedMaxCap = formMaxDiscountAmount.trim() === "" ? null : Number(formMaxDiscountAmount);
+
+      const offerRef = doc(db, "clinics", clinicId, "automated_offers", selectedOffer.id);
+      const updatedData: Partial<AutomatedOffer> & { updatedAt: any } = {
         title: formTitle.trim() || selectedOffer.occasion,
         isActive: formIsActive,
-        discountType: "percentage" as const,
-        discountValue: parsedVal,
-        maxDiscountAmount: parsedMax,
+        discountType: "percentage",
+        discountValue: parsedDiscount,
+        maxDiscountAmount: parsedMaxCap,
         allProductsIncluded: formAllProductsIncluded,
         includedProductIds: formAllProductsIncluded ? [] : formIncludedProductIds,
-        startDate: formStartDate ? formStartDate : null,
-        endDate: formEndDate ? formEndDate : null,
-        imageUrl: selectedOffer.isCustom ? (finalImageUrl || null) : null,
+        startDate: formStartDate || null,
+        endDate: formEndDate || null,
+        imageUrl: finalImageUrl || null,
         updatedAt: serverTimestamp(),
       };
 
-      await updateDoc(doc(db, "clinics", clinicId, "automated_offers", selectedOffer.id), updatedData);
+      await setDoc(offerRef, updatedData, { merge: true });
+
+      const updatedOffer: AutomatedOffer = {
+        ...selectedOffer,
+        title: formTitle.trim() || selectedOffer.occasion,
+        isActive: formIsActive,
+        discountValue: parsedDiscount,
+        maxDiscountAmount: parsedMaxCap,
+        allProductsIncluded: formAllProductsIncluded,
+        includedProductIds: formAllProductsIncluded ? [] : formIncludedProductIds,
+        startDate: formStartDate || null,
+        endDate: formEndDate || null,
+        imageUrl: finalImageUrl || null,
+      };
 
       setOffers((prev) =>
-        prev.map((o) =>
-          o.id === selectedOffer.id
-            ? {
-              ...o,
-              title: updatedData.title,
-              isActive: updatedData.isActive,
-              discountType: updatedData.discountType,
-              discountValue: updatedData.discountValue,
-              maxDiscountAmount: updatedData.maxDiscountAmount,
-              allProductsIncluded: updatedData.allProductsIncluded,
-              includedProductIds: updatedData.includedProductIds,
-              startDate: updatedData.startDate,
-              endDate: updatedData.endDate,
-              imageUrl: updatedData.imageUrl,
-            }
-            : o
-        )
+        prev.map((o) => (o.id === selectedOffer.id ? updatedOffer : o))
       );
-
       updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
-        prev.map((o) =>
-          o.id === selectedOffer.id
-            ? {
-              ...o,
-              title: updatedData.title,
-              isActive: updatedData.isActive,
-              discountType: updatedData.discountType,
-              discountValue: updatedData.discountValue,
-              maxDiscountAmount: updatedData.maxDiscountAmount,
-              allProductsIncluded: updatedData.allProductsIncluded,
-              includedProductIds: updatedData.includedProductIds,
-              startDate: updatedData.startDate,
-              endDate: updatedData.endDate,
-              imageUrl: updatedData.imageUrl,
-            }
-            : o
-        )
+        prev.map((o) => (o.id === selectedOffer.id ? updatedOffer : o))
       );
-
       await incrementCollectionVersion(clinicId, "automated_offers");
+
+      if (shouldDeleteOldImage && originalImageUrl) {
+        await deleteImageFile(originalImageUrl);
+      }
 
       setIsEditing(false);
       setSelectedOffer(null);
     } catch (err) {
       console.error("Error saving automated offer:", err);
-      alert("Failed to save offer. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Add Custom Occasion Offer
-  const handleCreateCustomOffer = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!clinicId || !customOccasionName.trim()) return;
+  // Create a brand new Custom Occasion Offer
+  const handleCreateCustomOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customOccasionName.trim() || !clinicId) return;
 
     setIsSaving(true);
     try {
-      let uploadedImageUrl: string | null = null;
+      const customId = `custom_${Date.now()}`;
+      let finalImageUrl: string | null = null;
+
       if (customImageFile) {
-        uploadedImageUrl = await uploadImageFile(customImageFile, "automated_offers");
+        finalImageUrl = await uploadImageFile(customImageFile, "offers");
       }
 
-      const customId = `custom_${Date.now()}`;
       const newOffer: AutomatedOffer = {
         id: customId,
         occasion: customOccasionName.trim(),
         title: customOccasionName.trim(),
-        isActive: false,
+        isActive: true,
         discountType: "percentage",
-        discountValue: 0,
+        discountValue: 10,
         maxDiscountAmount: null,
         allProductsIncluded: true,
         includedProductIds: [],
         startDate: null,
         endDate: null,
-        imageUrl: uploadedImageUrl,
+        imageUrl: finalImageUrl,
         isCustom: true,
       };
 
-      await setDoc(doc(db, "clinics", clinicId, "automated_offers", customId), {
+      const offerRef = doc(db, "clinics", clinicId, "automated_offers", customId);
+      await setDoc(offerRef, {
         ...newOffer,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -424,47 +404,48 @@ export default function AutomatedOffersPage() {
       setShowAddCustomModal(false);
       setCustomOccasionName("");
       setCustomImageFile(null);
-      openEditModal(newOffer);
     } catch (err) {
       console.error("Error creating custom offer:", err);
-      alert("Failed to create custom offer.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Delete Custom Offer
+  // Delete custom offer permanently
   const handleDeleteCustomOffer = async () => {
-    if (!clinicId || !deleteTarget) return;
+    if (!deleteTarget || !clinicId) return;
 
     setIsDeleting(true);
     try {
       if (deleteTarget.imageUrl) {
         await deleteImageFile(deleteTarget.imageUrl);
       }
+
       await deleteDoc(doc(db, "clinics", clinicId, "automated_offers", deleteTarget.id));
+
       setOffers((prev) => prev.filter((o) => o.id !== deleteTarget.id));
       updateLocalCache<AutomatedOffer>(clinicId, "automated_offers", (prev) =>
         prev.filter((o) => o.id !== deleteTarget.id)
       );
       await incrementCollectionVersion(clinicId, "automated_offers");
+
       setDeleteTarget(null);
+      setIsEditing(false);
+      setSelectedOffer(null);
     } catch (err) {
       console.error("Error deleting custom offer:", err);
-      alert("Failed to delete offer.");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Toggle single product selection
-  const toggleProductSelection = (productId: string) => {
+  // Product Selection checkbox toggling inside Edit Modal
+  const toggleProductSelection = (prodId: string) => {
     setFormIncludedProductIds((prev) =>
-      prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]
+      prev.includes(prodId) ? prev.filter((id) => id !== prodId) : [...prev, prodId]
     );
   };
 
-  // Select / Deselect All Products
   const handleSelectAllProducts = () => {
     if (formIncludedProductIds.length === treatments.length) {
       setFormIncludedProductIds([]);
@@ -485,7 +466,7 @@ export default function AutomatedOffersPage() {
     t.title.toLowerCase().includes(productSearch.toLowerCase())
   );
 
-  // Occasion Badge Renderer (Sleek monochrome / luxury aesthetic matching Aurwell)
+  // Occasion Badge Renderer (Restored to original Aurwell olive/green style)
   const renderOccasionBadge = (offer: AutomatedOffer) => {
     // If offer has a custom uploaded square image banner
     if (offer.imageUrl) {
@@ -534,87 +515,108 @@ export default function AutomatedOffersPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8 w-full">
-        <div className="flex flex-col gap-2">
-          <div className="h-8 w-64 bg-neutral-200 animate-pulse rounded-lg" />
-          <div className="h-4 w-96 bg-neutral-200 animate-pulse rounded-lg" />
+      <div className="space-y-4 w-full animate-pulse">
+        {/* Top Header Section Skeleton */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+          <div className="space-y-1.5">
+            <div className="h-6 w-48 bg-neutral-200 rounded-lg" />
+            <div className="h-3.5 w-80 bg-neutral-200 rounded-lg" />
+          </div>
+          <div className="h-8 w-36 bg-neutral-200 rounded-xl" />
         </div>
-        <CardGridSkeleton count={4} />
+
+        {/* Search Bar Skeleton */}
+        <div className="rounded-3xl bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-neutral-200/80">
+          <div className="h-9 w-full max-w-md bg-neutral-100 rounded-full" />
+          <div className="h-8 w-44 bg-neutral-100 rounded-full" />
+        </div>
+
+        {/* Table Card Skeleton */}
+        <div className="table-card-outer">
+          <div className="table-card-inner divide-y divide-[#eaecf0]">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-200 shrink-0" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-36 bg-neutral-200 rounded-full" />
+                    <div className="h-3 w-48 bg-neutral-100 rounded-full" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="h-4 w-20 bg-neutral-200 rounded-full" />
+                  <div className="h-7 w-20 bg-neutral-200 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 w-full">
+    <div className="space-y-4 sm:space-y-5 w-full">
       {/* ── Top Header Section ── */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold tracking-tight text-neutral-900">Automated Offers</h2>
-            <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full border bg-[#768957]/10 text-[#586940] border-[#768957]/25">
+            <span className="notion-pill bg-neutral-100 text-neutral-800">
               App Builder
             </span>
           </div>
-          <p className="text-sm text-neutral-500 mt-0.5">
-            Configure automated seasonal promotions, holiday offers, and scratch card discount campaigns for your patient app.
+          <p className="text-xs text-neutral-500 mt-0.5">
+            Configure automated seasonal promotions, holiday offers, and scratch card discount campaigns.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddCustomModal(true)}
-          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition flex items-center gap-2 self-start cursor-pointer"
+          className="btn-primary px-3.5 py-1.5 text-xs font-semibold flex items-center gap-1.5 self-start cursor-pointer "
         >
           <Plus className="w-3.5 h-3.5" />
           Add Custom Occasion
         </button>
       </div>
 
-      {/* ── Search & Metrics Bar ── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+      {/* ── Search Bar & Header Card ── */}
+      <div className="rounded-3xl bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 border border-neutral-200/80">
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 z-10 pointer-events-none" />
           <input
             type="text"
             placeholder="Search occasions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-8 py-2 bg-white border border-neutral-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#768957] focus:border-[#768957] transition shadow-2xs font-medium text-neutral-800"
+            className="input-modern input-search"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2.5 text-xs font-semibold text-neutral-600 self-end sm:self-auto">
-          <span className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-full border border-neutral-200 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-[#768957]" />
-            Active Offers: {offers.filter((o) => o.isActive).length}
-          </span>
-          <span className="bg-white px-3.5 py-1.5 rounded-full border border-neutral-200 shadow-2xs text-neutral-500">
-            Total: {offers.length}
+        <div className="flex items-center gap-2 text-xs font-medium text-neutral-600 bg-neutral-100 px-4 py-2 rounded-full shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <span>
+            Active: <strong className="font-semibold text-neutral-900">{offers.filter((o) => o.isActive).length}</strong> of {offers.length} offers
           </span>
         </div>
       </div>
 
-      {/* ── Occasions Offer List ── */}
-      <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-xs overflow-hidden">
+      {/* ── Occasions Offer List (Card-in-Card Architecture matching Clients Table) ── */}
+      <div className="table-card-outer">
         {filteredOffers.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-400">
-              <Gift className="w-6 h-6" />
-            </div>
-            <p className="text-base font-bold text-neutral-800">No automated offers found</p>
-            <p className="text-xs text-neutral-400 max-w-sm">
-              Try searching with another keyword or create a new custom occasion offer.
-            </p>
+          <div className="p-12 text-center text-xs font-medium text-neutral-400">
+            No automated offers found matching your query.
           </div>
         ) : (
-          <div className="divide-y divide-neutral-100">
+          <div className="table-card-inner divide-y divide-[#eaecf0]">
             {filteredOffers.map((offer) => {
               const isLive = offer.isActive && offer.discountValue > 0;
 
@@ -622,10 +624,10 @@ export default function AutomatedOffersPage() {
                 <div
                   key={offer.id}
                   onClick={() => openEditModal(offer)}
-                  className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:px-6 sm:py-4.5 gap-4 transition hover:bg-neutral-50/80 cursor-pointer"
+                  className="group px-4 py-3.5 sm:px-5 sm:py-4 hover:bg-neutral-50/80 transition-colors duration-150 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   {/* Left: Emblem Badge & Title Info */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3.5">
                     {renderOccasionBadge(offer)}
                     <div>
                       <div className="flex items-center gap-2">
@@ -658,7 +660,6 @@ export default function AutomatedOffersPage() {
 
                   {/* Right: Discount Summary & Status Button */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-neutral-100">
-                    {/* Discount Summary */}
                     <div className="text-left sm:text-right min-w-[120px]">
                       <span
                         className={`text-xs sm:text-sm font-bold ${
@@ -669,7 +670,6 @@ export default function AutomatedOffersPage() {
                       </span>
                     </div>
 
-                    {/* Active / Inactive Status Toggle Pill Button */}
                     <button
                       type="button"
                       onClick={(e) => handleQuickToggleActive(offer, e)}
@@ -692,7 +692,6 @@ export default function AutomatedOffersPage() {
                       )}
                     </button>
 
-                    {/* Edit Arrow Indicator */}
                     <div className="text-neutral-400 group-hover:text-neutral-800 group-hover:translate-x-0.5 transition">
                       <ChevronRight className="w-4 h-4" />
                     </div>
@@ -732,7 +731,7 @@ export default function AutomatedOffersPage() {
                   onChange={(e) => setFormIsActive(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#768957]"></div>
+                <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
               </label>
             </div>
 
@@ -894,7 +893,7 @@ export default function AutomatedOffersPage() {
                     onChange={(e) => setFormAllProductsIncluded(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#768957]"></div>
+                  <div className="w-10 h-6 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                 </label>
               </div>
 
@@ -977,7 +976,7 @@ export default function AutomatedOffersPage() {
                     setIsEditing(false);
                     setDeleteTarget(selectedOffer);
                   }}
-                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer shadow-2xs"
+                  className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer "
                 >
                   Delete Offer
                 </button>
@@ -996,7 +995,7 @@ export default function AutomatedOffersPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-sm"
+                  className="btn-primary transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                 >
                   {isSaving && (
                     <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
@@ -1066,7 +1065,7 @@ export default function AutomatedOffersPage() {
             <button
               type="submit"
               disabled={!customOccasionName.trim() || isSaving}
-              className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] transition disabled:opacity-50 flex items-center gap-2 cursor-pointer shadow-xs hover:shadow-sm"
+              className="btn-primary transition disabled:opacity-50 flex items-center gap-2 cursor-pointer"
             >
               {isSaving && (
                 <div className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
@@ -1083,7 +1082,8 @@ export default function AutomatedOffersPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteCustomOffer}
         title="Delete Custom Offer?"
-        description={`Are you sure you want to delete "${deleteTarget?.title}"? This promotional campaign will be permanently removed.`}
+        description={`Are you sure you want to delete the "${deleteTarget?.title}" campaign? This action cannot be undone.`}
+        itemName={deleteTarget?.title}
         isDeleting={isDeleting}
       />
     </div>

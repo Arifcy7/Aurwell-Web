@@ -1,54 +1,83 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase/client";
 import { checkIsSuperAdmin } from "@/lib/firebase/booking";
-import { CalendarOff, ExternalLink, ShieldCheck, ArrowRight, Lock } from "lucide-react";
 import Link from "next/link";
+import { ShieldAlert, ArrowLeft, ShieldCheck } from "lucide-react";
+import AdminSplashScreen from "@/components/AdminSplashScreen";
 
-export default function BookingAccessGuard({ children }: { children: React.ReactNode }) {
+interface BookingAccessGuardProps {
+  children: React.ReactNode;
+}
+
+/**
+ * Access guard component wrapping /bookings routes.
+ *
+ * Enforces the booking system access policy:
+ * - Only clinics configured with systemType === "aurwell_custom" (or super-admins) can access
+ *   the Aurwell Booking Management Suite.
+ * - Clinics with other systemTypes (e.g. Fresha, Jane, Pabau external redirects, or disabled)
+ *   are blocked with a clean explanation and guidance.
+ */
+export default function BookingAccessGuard({ children }: BookingAccessGuardProps) {
   const [loading, setLoading] = useState(true);
-  const [hasCustomBooking, setHasCustomBooking] = useState(false);
-  const [systemType, setSystemType] = useState<string>("disabled");
-  const [externalUrl, setExternalUrl] = useState<string>("");
-  const [externalProvider, setExternalProvider] = useState<string>("");
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [allowed, setAllowed] = useState(false);
+  const [isSuper, setIsSuper] = useState(false);
+  const [clinicName, setClinicName] = useState("");
+  const [currentSystemType, setCurrentSystemType] = useState<string>("disabled");
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setAllowed(false);
         setLoading(false);
         return;
       }
 
       try {
-        const isSuper = await checkIsSuperAdmin(currentUser.uid);
-        setIsSuperAdmin(isSuper);
+        // 1. Check if user is Super Admin (always allowed full access)
+        const superAdmin = await checkIsSuperAdmin(user.uid);
+        setIsSuper(superAdmin);
+        if (superAdmin) {
+          setAllowed(true);
+          setLoading(false);
+          return;
+        }
 
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          const uData = userDoc.data();
-          const clinicId = uData.clinicId || "";
-          if (clinicId) {
-            const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
-            if (clinicDoc.exists()) {
-              const cData = clinicDoc.data();
-              const sys = cData.bookingConfig?.systemType;
-              const isCustom = sys === "aurwell_custom" || sys === "custom";
-              setHasCustomBooking(isCustom);
-              setSystemType(sys || "disabled");
+        // 2. Fetch user's clinic ID
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (!userDoc.exists()) {
+          setAllowed(false);
+          setLoading(false);
+          return;
+        }
 
-              if (cData.bookingConfig?.externalBooking) {
-                setExternalUrl(cData.bookingConfig.externalBooking.url || "");
-                setExternalProvider(cData.bookingConfig.externalBooking.provider || "External System");
-              }
-            }
-          }
+        const clinicId = userDoc.data().clinicId;
+        if (!clinicId) {
+          setAllowed(false);
+          setLoading(false);
+          return;
+        }
+
+        // 3. Fetch clinic data to inspect booking systemType
+        const clinicDoc = await getDoc(doc(db, "clinics", clinicId));
+        if (clinicDoc.exists()) {
+          const cData = clinicDoc.data();
+          setClinicName(cData.merchantName || "Your Clinic");
+          const sysType = cData.bookingConfig?.systemType || "disabled";
+          setCurrentSystemType(sysType);
+
+          const hasAccess = sysType === "aurwell_custom" || sysType === "custom";
+          setAllowed(hasAccess);
+        } else {
+          setAllowed(false);
         }
       } catch (err) {
-        console.error("Error checking booking system configuration:", err);
+        console.error("Error verifying booking suite access:", err);
+        setAllowed(false);
       } finally {
         setLoading(false);
       }
@@ -59,69 +88,60 @@ export default function BookingAccessGuard({ children }: { children: React.React
 
   if (loading) {
     return (
-      <div className="text-center py-20 text-neutral-400 text-sm animate-pulse font-medium">
-        Verifying booking configuration...
+      <div className="w-full min-h-[calc(100vh-12rem)] flex items-center justify-center">
+        <AdminSplashScreen fullScreen={false} label="Verifying booking permissions..." />
       </div>
     );
   }
 
-  if (!hasCustomBooking) {
+  if (!allowed) {
     return (
-      <div className="max-w-2xl mx-auto my-12 bg-white p-8 sm:p-12 rounded-2xl border border-neutral-200/80 shadow-xs space-y-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200 shadow-xs">
-          <CalendarOff className="w-8 h-8" />
+      <div className="rounded-3xl bg-white p-8 sm:p-12 text-center max-w-xl mx-auto my-12 space-y-5">
+        <div className="w-14 h-14 rounded-full bg-neutral-100 text-neutral-800 flex items-center justify-center mx-auto">
+          <ShieldAlert className="w-7 h-7 text-neutral-800" />
         </div>
 
         <div className="space-y-2">
-          <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100/80 text-amber-800 border border-amber-200 inline-block">
-            {systemType === "external_sdk" ? "External Booking System Active" : "Booking Module Disabled"}
-          </span>
-          <h2 className="text-2xl font-black text-neutral-900 tracking-tight">
-            Native Booking Section Unavailable
+          <h2 className="text-xl font-bold tracking-tight text-neutral-900">
+            Booking Suite Inactive
           </h2>
-          <p className="text-xs text-neutral-500 max-w-md mx-auto leading-relaxed">
-            {systemType === "external_sdk" ? (
+          <p className="text-xs text-neutral-500 leading-relaxed max-w-md mx-auto">
+            The Aurwell Custom Booking Suite is not enabled for{" "}
+            <span className="font-semibold text-neutral-800">{clinicName || "your clinic"}</span>.
+            {currentSystemType !== "disabled" ? (
               <>
-                Your clinic is configured to use an external booking service (<strong>{externalProvider || "External System"}</strong>). Native appointment scheduling, practitioner rosters, operating hours, and booking settings are disabled in this admin portal.
+                {" "}Your clinic is currently configured to use an external system (
+                <span className="font-mono font-semibold text-neutral-700">{currentSystemType}</span>).
               </>
             ) : (
-              <>
-                The Native Custom Booking engine is currently disabled for your clinic.
-              </>
+              <> Booking functionality is currently disabled for this workspace.</>
             )}
           </p>
         </div>
 
-        {systemType === "external_sdk" && externalUrl && (
-          <div className="p-4 bg-neutral-50 rounded-xl border border-neutral-200/80 max-w-md mx-auto text-left space-y-1">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Configured External URL</span>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-mono font-semibold text-neutral-800 truncate">{externalUrl}</span>
-              <a
-                href={externalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#768957] hover:underline shrink-0"
-              >
-                Visit Link <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-          </div>
-        )}
+        <div className="admin-card-inner p-4 text-xs text-neutral-600 space-y-2 text-left max-w-md mx-auto">
+          <p className="font-semibold text-neutral-900">How to activate the Aurwell Booking Suite:</p>
+          <ul className="list-disc list-inside space-y-1 text-neutral-500 text-[11px]">
+            <li>Contact Aurwell Platform Support or your account representative</li>
+            <li>Request activation of the native Aurwell booking infrastructure</li>
+            <li>Super Admins can switch this clinic to <code className="bg-neutral-200/80 px-1.5 py-0.5 rounded text-neutral-800 font-mono text-[10px]">aurwell_custom</code> in Super Admin Portal</li>
+          </ul>
+        </div>
 
-        <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-2 bg-[#768957] hover:bg-[#65774a] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-xs"
+            className="btn-primary"
           >
+            <ArrowLeft className="w-4 h-4 text-white" />
             Return to Dashboard
           </Link>
-          {isSuperAdmin && (
+          {isSuper && (
             <Link
               href="/super-admin"
-              className="inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition shadow-xs"
+              className="btn-secondary"
             >
-              <ShieldCheck className="w-4 h-4 text-[#C9A96E]" /> Configure in Super Admin
+              <ShieldCheck className="w-4 h-4 text-amber-600" /> Configure in Super Admin
             </Link>
           )}
         </div>

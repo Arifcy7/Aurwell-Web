@@ -125,7 +125,7 @@ function ModernSlider({
         <div className="relative flex-1 flex items-center">
           <div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden relative">
             <div
-              className="h-full bg-[#768957] rounded-full transition-all duration-75"
+              className="h-full bg-neutral-950 rounded-full transition-all duration-75"
               style={{ width: `${percentage}%` }}
             />
           </div>
@@ -162,7 +162,7 @@ function ModernSlider({
                 onClick={() => onChange(preset)}
                 className={`text-[11px] font-medium px-2 py-0.5 rounded-md transition cursor-pointer ${
                   value === preset
-                    ? "bg-[#768957] text-white shadow-xs"
+                    ? "bg-neutral-950 text-white "
                     : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
                 }`}
               >
@@ -402,7 +402,7 @@ export default function RewardsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xs space-y-6 w-full"
+        className="rounded-2xl border border-neutral-200/80 bg-white p-6  space-y-6 w-full"
       >
         <div>
           <div className="flex items-center gap-2">
@@ -488,7 +488,7 @@ export default function RewardsPage() {
           </div>
 
           {/* Right Column: Light & Modern Live Rule Summary Box */}
-          <div className="lg:col-span-5 bg-gradient-to-b from-neutral-50/90 to-neutral-100/40 border border-neutral-200/80 rounded-2xl p-5 space-y-4 shadow-2xs">
+          <div className="lg:col-span-5 bg-gradient-to-b from-neutral-50/90 to-neutral-100/40 border border-neutral-200/80 rounded-2xl p-5 space-y-4 ">
             <div className="flex items-center justify-between border-b border-neutral-200/70 pb-3">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700">
@@ -501,8 +501,8 @@ export default function RewardsPage() {
               </span>
             </div>
 
-            <div className="bg-white border border-neutral-200/70 rounded-xl p-3.5 text-xs text-neutral-700 leading-relaxed font-medium shadow-2xs">
-              Clients earn <strong className="text-neutral-900 font-bold underline decoration-[#768957] decoration-2">{pointsEarned} pt(s)</strong> for every{" "}
+            <div className="bg-white border border-neutral-200/70 rounded-xl p-3.5 text-xs text-neutral-700 leading-relaxed font-medium ">
+              Clients earn <strong className="text-neutral-900 font-bold underline decoration-neutral-900 decoration-2">{pointsEarned} pt(s)</strong> for every{" "}
               <strong className="text-neutral-900 font-bold">€{spendAmount}</strong> spent on clinic treatments.
             </div>
 
@@ -511,32 +511,32 @@ export default function RewardsPage() {
                 Bonus Engagement Rewards
               </span>
               <div className="grid grid-cols-1 gap-2">
-                <div className="bg-white border border-neutral-200/70 rounded-xl p-3 flex items-center justify-between shadow-2xs">
+                <div className="bg-white border border-neutral-200/70 rounded-xl p-3 flex items-center justify-between ">
                   <div className="flex items-center gap-2">
                     <Gift className="w-3.5 h-3.5 text-neutral-500" />
                     <span className="text-xs font-semibold text-neutral-800">First Visit Bonus</span>
                   </div>
-                  <span className="text-xs font-bold text-[#586940] bg-[#768957]/10 px-2.5 py-0.5 rounded-md border border-[#768957]/25">
+                  <span className="text-xs font-bold text-neutral-900 bg-neutral-100 px-2.5 py-0.5 rounded-md border border-neutral-900/25">
                     +{firstVisitPoints} pts
                   </span>
                 </div>
 
-                <div className="bg-white border border-neutral-200/70 rounded-xl p-3 flex items-center justify-between shadow-2xs">
+                <div className="bg-white border border-neutral-200/70 rounded-xl p-3 flex items-center justify-between ">
                   <div className="flex items-center gap-2">
                     <Star className="w-3.5 h-3.5 text-neutral-500" />
                     <span className="text-xs font-semibold text-neutral-800">Google Review Bonus</span>
                   </div>
-                  <span className="text-xs font-bold text-[#586940] bg-[#768957]/10 px-2.5 py-0.5 rounded-md border border-[#768957]/25">
+                  <span className="text-xs font-bold text-neutral-900 bg-neutral-100 px-2.5 py-0.5 rounded-md border border-neutral-900/25">
                     +{googleReviewPoints} pts
                   </span>
                 </div>
 
-                <div className="bg-white border border-neutral-200/70 rounded-xl p-3 flex items-center justify-between shadow-2xs">
+                <div className="bg-white border border-neutral-200/70 rounded-xl p-3 flex items-center justify-between ">
                   <div className="flex items-center gap-2">
                     <UserPlus className="w-3.5 h-3.5 text-neutral-500" />
                     <span className="text-xs font-semibold text-neutral-800">Refer a Friend Bonus</span>
                   </div>
-                  <span className="text-xs font-bold text-[#586940] bg-[#768957]/10 px-2.5 py-0.5 rounded-md border border-[#768957]/25">
+                  <span className="text-xs font-bold text-neutral-900 bg-neutral-100 px-2.5 py-0.5 rounded-md border border-neutral-900/25">
                     +{referralPoints} pts
                   </span>
                 </div>
@@ -570,7 +570,7 @@ export default function RewardsPage() {
             setExpiryDays("");
             setShowForm(!showForm);
           }}
-          className="rounded-xl bg-[#768957] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition cursor-pointer flex items-center gap-2"
+          className="btn-primary px-3.5 py-1.5 text-xs font-semibold cursor-pointer  flex items-center gap-1.5"
         >
           {showForm ? (
             <>
@@ -592,7 +592,7 @@ export default function RewardsPage() {
         onClose={() => setShowForm(false)}
         title={editId ? "Edit Reward Option" : "Create New Reward Option"}
         subtitle="Rewards Configuration"
-        maxWidth="max-w-6xl"
+        maxWidth="max-w-xl"
       >
         <form onSubmit={handleSaveReward} className="space-y-6">
 
@@ -716,7 +716,7 @@ export default function RewardsPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-[#768957] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#65774a] shadow-xs hover:shadow-sm transition cursor-pointer"
+                className="btn-primary transition cursor-pointer"
               >
                 {editId ? "Update Reward Option" : "Save & Publish Reward"}
               </button>
@@ -724,11 +724,11 @@ export default function RewardsPage() {
           </form>
         </Modal>
 
-      {/* Rewards Cards Grid with Simple Fade Animation */}
+      {/* Rewards Cards Grid with Card-in-Card Architecture */}
       {loading ? (
         <CardGridSkeleton count={3} variant="reward" />
       ) : rewards.length === 0 ? (
-        <div className="rounded-2xl border border-neutral-200/80 bg-white p-12 text-center space-y-3 shadow-xs">
+        <div className="rounded-2xl border border-neutral-200/80 bg-white p-12 text-center space-y-3">
           <Award className="w-10 h-10 text-neutral-300 mx-auto" />
           <h4 className="text-sm font-bold text-neutral-700">No Redemption Rewards Configured</h4>
           <p className="text-xs text-neutral-400 max-w-sm mx-auto">
@@ -736,87 +736,101 @@ export default function RewardsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-5 grid-cols-1 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-start">
           {rewards.map((r, idx) => (
             <motion.div
               key={r.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: idx * 0.04 }}
-              className={`rounded-2xl border p-6 bg-white shadow-xs flex flex-col justify-between transition-all hover:shadow-md ${
-                r.isActive === false ? "border-neutral-200 opacity-60 bg-neutral-50/50" : "border-neutral-200/80"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.22, delay: idx * 0.03 }}
+              className={`rounded-3xl bg-white p-2 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group select-none ${
+                r.isActive === false ? "opacity-75" : ""
               }`}
             >
-              <div className="space-y-4">
-                <div className="flex justify-between items-center gap-2">
-                  <span className="bg-[#768957] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-xs flex items-center gap-1">
-                    <Tag className="w-3 h-3 text-white" />
-                    {r.cardInfo}
-                  </span>
-                  <span className="text-xs text-neutral-600 font-bold bg-neutral-100 px-2.5 py-1 rounded-full border border-neutral-200/60">
-                    {r.pointsRequired} pts
-                  </span>
+              {/* Inner Card (Holds all visual & contextual content, soft tinted surface without strokes) */}
+              <div
+                onClick={() => handleEditClick(r)}
+                className="rounded-[1.125rem] overflow-hidden bg-[#f4f5f8] p-3.5 flex-1 flex flex-col justify-between cursor-pointer transition-colors hover:bg-[#edf0f4]"
+              >
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="bg-white text-neutral-800 text-[10px] font-semibold px-2.5 py-0.5 rounded-full shadow-2xs flex items-center gap-1">
+                      <Tag className="w-3 h-3 text-neutral-600" />
+                      {r.cardInfo}
+                    </span>
+                    <span className="text-[11px] text-neutral-700 font-semibold bg-white px-2 py-0.5 rounded-md shadow-2xs">
+                      {r.pointsRequired} pts
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-neutral-900 group-hover:text-neutral-950">{r.title}</h3>
+                    <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed line-clamp-2">{r.description}</p>
+                    
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {r.discountUpTo && (
+                        <span className="bg-white text-neutral-800 text-[10px] font-medium px-2 py-0.5 rounded-md shadow-2xs flex items-center gap-1">
+                          <Percent className="w-3 h-3 text-neutral-500" /> Up to €{r.discountUpTo} max
+                        </span>
+                      )}
+                      {r.expiryDays && (
+                        <span className="bg-white text-neutral-700 text-[10px] font-medium px-2 py-0.5 rounded-md shadow-2xs flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-neutral-500" /> Expires in {r.expiryDays}d
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-neutral-900">{r.title}</h3>
-                  <p className="text-xs text-neutral-500 mt-1 leading-relaxed">{r.description}</p>
-                  
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {r.discountUpTo && (
-                      <span className="bg-[#768957]/10 text-[#586940] text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-[#768957]/25 flex items-center gap-1">
-                        <Percent className="w-3 h-3" /> Up to €{r.discountUpTo} max
-                      </span>
-                    )}
-                    {r.expiryDays && (
-                      <span className="bg-neutral-100 text-neutral-700 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-neutral-200 flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-neutral-500" /> Expires in {r.expiryDays}d
-                      </span>
-                    )}
+                <div className="pt-2.5 mt-2.5 border-t border-neutral-200/50">
+                  <div className="text-[11px] text-neutral-400 flex items-center justify-between">
+                    <span>Applies to:</span>
+                    <strong className="text-neutral-800 font-medium truncate max-w-[140px]">
+                      {treatments.find((t) => t.id === r.treatmentId)?.title || "Selected Treatment"}
+                    </strong>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 mt-4 border-t border-neutral-100 space-y-3">
-                <div className="text-[11px] text-neutral-400 flex items-center justify-between">
-                  <span>Applies to:</span>
-                  <strong className="text-neutral-800 font-semibold truncate max-w-[140px]">
-                    {treatments.find((t) => t.id === r.treatmentId)?.title || "Selected Treatment"}
-                  </strong>
-                </div>
+              {/* Outside Inner Card at Bottom (Holds active toggle, edit, delete) */}
+              <div
+                className="px-2 pt-2.5 pb-1 flex items-center justify-between gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Status Toggle */}
+                <label className="relative inline-flex items-center cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={r.isActive !== false}
+                    onChange={() => handleToggleActive(r)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-8 h-4.5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-neutral-200 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  <span className="ml-1.5 text-xs font-medium text-neutral-600">
+                    {r.isActive !== false ? "Active" : "Inactive"}
+                  </span>
+                </label>
 
-                <div className="flex items-center justify-between pt-1">
-                  {/* Status Toggle */}
-                  <label className="relative inline-flex items-center cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={r.isActive !== false}
-                      onChange={() => handleToggleActive(r)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#768957]"></div>
-                    <span className="ml-2 text-xs font-semibold text-neutral-600">
-                      {r.isActive !== false ? "Active" : "Inactive"}
-                    </span>
-                  </label>
-
-                  {/* Edit & Delete Buttons */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleEditClick(r)}
-                      className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition cursor-pointer flex items-center gap-1.5 shadow-xs"
-                    >
-                      <Pencil className="w-3 h-3 text-neutral-500" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(r)}
-                      className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
-                  </div>
+                {/* Unified Edit & Delete Buttons */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleEditClick(r)}
+                    className="btn-card-edit"
+                    title="Edit Reward"
+                  >
+                    <Pencil className="w-3 h-3 text-neutral-500" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(r)}
+                    className="btn-card-delete"
+                    title="Delete Reward"
+                  >
+                    <Trash2 className="w-3 h-3 text-rose-500" />
+                    <span>Delete</span>
+                  </button>
                 </div>
               </div>
             </motion.div>

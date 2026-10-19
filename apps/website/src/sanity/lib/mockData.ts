@@ -31,7 +31,7 @@ export const MOCK_POSTS: BlogPost[] = [
   {
     _id: "post-aurwell-repeatmd",
     title: "Aurwell vs RepeatMD: What’s the Difference?",
-    slug: { current: "aurwell-vs-repeatmd-whats-the-difference" },
+    slug: { current: "aurwell-vs-repeatmd" },
     excerpt:
       "Discover how Aurwell’s bespoke clinical branding and integrated patient journeys contrast with RepeatMD’s transactional e-commerce model for medical spas.",
     publishedAt: "2026-03-30T10:00:00Z",
@@ -134,7 +134,7 @@ export const MOCK_POSTS: BlogPost[] = [
   {
     _id: "post-aurwell-zenoti",
     title: "Aurwell vs Zenoti: Which Approach Fits Growing Beauty Clinics?",
-    slug: { current: "aurwell-vs-zenoti-which-approach-fits-growing-beauty-clinics" },
+    slug: { current: "aurwell-vs-zenoti" },
     excerpt:
       "A realistic breakdown comparing Zenoti’s enterprise-scale ERP software with Aurwell’s agile, patient-centric loyalty and mobile app layer.",
     publishedAt: "2026-03-27T14:30:00Z",
@@ -274,7 +274,7 @@ export const MOCK_POSTS: BlogPost[] = [
   {
     _id: "post-loyalty-vs-clinic-mgmt",
     title: "Patient Loyalty Software vs Clinic Management Software: What’s the Difference?",
-    slug: { current: "patient-loyalty-software-vs-clinic-management-software-whats-the-difference" },
+    slug: { current: "patient-loyalty-software-vs-clinic-management-software" },
     excerpt:
       "Why high-performing aesthetic clinics separate backend clinical operations from front-end patient retention architectures.",
     publishedAt: "2026-03-20T11:00:00Z",

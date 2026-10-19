@@ -107,7 +107,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     year: "numeric",
   });
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aurwell.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.aurwell.app";
   const postSlug = post.slug?.current || slug;
 
   const articleSchema = {

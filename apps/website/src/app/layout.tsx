@@ -15,7 +15,7 @@ const shadowsIntoLight = Shadows_Into_Light({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aurwell.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.aurwell.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -150,4 +150,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase/client";
+import { Mail, ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -20,71 +23,114 @@ export default function ForgotPasswordPage() {
     try {
       await sendPasswordResetEmail(auth, email);
       setStatus("success");
-      setMessage("Password reset email sent! Please check your inbox.");
+      setMessage("A password reset link has been dispatched to your email address.");
     } catch (err: any) {
+      console.error(err);
       setStatus("error");
-      setMessage(err?.message || "An error occurred. Please try again.");
+      setMessage(err.message || "Failed to send reset link. Please verify your email.");
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f3f4f6] px-4 text-black">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-neutral-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-[#768957] text-white flex items-center justify-center font-bold text-lg mx-auto shadow-md">
-            A
+    <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 flex flex-col justify-between p-4 sm:p-6 selection:bg-neutral-900 selection:text-white">
+      {/* Top Header */}
+      <div className="flex items-center justify-between max-w-5xl w-full mx-auto py-2">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Sign In</span>
+        </Link>
+        <span className="text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-neutral-200/70 text-neutral-700">
+          Admin Portal
+        </span>
+      </div>
+
+      {/* Main Centered Reset Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+        style={{ willChange: "transform, opacity" }}
+        className="w-full max-w-sm mx-auto bg-white rounded-3xl p-7 sm:p-8 space-y-6 select-none"
+      >
+        {/* Brand Header */}
+        <div className="text-center space-y-2.5">
+          <div className="flex items-center justify-center">
+            <Image
+              src="/logo-black.png"
+              alt="Aurwell Logo"
+              width={56}
+              height={56}
+              className="h-12 w-auto object-contain mx-auto select-none transition-transform duration-200 hover:scale-105"
+              priority
+            />
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-neutral-900">Reset Password</h2>
-          <p className="text-xs text-neutral-500 font-medium">
-            Enter your email to receive a password reset link
-          </p>
+          <h1 className="text-xl font-bold tracking-tight text-neutral-900 pt-1">Reset Password</h1>
+          <p className="text-xs text-neutral-500">Enter your email to receive recovery instructions</p>
         </div>
 
-        <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email" className="block text-xs font-semibold text-neutral-700 mb-1.5">
-              Email Address
-            </label>
+        {/* Reset Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-neutral-700">Account Email</label>
             <input
-              id="email"
-              name="email"
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="clinic@aurwell.app"
               className="input-modern"
-              placeholder="name@example.com"
-              disabled={status === "loading"}
             />
           </div>
 
           {message && (
             <div
-              className={`rounded-xl px-4 py-2 text-xs font-semibold ${status === "success"
-                  ? "bg-[#768957]/10 text-[#586940] border border-[#768957]/30"
-                  : "bg-red-50 text-red-800 border border-red-200"
-                }`}
+              className={`rounded-2xl px-4 py-3 text-xs font-semibold ${
+                status === "success"
+                  ? "bg-emerald-50 text-emerald-800 border border-emerald-200/60"
+                  : "bg-rose-50 text-rose-800 border border-rose-200/60"
+              }`}
             >
               {message}
             </div>
           )}
 
-          <div>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={status === "loading"}
-              className="flex w-full justify-center rounded-xl bg-[#768957] px-5 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#65774a] transition disabled:opacity-50 cursor-pointer"
+              className="btn-primary w-full py-3 text-xs font-semibold disabled:opacity-50"
             >
-              {status === "loading" ? "Sending..." : "Send Reset Link"}
+              {status === "loading" ? (
+                <>
+                  <span className="inline-block h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Mail className="w-4 h-4 text-white" />
+                  <span>Send Reset Link</span>
+                </>
+              )}
             </button>
           </div>
         </form>
 
-        <div className="text-center text-xs">
-          <Link href="/login" className="font-bold text-[#768957] hover:underline">
+        <div className="text-center text-xs pt-1">
+          <Link href="/login" className="inline-flex items-center gap-1 font-semibold text-neutral-900 hover:underline">
+            <ArrowLeft className="w-3.5 h-3.5" />
             Back to Login
           </Link>
         </div>
+      </motion.div>
+
+      {/* Footer */}
+      <div className="text-center py-4">
+        <p className="text-xs text-neutral-400">
+          © {new Date().getFullYear()} Aurwell Healthcare Systems Inc.
+        </p>
       </div>
     </div>
   );

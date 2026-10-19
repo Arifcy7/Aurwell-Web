@@ -274,7 +274,7 @@ export default function PrivacyPolicyPage() {
 
                   <div className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200/70">
                     <span className="font-bold text-neutral-900 text-xs uppercase tracking-wide bg-neutral-200/60 px-2 py-0.5 rounded-md mr-2">Website</span>
-                    <span className="text-xs text-neutral-700">refers to Aurwell, accessible from <a href="https://aurwell.app" target="_blank" rel="noopener noreferrer" className="text-neutral-900 font-bold underline underline-offset-2">https://aurwell.app</a></span>
+                    <span className="text-xs text-neutral-700">refers to Aurwell, accessible from <a href="https://www.aurwell.app" target="_blank" rel="noopener noreferrer" className="text-neutral-900 font-bold underline underline-offset-2">https://www.aurwell.app</a></span>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200/70">

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://aurwell.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.aurwell.app";
 
   return {
     rules: [
@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
           "/_next/*",
           "/booking",
           "/book/*",
+          "/schedule",
         ],
       },
       {
@@ -27,6 +28,7 @@ export default function robots(): MetadataRoute.Robots {
           "/_next/*",
           "/booking",
           "/book/*",
+          "/schedule",
         ],
       },
     ],
