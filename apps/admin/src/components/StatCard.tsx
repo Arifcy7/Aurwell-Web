@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import { HelpCircle, TrendingUp, TrendingDown, Maximize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { bentoItemVariants } from "@/components/ui/motion-container";
 import MetricDetailModal, { createSmoothPath } from "@/components/MetricDetailModal";
 
 export interface StatCardProps {
@@ -82,11 +81,8 @@ export default function StatCard({
 
   return (
     <>
-      <motion.div
-        variants={bentoItemVariants}
-        whileHover={{ y: -2.5, transition: { duration: 0.2, ease: "easeOut" } }}
-        style={{ willChange: "transform, opacity" }}
-        className="group relative overflow-visible rounded-3xl bg-white p-5 sm:p-6 transition-all select-none shadow-xs hover:shadow-md"
+      <div
+        className="group relative overflow-visible rounded-3xl bg-white p-5 sm:p-6 transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-md select-none shadow-xs"
       >
         {/* Header section with title and icon container */}
         <div className="flex items-center justify-between gap-3">
@@ -252,7 +248,7 @@ export default function StatCard({
             <span className="text-[11px] font-medium text-neutral-400">{period}</span>
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* Metric Detail Overlay Modal */}
       <MetricDetailModal

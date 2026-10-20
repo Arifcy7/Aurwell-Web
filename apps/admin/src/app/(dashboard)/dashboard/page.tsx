@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, where, getDocs, limit, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, limit, orderBy, doc, getDoc } from "firebase/firestore";
 import { ref, onValue, off } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db, rtdb } from "@/lib/firebase/client";
@@ -182,8 +182,13 @@ export default function DashboardPage() {
           setStripeConnected(hasStripe);
         }
 
-        // 3. Fetch Transactions for Financial Stats
-        const txQuery = query(collection(db, "clinics", clinicId, "transactions"));
+        // 3. Fetch Transactions for Financial Stats — only last 6 months to cap read cost
+        const sixMonthsAgoMs = Date.now() - 6 * 30 * 24 * 60 * 60 * 1000;
+        const txQuery = query(
+          collection(db, "clinics", clinicId, "transactions"),
+          where("date", ">=", sixMonthsAgoMs),
+          limit(500)
+        );
         const txSnapshot = await getDocs(txQuery);
 
         let totalEarnings = 0;

@@ -37,7 +37,7 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "clsx", "tailwind-merge"],
+    optimizePackageImports: ["lucide-react", "clsx", "tailwind-merge", "framer-motion"],
   },
   async headers() {
     return [

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { collection, getDocs, limit, query } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { getCurrencySymbol } from "@/lib/utils/currency";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,15 @@ import {
 } from "lucide-react";
 
 type GraphViewType = "revenue" | "treatments" | "patients" | "memberships" | "progress";
+
+// Stable constant — defined outside component to avoid re-creation on every render
+const GRAPH_OPTIONS: { label: string; value: GraphViewType; icon: React.ReactNode }[] = [
+  { label: "Weekly Sales", value: "revenue", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+  { label: "Top Treatments", value: "treatments", icon: <BarChart3 className="w-3.5 h-3.5" /> },
+  { label: "Patient Growth", value: "patients", icon: <Users className="w-3.5 h-3.5" /> },
+  { label: "Subscriber Health", value: "memberships", icon: <PieChart className="w-3.5 h-3.5" /> },
+  { label: "Session Progress", value: "progress", icon: <Layers className="w-3.5 h-3.5" /> },
+];
 
 interface TransactionItem {
   id?: string;
@@ -90,7 +99,7 @@ export default function ClinicAnalyticsDashboard({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleChartMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleChartMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const rawX = e.clientX - rect.left;
     const rawY = e.clientY - rect.top;
@@ -100,7 +109,7 @@ export default function ClinicAnalyticsDashboard({
       x: clampedX,
       y: Math.max(10, rawY),
     });
-  };
+  }, []);
 
   useEffect(() => {
     if (!clinicId) return;
@@ -109,22 +118,22 @@ export default function ClinicAnalyticsDashboard({
       try {
         setLoading(true);
 
-        // 1. Fetch Transactions
-        const txSnap = await getDocs(collection(db, "clinics", clinicId, "transactions"));
+        // 1. Fetch Transactions (cap at 300 — sufficient for analytics)
+        const txSnap = await getDocs(query(collection(db, "clinics", clinicId, "transactions"), limit(300)));
         const transactions: TransactionDoc[] = [];
         txSnap.forEach((docSnap) => {
           transactions.push({ id: docSnap.id, ...(docSnap.data() as any) });
         });
 
-        // 2. Fetch Patients
-        const patSnap = await getDocs(collection(db, "clinics", clinicId, "patients"));
+        // 2. Fetch Patients (cap at 500)
+        const patSnap = await getDocs(query(collection(db, "clinics", clinicId, "patients"), limit(500)));
         const patients: PatientDoc[] = [];
         patSnap.forEach((docSnap) => {
           patients.push({ id: docSnap.id, ...(docSnap.data() as any) });
         });
 
-        // 3. Fetch Memberships
-        const memSnap = await getDocs(collection(db, "clinics", clinicId, "memberships"));
+        // 3. Fetch Memberships (cap at 200)
+        const memSnap = await getDocs(query(collection(db, "clinics", clinicId, "memberships"), limit(200)));
         const memberships: MembershipDoc[] = [];
         memSnap.forEach((docSnap) => {
           memberships.push({ id: docSnap.id, ...(docSnap.data() as any) });
@@ -293,50 +302,49 @@ export default function ClinicAnalyticsDashboard({
   }, [clinicId]);
 
   // Graph Options Config
-  const graphOptions: { label: string; value: GraphViewType; icon: React.ReactNode }[] = [
-    { label: "Weekly Sales", value: "revenue", icon: <TrendingUp className="w-3.5 h-3.5" /> },
-    { label: "Top Treatments", value: "treatments", icon: <BarChart3 className="w-3.5 h-3.5" /> },
-    { label: "Patient Growth", value: "patients", icon: <Users className="w-3.5 h-3.5" /> },
-    { label: "Subscriber Health", value: "memberships", icon: <PieChart className="w-3.5 h-3.5" /> },
-    { label: "Session Progress", value: "progress", icon: <Layers className="w-3.5 h-3.5" /> },
-  ];
+  const graphOptions = GRAPH_OPTIONS;
 
   // SVG Calculations for Revenue Line Chart (Smooth Catmull-Rom Spline)
-  const revMax = Math.max(...revenueData.map((d) => d.amount), 50);
-  const revMin = Math.min(...revenueData.map((d) => d.amount), 0);
-  const revRange = revMax - revMin || 1;
-  const revSvgW = 400;
-  const revSvgH = 160;
-  const padX = 28;
-  const padY = 24;
+  const { revMax, revMin, revRange, revSvgW, revSvgH, padX, padY, revPoints, revLinePath, revAreaPath, patMax, patMin, patRange, patPoints, patLinePath, patAreaPath, maxBarCount } = useMemo(() => {
+    const revMax = Math.max(...revenueData.map((d) => d.amount), 50);
+    const revMin = Math.min(...revenueData.map((d) => d.amount), 0);
+    const revRange = revMax - revMin || 1;
+    const revSvgW = 400;
+    const revSvgH = 160;
+    const padX = 28;
+    const padY = 24;
 
-  const revPoints = revenueData.map((d, i) => {
-    const x = padX + (i / Math.max(revenueData.length - 1, 1)) * (revSvgW - padX * 2);
-    const y = revSvgH - padY - ((d.amount - revMin) / revRange) * (revSvgH - padY * 2);
-    return { x, y, data: d };
-  });
+    const revPoints = revenueData.map((d, i) => {
+      const x = padX + (i / Math.max(revenueData.length - 1, 1)) * (revSvgW - padX * 2);
+      const y = revSvgH - padY - ((d.amount - revMin) / revRange) * (revSvgH - padY * 2);
+      return { x, y, data: d };
+    });
 
-  const revLinePath = createSmoothPath(revPoints);
-  const revAreaPath = revPoints.length > 0
-    ? `${revLinePath} L ${revPoints[revPoints.length - 1].x} ${revSvgH - padY} L ${revPoints[0].x} ${revSvgH - padY} Z`
-    : "";
+    const revLinePath = createSmoothPath(revPoints);
+    const revAreaPath = revPoints.length > 0
+      ? `${revLinePath} L ${revPoints[revPoints.length - 1].x} ${revSvgH - padY} L ${revPoints[0].x} ${revSvgH - padY} Z`
+      : "";
 
-  // SVG for Patient Growth (Smooth Catmull-Rom Spline)
-  const patMax = Math.max(...patientGrowth.map((d) => d.count), 10);
-  const patMin = Math.min(...patientGrowth.map((d) => d.count), 0);
-  const patRange = patMax - patMin || 1;
-  const patPoints = patientGrowth.map((d, i) => {
-    const x = padX + (i / Math.max(patientGrowth.length - 1, 1)) * (revSvgW - padX * 2);
-    const y = revSvgH - padY - ((d.count - patMin) / patRange) * (revSvgH - padY * 2);
-    return { x, y, data: d };
-  });
+    // SVG for Patient Growth (Smooth Catmull-Rom Spline)
+    const patMax = Math.max(...patientGrowth.map((d) => d.count), 10);
+    const patMin = Math.min(...patientGrowth.map((d) => d.count), 0);
+    const patRange = patMax - patMin || 1;
+    const patPoints = patientGrowth.map((d, i) => {
+      const x = padX + (i / Math.max(patientGrowth.length - 1, 1)) * (revSvgW - padX * 2);
+      const y = revSvgH - padY - ((d.count - patMin) / patRange) * (revSvgH - padY * 2);
+      return { x, y, data: d };
+    });
 
-  const patLinePath = createSmoothPath(patPoints);
-  const patAreaPath = patPoints.length > 0
-    ? `${patLinePath} L ${patPoints[patPoints.length - 1].x} ${revSvgH - padY} L ${patPoints[0].x} ${revSvgH - padY} Z`
-    : "";
+    const patLinePath = createSmoothPath(patPoints);
+    const patAreaPath = patPoints.length > 0
+      ? `${patLinePath} L ${patPoints[patPoints.length - 1].x} ${revSvgH - padY} L ${patPoints[0].x} ${revSvgH - padY} Z`
+      : "";
 
-  const maxBarCount = Math.max(...topTreatments.map((t) => t.count), 1);
+    const maxBarCount = Math.max(...topTreatments.map((t) => t.count), 1);
+
+    return { revMax, revMin, revRange, revSvgW, revSvgH, padX, padY, revPoints, revLinePath, revAreaPath, patMax, patMin, patRange, patPoints, patLinePath, patAreaPath, maxBarCount };
+  }, [revenueData, patientGrowth, topTreatments]);
+
   const currentOption = graphOptions.find((o) => o.value === graphType);
 
   return (

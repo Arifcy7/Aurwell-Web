@@ -6,6 +6,7 @@ import {
   query,
   where,
   onSnapshot,
+  getDocs,
   doc,
   updateDoc,
   serverTimestamp,
@@ -324,8 +325,6 @@ export default function AppointmentsPage() {
     );
 
     return () => {
-      doctorsUnsub();
-      treatmentsUnsub();
       aptUnsub();
       if (fallbackUnsub) {
         (fallbackUnsub as any)();
