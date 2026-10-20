@@ -150,6 +150,7 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
   const [showSplash, setShowSplash] = useState(true);
   const [loadProgress, setLoadProgress] = useState(30);
   const [isMobile, setIsMobile] = useState(false);
+  const [windowWidth, setWindowWidth] = useState<number>(1280);
   const [sliderOffset, setSliderOffset] = useState({ x: 0, y: 0 });
 
   const colorOptions = [
@@ -272,7 +273,10 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
     let isMounted = true;
 
     const checkMobile = () => {
-      if (isMounted) setIsMobile(window.innerWidth < 1024);
+      if (isMounted) {
+        setIsMobile(window.innerWidth < 1024);
+        setWindowWidth(window.innerWidth);
+      }
     };
 
     checkMobile();
@@ -504,15 +508,6 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
 
               {/* Center Group: Hero Heading, Subheading & CTAs */}
               <div className="my-auto py-6 sm:py-10 space-y-4 sm:space-y-5 max-w-md">
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f6f1] border border-[#dce8dd] text-[#2c5a34] text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em]">
-                    Aesthetic Clinic Patient Apps & Retention
-                  </span>
-                </motion.div>
                 <motion.h1
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -599,16 +594,22 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
                 <div className="relative z-10 flex flex-col items-center justify-center w-full h-full max-w-4xl mx-auto pt-1 sm:pt-0">
 
                   {/* Phone Centered Anchor Container */}
-                  <div className="relative flex flex-col lg:flex-row items-center justify-center w-full lg:w-auto">
+                  <motion.div
+                    animate={{
+                      x: activeTab === "Configure" && !isMobile ? (windowWidth < 1400 ? -50 : 0) : 0,
+                    }}
+                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                    className="relative flex flex-col lg:flex-row items-center justify-center w-full lg:w-auto"
+                  >
 
                     {/* Left: Feature Slider Assembly (Anchored to Left of Phone on Desktop, Top on Mobile) */}
-                    <div className="relative lg:absolute lg:right-full lg:mr-8 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-center flex-shrink-0 z-20 mb-5 sm:mb-6 lg:mb-0 w-full sm:max-w-[420px] lg:w-[115px] lg:max-w-none">
+                    <div className="relative lg:absolute lg:right-full lg:mr-5 xl:mr-8 lg:top-1/2 lg:-translate-y-1/2 flex flex-col items-center flex-shrink-0 z-20 mb-5 sm:mb-6 lg:mb-0 w-full sm:max-w-[420px] lg:w-[108px] xl:w-[115px] lg:max-w-none">
                       {/* "Try demo!" handwritten text with curved arch arrow */}
                       <motion.div
                         initial={{ opacity: 0, scale: 0.7, y: -10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ duration: 0.7, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
-                        className="absolute -top-11 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
+                        className="absolute -top-14 sm:-top-16 left-2 sm:-left-10 z-30 flex flex-col items-start select-none pointer-events-none"
                       >
                         <span
                           className="text-neutral-900 text-lg sm:text-xl font-bold transform -rotate-12 translate-x-1"
@@ -650,7 +651,7 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
                         style={{
                           clipPath: "url(#squircle-track-clip)",
                         }}
-                        className="relative z-20 flex flex-row lg:flex-col items-center p-1.5 sm:p-2 lg:p-2 rounded-[28px] sm:rounded-[32px] w-full sm:max-w-[420px] lg:w-[115px] lg:max-w-none h-[82px] sm:h-[88px] lg:h-auto gap-1 sm:gap-1.5 lg:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 overflow-hidden"
+                        className="relative z-20 flex flex-row lg:flex-col items-center p-1.5 sm:p-2 lg:p-2 rounded-[28px] sm:rounded-[32px] w-full sm:max-w-[420px] lg:w-[108px] xl:w-[115px] lg:max-w-none h-[82px] sm:h-[88px] lg:h-auto gap-1 sm:gap-1.5 lg:gap-1.5 cursor-pointer select-none bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 overflow-hidden"
                       >
                         {/* Animated Active Tab Indicator (4 Segments) */}
                         <motion.div
@@ -777,7 +778,7 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
 
                     {/* Center: Mobile Phone Mockup Frame (Ultra-Thin iPhone Bezel & Titanium Edge) */}
                     <div
-                      className="relative z-10 h-[570px] xs:h-[610px] sm:h-[620px] lg:h-[610px] flex flex-col items-center justify-center select-none flex-shrink-0"
+                      className="relative z-10 h-[570px] xs:h-[610px] sm:h-[620px] lg:h-[550px] xl:h-[610px] flex flex-col items-center justify-center select-none flex-shrink-0"
                       style={{ aspectRatio: "1170 / 2532" }}
                     >
                       {/* Hardware Buttons (Outside the clipped bezel) */}
@@ -802,173 +803,6 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
                           />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Desktop App Configurator Card (lg only - exact original desktop layout & animation) */}
-                    <AnimatePresence>
-                      {activeTab === "Configure" && (
-                        <motion.div
-                          key="configure-card-desktop"
-                          initial={{ opacity: 0, scale: 0.92, x: -20 }}
-                          animate={{
-                            opacity: 1,
-                            scale: 1,
-                            x: 0,
-                          }}
-                          exit={{ opacity: 0, scale: 0.92, x: -20 }}
-                          transition={{
-                            duration: 0.35,
-                            ease: [0.16, 1, 0.3, 1],
-                          }}
-                          className="hidden lg:flex absolute left-full ml-8 top-1/2 -translate-y-1/2 z-30 flex-col p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] w-[290px] sm:w-[220px] lg:w-[235px] bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 select-none flex-shrink-0 space-y-3.5 mt-0"
-                        >
-                          {/* Card Header with Configure / Edit Icon on the Right */}
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-extrabold text-xs sm:text-sm text-neutral-900 tracking-tight leading-snug">
-                                Configure App
-                              </h4>
-                              <p className="text-[10px] sm:text-xs font-normal text-neutral-500 mt-0.5">
-                                Personalize preview
-                              </p>
-                            </div>
-                            <SlidersHorizontal className="w-5 h-5 text-neutral-800 flex-shrink-0 mt-0.5" />
-                          </div>
-
-                          {/* 1. Clinic Name Input */}
-                          <div className="space-y-1">
-                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
-                              Clinic Name
-                            </label>
-                            <div className="w-full rounded-full bg-neutral-100/90 border border-neutral-200 px-3 py-1.5 focus-within:border-neutral-900 transition-colors shadow-2xs">
-                              <input
-                                type="text"
-                                value={clinicName}
-                                onChange={(e) => setClinicName(e.target.value)}
-                                placeholder="Clinic Name"
-                                className="w-full bg-transparent font-semibold text-xs text-neutral-900 placeholder:text-neutral-400 outline-none"
-                              />
-                            </div>
-                          </div>
-
-                          {/* 2. Color Dropdown with Larger Solid Pill Swatch */}
-                          <div className="space-y-1 relative z-30">
-                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
-                              Brand Color
-                            </label>
-                            <div
-                              onClick={() => {
-                                setIsColorMenuOpen(!isColorMenuOpen);
-                                setIsCurrencyMenuOpen(false);
-                              }}
-                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-3 py-1.5 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
-                            >
-                              <span className="text-xs font-semibold text-neutral-800 truncate pr-1">
-                                {selectedColor.name}
-                              </span>
-                              <div
-                                className="w-10 h-4.5 rounded-full flex-shrink-0 shadow-2xs"
-                                style={{ backgroundColor: selectedColor.hex }}
-                              />
-                            </div>
-
-                            {/* Dropdown Menu */}
-                            <AnimatePresence>
-                              {isColorMenuOpen && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
-                                  transition={{ duration: 0.15 }}
-                                  className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1.5 z-[100] space-y-0.5"
-                                >
-                                  {colorOptions.map((color) => (
-                                    <div
-                                      key={color.id}
-                                      onClick={() => {
-                                        setSelectedColor(color);
-                                        setIsColorMenuOpen(false);
-                                      }}
-                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${selectedColor.id === color.id
-                                          ? "bg-neutral-100 font-bold text-neutral-900"
-                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
-                                        }`}
-                                    >
-                                      <span className="text-xs">{color.name}</span>
-                                      <div
-                                        className="w-7 h-3.5 rounded-full flex-shrink-0"
-                                        style={{ backgroundColor: color.hex }}
-                                      />
-                                    </div>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* 3. Currency Dropdown with Pill Shape */}
-                          <div className="space-y-1 relative z-20">
-                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
-                              Currency
-                            </label>
-                            <div
-                              onClick={() => {
-                                setIsCurrencyMenuOpen(!isCurrencyMenuOpen);
-                                setIsColorMenuOpen(false);
-                              }}
-                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-3.5 py-1.5 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
-                            >
-                              <span className="text-xs font-semibold text-neutral-800">
-                                {selectedCurrency.code} ({selectedCurrency.symbol})
-                              </span>
-                              <span className="text-[10px] font-bold text-neutral-400">▼</span>
-                            </div>
-
-                            {/* Dropdown Menu */}
-                            <AnimatePresence>
-                              {isCurrencyMenuOpen && (
-                                <motion.div
-                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
-                                  transition={{ duration: 0.15 }}
-                                  className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1.5 z-[100] space-y-0.5"
-                                >
-                                  {currencyOptions.map((curr) => (
-                                    <div
-                                      key={curr.code}
-                                      onClick={() => {
-                                        setSelectedCurrency(curr);
-                                        setIsCurrencyMenuOpen(false);
-                                      }}
-                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${selectedCurrency.code === curr.code
-                                          ? "bg-neutral-100 font-bold text-neutral-900"
-                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
-                                        }`}
-                                    >
-                                      <span className="text-xs">{curr.code}</span>
-                                      <span className="text-xs font-bold text-neutral-600">
-                                        {curr.symbol}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* 4. Action Button */}
-                          <div className="pt-1">
-                            <button
-                              onClick={() => openBookingModal("app_configurator_build_app")}
-                              className="w-full py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center text-center cursor-pointer"
-                            >
-                              Build my app
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
 
                     {/* Mobile App Configurator Overlay Card (< lg only) */}
                     <AnimatePresence>
@@ -986,7 +820,7 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
                             duration: 0.35,
                             ease: [0.16, 1, 0.3, 1],
                           }}
-                          className="flex lg:hidden absolute left-1/2 -translate-x-1/2 top-14 xs:top-16 sm:top-20 z-50 flex-col p-3 rounded-[22px] w-[calc(100%-32px)] max-w-[245px] bg-white/95 backdrop-blur-xl border border-neutral-200/90 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] text-neutral-900 select-none flex-shrink-0 space-y-2"
+                          className="flex lg:hidden absolute left-1/2 -translate-x-1/2 top-10 xs:top-12 sm:top-14 z-50 flex-col p-3 rounded-[22px] w-[calc(100%-24px)] max-w-[245px] bg-white/95 backdrop-blur-xl border border-neutral-200/90 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] text-neutral-900 select-none flex-shrink-0 space-y-2"
                         >
                           {/* Card Header with Configure / Edit Icon on the Right */}
                           <div className="flex items-center justify-between">
@@ -1136,8 +970,177 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
                         </motion.div>
                       )}
                     </AnimatePresence>
+                    </div>
 
-                  </div>
+                    {/* Desktop App Configurator Card (lg only - exact original desktop layout & animation) */}
+                    <AnimatePresence>
+                      {activeTab === "Configure" && (
+                        <motion.div
+                          key="configure-card-desktop"
+                          initial={{ opacity: 0, scale: 0.92, x: -20 }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            x: 0,
+                          }}
+                          exit={{ opacity: 0, scale: 0.92, x: -20 }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.16, 1, 0.3, 1],
+                          }}
+                          className="hidden lg:flex absolute left-full ml-5 xl:ml-8 top-1/2 -translate-y-1/2 z-30 flex-col p-3.5 xl:p-5 rounded-[28px] sm:rounded-[32px] w-[215px] xl:w-[235px] bg-white/95 backdrop-blur-md border border-neutral-200/80 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.1)] text-neutral-900 select-none flex-shrink-0 space-y-3 xl:space-y-3.5 mt-0"
+                        >
+                          {/* Card Header with Configure / Edit Icon on the Right */}
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-extrabold text-xs sm:text-sm text-neutral-900 tracking-tight leading-snug">
+                                Configure App
+                              </h4>
+                              <p className="text-[10px] sm:text-xs font-normal text-neutral-500 mt-0.5">
+                                Personalize preview
+                              </p>
+                            </div>
+                            <SlidersHorizontal className="w-5 h-5 text-neutral-800 flex-shrink-0 mt-0.5" />
+                          </div>
+
+                          {/* 1. Clinic Name Input */}
+                          <div className="space-y-1">
+                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
+                              Clinic Name
+                            </label>
+                            <div className="w-full rounded-full bg-neutral-100/90 border border-neutral-200 px-3 py-1.5 focus-within:border-neutral-900 transition-colors shadow-2xs">
+                              <input
+                                type="text"
+                                value={clinicName}
+                                onChange={(e) => setClinicName(e.target.value)}
+                                placeholder="Clinic Name"
+                                className="w-full bg-transparent font-semibold text-xs text-neutral-900 placeholder:text-neutral-400 outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* 2. Color Dropdown with Larger Solid Pill Swatch */}
+                          <div className="space-y-1 relative z-30">
+                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
+                              Brand Color
+                            </label>
+                            <div
+                              onClick={() => {
+                                setIsColorMenuOpen(!isColorMenuOpen);
+                                setIsCurrencyMenuOpen(false);
+                              }}
+                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-3 py-1.5 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
+                            >
+                              <span className="text-xs font-semibold text-neutral-800 truncate pr-1">
+                                {selectedColor.name}
+                              </span>
+                              <div
+                                className="w-10 h-4.5 rounded-full flex-shrink-0 shadow-2xs"
+                                style={{ backgroundColor: selectedColor.hex }}
+                              />
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                              {isColorMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1.5 z-[100] space-y-0.5"
+                                >
+                                  {colorOptions.map((color) => (
+                                    <div
+                                      key={color.id}
+                                      onClick={() => {
+                                        setSelectedColor(color);
+                                        setIsColorMenuOpen(false);
+                                      }}
+                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${selectedColor.id === color.id
+                                          ? "bg-neutral-100 font-bold text-neutral-900"
+                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
+                                        }`}
+                                    >
+                                      <span className="text-xs">{color.name}</span>
+                                      <div
+                                        className="w-7 h-3.5 rounded-full flex-shrink-0"
+                                        style={{ backgroundColor: color.hex }}
+                                      />
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 3. Currency Dropdown with Pill Shape */}
+                          <div className="space-y-1 relative z-20">
+                            <label className="text-[11px] sm:text-xs font-bold text-neutral-800 tracking-tight block">
+                              Currency
+                            </label>
+                            <div
+                              onClick={() => {
+                                setIsCurrencyMenuOpen(!isCurrencyMenuOpen);
+                                setIsColorMenuOpen(false);
+                              }}
+                              className="w-full rounded-full bg-neutral-100 border border-neutral-200 px-3.5 py-1.5 flex items-center justify-between cursor-pointer hover:bg-neutral-200/70 transition-colors shadow-2xs"
+                            >
+                              <span className="text-xs font-semibold text-neutral-800">
+                                {selectedCurrency.code} ({selectedCurrency.symbol})
+                              </span>
+                              <span className="text-[10px] font-bold text-neutral-400">▼</span>
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            <AnimatePresence>
+                              {isCurrencyMenuOpen && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-neutral-200 shadow-2xl rounded-2xl p-1.5 z-[100] space-y-0.5"
+                                >
+                                  {currencyOptions.map((curr) => (
+                                    <div
+                                      key={curr.code}
+                                      onClick={() => {
+                                        setSelectedCurrency(curr);
+                                        setIsCurrencyMenuOpen(false);
+                                      }}
+                                      className={`flex items-center justify-between px-3 py-1.5 rounded-full cursor-pointer transition-colors ${selectedCurrency.code === curr.code
+                                          ? "bg-neutral-100 font-bold text-neutral-900"
+                                          : "hover:bg-neutral-50 font-medium text-neutral-800"
+                                        }`}
+                                    >
+                                      <span className="text-xs">{curr.code}</span>
+                                      <span className="text-xs font-bold text-neutral-600">
+                                        {curr.symbol}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+
+                          {/* 4. Action Button */}
+                          <div className="pt-1">
+                            <button
+                              onClick={() => openBookingModal("app_configurator_build_app")}
+                              className="w-full py-2.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold transition-all shadow-xs flex items-center justify-center text-center cursor-pointer"
+                            >
+                              Build my app
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+
+
+                  </motion.div>
                 </div>
 
                 {/* Minimal Text Note Positioned at Absolute Bottom of Hero Container */}
@@ -1866,7 +1869,7 @@ export default function HomeClient({ initialPosts = [] }: { initialPosts?: BlogP
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-          className="relative max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 -mt-4 sm:-mt-6 lg:-mt-10 pb-2 sm:pb-4 overflow-hidden flex items-center justify-center select-none pointer-events-none"
+          className="relative max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 mt-6 sm:mt-10 lg:mt-14 pb-2 sm:pb-4 overflow-hidden flex items-center justify-center select-none pointer-events-none"
         >
           <Image
             src="/typo-full.png"

@@ -624,7 +624,7 @@ export default function MembershipsPage() {
                 <select
                   value={editingStatus}
                   onChange={(e: any) => setEditingStatus(e.target.value)}
-                  className="rounded-full bg-neutral-100 px-4 py-2 text-xs font-bold text-neutral-800 focus:outline-none cursor-pointer"
+                  className="select-pill"
                 >
                   <option value="Active">Active</option>
                   <option value="Paused">Paused</option>
@@ -689,7 +689,7 @@ export default function MembershipsPage() {
                     <select
                       value={activeRecord.overallStatus || "not started"}
                       onChange={(e: any) => handleUpdateActiveRecord({ overallStatus: e.target.value })}
-                      className="rounded-full bg-white px-3.5 py-1 text-xs font-bold text-neutral-800 focus:outline-none cursor-pointer"
+                      className="select-pill"
                     >
                       <option value="not started">Not Started</option>
                       <option value="ongoing">Ongoing</option>
@@ -743,7 +743,7 @@ export default function MembershipsPage() {
                             <select
                               value={newTreatmentTitle}
                               onChange={(e) => setNewTreatmentTitle(e.target.value)}
-                              className="w-full rounded-xl bg-white px-3 py-2 text-xs font-medium text-neutral-800 focus:outline-none"
+                              className="select-modern text-xs"
                             >
                               <option value="">-- Choose from Clinic Treatments --</option>
                               {availableTreatments.map((tr) => (
@@ -792,7 +792,7 @@ export default function MembershipsPage() {
                           <select
                             value={newTreatmentStatus}
                             onChange={(e: any) => setNewTreatmentStatus(e.target.value)}
-                            className="w-full rounded-xl bg-white px-2 py-2 text-xs font-semibold text-neutral-800 focus:outline-none"
+                            className="select-compact"
                           >
                             <option value="not started">Not Started</option>
                             <option value="ongoing">Ongoing</option>

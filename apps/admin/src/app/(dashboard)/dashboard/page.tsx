@@ -9,7 +9,25 @@ import StatCard from "@/components/StatCard";
 import ClinicAnalyticsDashboard from "@/components/ClinicAnalyticsDashboard";
 import { StatCardSkeleton, PageSpinner } from "@/components/Loader";
 import { formatCurrency } from "@/lib/utils/currency";
-import { Wallet, Users, DollarSign, Activity, CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import {
+  Wallet,
+  Users,
+  DollarSign,
+  Activity,
+  CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  AlertCircle,
+  QrCode,
+  Gift,
+  CreditCard,
+  Tag,
+  ShoppingBag,
+  Sparkles,
+  UserCheck,
+  Eye,
+  Smartphone,
+} from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchCanonicalPatients } from "@/lib/firebase/versionCache";
@@ -33,9 +51,9 @@ function formatRelativeTime(timestamp: number): string {
   const diffDays = Math.floor(diffHours / 24);
 
   if (diffSecs < 60) return "Just now";
-  if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? "s" : ""} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
 
   return new Date(timestamp).toLocaleDateString("en-US", {
     month: "short",
@@ -67,6 +85,31 @@ function getActivityBadgeLabel(type: string): string {
       return "Browse";
     default:
       return type ? type.replace("_", " ") : "Activity";
+  }
+}
+
+function getActivityIcon(type: string) {
+  switch (type) {
+    case "qr_checkin":
+      return <QrCode className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    case "reward_redeemed":
+      return <Gift className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    case "membership_subscribed":
+      return <CreditCard className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    case "treatment_purchased":
+      return <ShoppingBag className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    case "item_added_to_cart":
+      return <Tag className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    case "user_signed_in":
+      return <UserCheck className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    case "treatment_viewed":
+    case "membership_viewed":
+    case "rewards_viewed":
+      return <Eye className="w-4 h-4 text-neutral-700 stroke-[1.75]" />;
+    case "app_opened":
+      return <Smartphone className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
+    default:
+      return <Sparkles className="w-4 h-4 text-neutral-800 stroke-[1.75]" />;
   }
 }
 
@@ -238,7 +281,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      {/* Overview Stat Cards Dynamic with Clinic Currency */}
+      {/* Overview Stat Cards Dynamic with Clinic Currency and Interactive Mini Graphs */}
       <div className="grid gap-4 md:grid-cols-3">
         {loading ? (
           <>
@@ -256,6 +299,7 @@ export default function DashboardPage() {
               period="all-time transactions"
               icon={<Wallet className="w-5 h-5 stroke-[1.75]" />}
               showSparkline={true}
+              description="Aggregated lifetime transaction volume across completed treatments and subscriptions."
             />
             <StatCard
               title="Active Customers"
@@ -265,6 +309,7 @@ export default function DashboardPage() {
               period="clinic patients"
               icon={<Users className="w-5 h-5 stroke-[1.75]" />}
               showSparkline={true}
+              description="Active registered patients who have visited or booked sessions at the clinic."
             />
             <StatCard
               title="Net Revenue (MTD)"
@@ -274,104 +319,100 @@ export default function DashboardPage() {
               period="month-to-date sales"
               icon={<DollarSign className="w-5 h-5 stroke-[1.75]" />}
               showSparkline={true}
+              description="Month-to-date collected revenue across all clinic services and product sales."
             />
           </>
         )}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Product Activity Live Feed */}
-        <div className="rounded-2xl bg-white p-6 border border-neutral-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03),0_6px_16px_-6px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+        {/* Product Activity Live Feed - Strict 2-Card Architecture with Minimal Gaps */}
+        <div className="rounded-3xl bg-white p-2 flex flex-col justify-between select-none shadow-xs">
+          {/* Header section inside outer card */}
+          <div className="px-3.5 pt-3 pb-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#768957]/10 text-[#586940] flex items-center justify-center">
-                <Activity className="w-4 h-4" />
-              </div>
+              <Activity className="w-4 h-4 text-neutral-800 stroke-[2] shrink-0" />
               <div>
-                <h3 className="text-base font-bold text-neutral-900 tracking-tight">Product Activity</h3>
+                <h3 className="text-sm sm:text-base font-bold text-neutral-900 tracking-tight">
+                  Product Activity
+                </h3>
                 <p className="text-xs text-neutral-400 font-medium">Real-time audit log & client transactions</p>
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#768957]/10 px-3 py-1 text-xs font-semibold text-[#586940] border border-[#768957]/25">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#768957] animate-pulse"></span>
+            {/* Flat subtle status pill (no border stroke) */}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Live Feed
             </span>
           </div>
 
-          {loading ? (
-            <div className="py-12 text-center text-sm text-neutral-400">
-              <span className="inline-block w-4 h-4 border-2 border-neutral-300 border-t-emerald-500 rounded-full animate-spin mr-2" />
-              Connecting live feed...
-            </div>
-          ) : activities.length === 0 ? (
-            <div className="py-12 text-center rounded-2xl bg-neutral-50/70 border border-neutral-100 text-sm font-medium text-neutral-400">
-              No recent activity events recorded yet.
-            </div>
-          ) : (
-            <div className="max-h-[380px] overflow-y-auto pr-1.5 space-y-3 custom-scrollbar">
-              <AnimatePresence initial={false} mode="popLayout">
-                {activities.map((act) => {
-                  const badgeLabel = getActivityBadgeLabel(act.type);
-                  const isHighlighted = act.id === highlightedId;
-                  return (
-                    <motion.div
-                      key={act.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9, y: -24 }}
-                      animate={{
-                        opacity: 1,
-                        scale: 1,
-                        y: 0,
-                        backgroundColor: isHighlighted ? "rgba(236, 253, 245, 0.95)" : "rgba(249, 250, 251, 0.7)",
-                        borderColor: isHighlighted ? "rgba(167, 243, 208, 0.9)" : "rgba(243, 244, 246, 0.8)",
-                      }}
-                      exit={{ opacity: 0, scale: 0.9, y: -10, transition: { duration: 0.2 } }}
-                      transition={{
-                        layout: { type: "spring", stiffness: 350, damping: 30 },
-                        opacity: { duration: 0.35 },
-                        scale: { type: "spring", stiffness: 400, damping: 28 },
-                        y: { type: "spring", stiffness: 400, damping: 28 },
-                        backgroundColor: { duration: 0.85 },
-                        borderColor: { duration: 0.85 },
-                      }}
-                      className={`flex items-start gap-3.5 p-3.5 rounded-xl border transition-shadow duration-300 ${
-                        isHighlighted ? "shadow-md shadow-[#768957]/10 ring-1 ring-[#768957]/30" : "hover:bg-neutral-50"
-                      }`}
-                    >
-                      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-[10px] font-bold text-neutral-800 shadow-xs border border-neutral-100 flex-shrink-0 uppercase tracking-tight">
-                        {badgeLabel.substring(0, 3)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#586940] bg-[#768957]/10 px-2 py-0.5 rounded-full border border-[#768957]/20">
+          {/* Inner card surface (Card 2 - flat #f8f9fb surface matching tables) */}
+          <div className="rounded-[1.25rem] bg-[#f8f9fb] p-2 flex-1 flex flex-col min-h-[380px]">
+            {loading ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-16 text-center text-xs font-medium text-neutral-400">
+                <span className="inline-block w-4 h-4 border-2 border-neutral-300 border-t-emerald-500 rounded-full animate-spin mb-2" />
+                Connecting live feed...
+              </div>
+            ) : activities.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-16 text-center text-xs font-medium text-neutral-400 p-6">
+                <Activity className="w-6 h-6 text-neutral-300 mb-2 stroke-[1.5]" />
+                <p className="font-semibold text-neutral-600 mb-0.5">No recent activity events yet</p>
+                <p className="text-[11px] text-neutral-400">Real-time check-ins, purchases, and bookings will appear here.</p>
+              </div>
+            ) : (
+              <div className="max-h-[380px] overflow-y-auto pr-1 space-y-1.5 custom-scrollbar">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {activities.map((act) => {
+                    const badgeLabel = getActivityBadgeLabel(act.type);
+                    const isHighlighted = act.id === highlightedId;
+                    return (
+                      <motion.div
+                        key={act.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.98, y: -8 }}
+                        animate={{
+                          opacity: 1,
+                          scale: 1,
+                          y: 0,
+                        }}
+                        exit={{ opacity: 0, scale: 0.98, y: -6, transition: { duration: 0.15 } }}
+                        transition={{
+                          layout: { type: "spring", stiffness: 350, damping: 30 },
+                          opacity: { duration: 0.18 },
+                          scale: { type: "spring", stiffness: 400, damping: 28 },
+                          y: { type: "spring", stiffness: 400, damping: 28 },
+                        }}
+                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors duration-150 ${
+                          isHighlighted ? "bg-emerald-100/50" : "hover:bg-neutral-200/40"
+                        }`}
+                      >
+                        {/* High quality bare icon in grey/black with NO background container */}
+                        <div className="shrink-0 flex items-center justify-center">
+                          {getActivityIcon(act.type)}
+                        </div>
+
+                        {/* Content with consistent symmetrical spacing */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-200/70 text-neutral-700">
                               {badgeLabel}
                             </span>
-                            {isHighlighted && (
-                              <motion.span
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                className="text-[9px] font-extrabold uppercase tracking-widest text-emerald-600 bg-emerald-200/70 px-1.5 py-0.5 rounded-md animate-pulse"
-                              >
-                              </motion.span>
-                            )}
+                            <span className="text-[11px] font-medium text-neutral-400 whitespace-nowrap">
+                              {formatRelativeTime(act.timestamp)}
+                            </span>
                           </div>
-                          <span className="text-xs font-medium text-neutral-400 whitespace-nowrap">
-                            {formatRelativeTime(act.timestamp)}
-                          </span>
+                          <p className="text-xs font-semibold text-neutral-900 truncate">
+                            {act.message}
+                          </p>
                         </div>
-                        <p className="text-xs font-semibold text-neutral-900 mt-1 leading-snug">
-                          {act.message}
-                        </p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          )}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Real-Data 5 Performance Analytics Graphs Dashboard */}

@@ -825,7 +825,7 @@ export default function AppointmentsPage() {
             <select
               value={selectedDoctor}
               onChange={(e) => setSelectedDoctor(e.target.value)}
-              className="border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold bg-neutral-50 text-neutral-800 focus:outline-none focus:border-[#768957]"
+              className="select-pill"
             >
               <option value="all">All Practitioners ({doctors.length})</option>
               {doctors.map((doc) => (
@@ -844,7 +844,7 @@ export default function AppointmentsPage() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="border border-neutral-200 rounded-xl px-3 py-2 text-xs font-semibold bg-neutral-50 text-neutral-800 focus:outline-none focus:border-[#768957]"
+              className="select-pill"
             >
               <option value="all">All Statuses</option>
               <option value="confirmed">Confirmed</option>
@@ -1386,7 +1386,7 @@ export default function AppointmentsPage() {
                     required
                     value={rescheduleDate}
                     onChange={(e) => setRescheduleDate(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                    className="select-modern text-xs mt-1"
                   />
                 </div>
                 <div>
@@ -1396,7 +1396,7 @@ export default function AppointmentsPage() {
                     required
                     value={rescheduleTime}
                     onChange={(e) => setRescheduleTime(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                    className="select-modern text-xs mt-1"
                   />
                 </div>
               </div>
@@ -1406,7 +1406,7 @@ export default function AppointmentsPage() {
                 <select
                   value={rescheduleDoctorId}
                   onChange={(e) => setRescheduleDoctorId(e.target.value)}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  className="select-modern text-xs mt-1"
                 >
                   {doctors.map((d) => (
                     <option key={d.doctorId || d.id} value={d.doctorId || d.id}>
@@ -1423,7 +1423,7 @@ export default function AppointmentsPage() {
                   value={rescheduleReason}
                   onChange={(e) => setRescheduleReason(e.target.value)}
                   placeholder="e.g. Patient requested afternoon slot"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  className="select-modern text-xs mt-1"
                 />
               </div>
             </div>
@@ -1537,7 +1537,7 @@ export default function AppointmentsPage() {
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="e.g. Patient called due to illness or schedule conflict..."
-                className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                className="select-modern text-xs mt-1"
               />
             </div>
 
@@ -1604,7 +1604,7 @@ export default function AppointmentsPage() {
                   required
                   value={completeReason}
                   onChange={(e) => setCompleteReason(e.target.value)}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  className="select-modern text-xs mt-1"
                 />
               </div>
 
@@ -1615,7 +1615,7 @@ export default function AppointmentsPage() {
                   value={completeNotes}
                   onChange={(e) => setCompleteNotes(e.target.value)}
                   placeholder="e.g. Advised patient to apply SPF 50 daily and return for follow up in 6 weeks..."
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  className="select-modern text-xs mt-1"
                 />
               </div>
             </div>
@@ -1686,7 +1686,7 @@ export default function AppointmentsPage() {
                   value={formPatientName}
                   onChange={(e) => setFormPatientName(e.target.value)}
                   placeholder="e.g. Sarah Connor"
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  className="select-modern text-xs mt-1"
                 />
               </div>
 
@@ -1698,7 +1698,7 @@ export default function AppointmentsPage() {
                     value={formPatientPhone}
                     onChange={(e) => setFormPatientPhone(e.target.value)}
                     placeholder="+44 7700 900123"
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                    className="select-modern text-xs mt-1"
                   />
                 </div>
                 <div>
@@ -1708,7 +1708,7 @@ export default function AppointmentsPage() {
                     value={formPatientEmail}
                     onChange={(e) => setFormPatientEmail(e.target.value)}
                     placeholder="patient@example.com"
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                    className="select-modern text-xs mt-1"
                   />
                 </div>
               </div>
@@ -1720,7 +1720,7 @@ export default function AppointmentsPage() {
                     required
                     value={formDoctorId}
                     onChange={(e) => setFormDoctorId(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                    className="select-modern text-xs mt-1"
                   >
                     {doctors.length === 0 ? (
                       <option value="">No doctors created yet</option>
@@ -1740,7 +1740,7 @@ export default function AppointmentsPage() {
                     required
                     value={formTreatmentId}
                     onChange={(e) => setFormTreatmentId(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                    className="select-modern text-xs mt-1"
                   >
                     {treatments.length === 0 ? (
                       <option value="">No treatments available</option>
@@ -1762,7 +1762,7 @@ export default function AppointmentsPage() {
                   required
                   value={formStartTime}
                   onChange={(e) => setFormStartTime(e.target.value)}
-                  className="w-full border border-neutral-200 rounded-xl p-2.5 text-xs mt-1 bg-neutral-50 focus:bg-white focus:outline-none focus:border-neutral-900"
+                  className="select-modern text-xs mt-1"
                 />
               </div>
 

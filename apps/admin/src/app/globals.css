@@ -35,22 +35,46 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Universal Select Baseline - Eliminates boxy browser defaults across all browsers */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 0.85rem 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+select:focus {
+  outline: none;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #111827;
+  padding: 0.5rem;
+  font-weight: 500;
+}
+
 @layer utilities {
 
   /* Modern Flat Surfaces - Consistent High Roundness & Refined Elevation */
   .admin-card {
     background-color: #ffffff;
     border-radius: 1.5rem;
-    border: 1px solid rgba(229, 231, 235, 0.85);
+    border: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     will-change: transform, opacity;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
   }
 
   .admin-card-inner {
     background-color: #f7f8fa;
     border-radius: 1.125rem;
-    border: 1px solid rgba(229, 231, 235, 0.6);
+    border: none;
   }
 
   .admin-card-hover {
@@ -61,40 +85,39 @@ body {
   .admin-card-hover:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.05);
-    border-color: rgba(209, 213, 219, 0.9);
   }
 
   /* Interactive Cards with Smooth GPU Transition */
   .interactive-card {
     background-color: #ffffff;
     border-radius: 1.25rem;
-    border: 1px solid rgba(229, 231, 235, 0.85);
+    border: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     cursor: pointer;
     will-change: transform, box-shadow;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
   }
 
   .interactive-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
-    border-color: rgba(209, 213, 219, 0.95);
   }
 
   .interactive-card:active {
     transform: translateY(0) scale(0.995);
   }
 
-  /* Embedded Table Card & Grid System (Matched with Reference Design) */
+  /* Embedded Table Card & Grid System (Matched with Reference Design - Stroke-Free Flat System) */
   .table-card-outer {
     background-color: #ffffff;
     border-radius: 1.75rem;
     padding: 0.5rem;
-    border: 1px solid rgba(229, 231, 235, 0.8);
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   }
 
   .table-card-inner {
-    border: 1px solid #eaecf0;
+    border: none;
     border-radius: 1.125rem;
     overflow: hidden;
     background-color: #ffffff;
@@ -389,7 +412,7 @@ body {
     width: 100%;
     padding: 0.625rem 1rem;
     background-color: #f1f3f6;
-    border: 1px solid transparent;
+    border: 1px solid rgba(229, 231, 235, 0.7);
     border-radius: 0.875rem;
     font-size: 0.8125rem;
     color: #111827;
@@ -406,7 +429,7 @@ body {
     outline: none;
     background-color: #ffffff;
     border-color: #0f0f11;
-    box-shadow: 0 0 0 1px #0f0f11;
+    box-shadow: 0 0 0 2px rgba(15, 15, 17, 0.08);
   }
 
   .input-search {
@@ -418,7 +441,7 @@ body {
     width: 100%;
     padding: 0.625rem 1rem;
     background-color: #f1f3f6;
-    border: 1px solid transparent;
+    border: 1px solid rgba(229, 231, 235, 0.7);
     border-radius: 0.875rem;
     font-size: 0.8125rem;
     color: #111827;
@@ -440,34 +463,109 @@ body {
     outline: none;
     background-color: #ffffff;
     border-color: #0f0f11;
-    box-shadow: 0 0 0 1px #0f0f11;
+    box-shadow: 0 0 0 2px rgba(15, 15, 17, 0.08);
   }
 
+  /* Refined Modern Select Components */
   .select-modern {
     width: 100%;
-    padding: 0.625rem 2.25rem 0.625rem 1rem;
+    padding: 0.625rem 2.25rem 0.625rem 0.875rem;
     background-color: #f1f3f6;
-    border: 1px solid transparent;
+    border: none;
     border-radius: 0.875rem;
     font-size: 0.8125rem;
+    font-weight: 500;
     color: #111827;
-    box-shadow: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
     outline: none;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%230f0f11'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%23374151'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.875rem center;
     background-size: 0.875rem 0.875rem;
-    transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    cursor: pointer;
+    transition: background-color 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+  }
+
+  .select-modern:hover {
+    background-color: #e9ecf1;
   }
 
   .select-modern:focus {
     outline: none;
     background-color: #ffffff;
-    border-color: #0f0f11;
-    box-shadow: 0 0 0 1px #0f0f11;
+    box-shadow: 0 0 0 2px rgba(15, 15, 17, 0.08);
+  }
+
+  .select-modern:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* Pill-shaped Dropdown (ideal for toolbar filters, status switches, compact selectors - Flat & Stroke-Free) */
+  .select-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 2.25rem 0.45rem 0.9rem;
+    background-color: #f1f3f6;
+    border: none;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1f2937;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%234b5563'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.75rem 0.75rem;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+
+  .select-pill:hover {
+    background-color: #e5e7eb;
+    color: #111827;
+  }
+
+  .select-pill:focus {
+    outline: none;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(15, 15, 17, 0.1);
+  }
+
+  /* Compact Select for Table Cells & Inline Forms - Flat */
+  .select-compact {
+    padding: 0.35rem 1.75rem 0.35rem 0.75rem;
+    background-color: #f1f3f6;
+    border: none;
+    border-radius: 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1f2937;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.75rem 0.75rem;
+    transition: background-color 0.15s ease;
+  }
+
+  .select-compact:hover {
+    background-color: #e5e7eb;
+  }
+
+  .select-compact:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(15, 15, 17, 0.08);
   }
 
   /* Clean Flat Pills & Badges - Pill-Shaped, Zero Stroke, Proper Contrast */

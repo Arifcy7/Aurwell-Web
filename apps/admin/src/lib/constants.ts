@@ -18,15 +18,24 @@ export interface CurrencyOption {
   symbol: string;
 }
 
+export interface LanguageOption {
+  code: string;
+  name: string;
+  nativeName: string;
+  flag: string;
+}
+
 export const TIMEZONES: TimezoneOption[] = [
   { value: "Europe/Bucharest", label: "(GMT+02:00) Bucharest" },
   { value: "Europe/Stockholm", label: "(GMT+01:00) Stockholm" },
   { value: "Europe/London", label: "(GMT+00:00) London" },
   { value: "Europe/Paris", label: "(GMT+01:00) Paris" },
+  { value: "Europe/Berlin", label: "(GMT+01:00) Berlin" },
   { value: "America/New_York", label: "(GMT-05:00) Eastern Time (US & Canada)" },
   { value: "America/Chicago", label: "(GMT-06:00) Central Time (US & Canada)" },
   { value: "America/Denver", label: "(GMT-07:00) Mountain Time (US & Canada)" },
   { value: "America/Los_Angeles", label: "(GMT-08:00) Pacific Time (US & Canada)" },
+  { value: "Asia/Dubai", label: "(GMT+04:00) Dubai / Gulf Standard" },
   { value: "Asia/Kolkata", label: "(GMT+05:30) India Standard Time" },
   { value: "UTC", label: "(GMT+00:00) Coordinated Universal Time" },
 ];
@@ -41,6 +50,8 @@ export const COUNTRIES: CountryOption[] = [
   { code: "ES", name: "Spain", dialCode: "+34", placeholder: "612 34 56 78" },
   { code: "US", name: "United States", dialCode: "+1", placeholder: "(555) 234-5678" },
   { code: "CA", name: "Canada", dialCode: "+1", placeholder: "(555) 234-5678" },
+  { code: "AE", name: "United Arab Emirates", dialCode: "+971", placeholder: "50 123 4567" },
+  { code: "AU", name: "Australia", dialCode: "+61", placeholder: "412 345 678" },
   { code: "IN", name: "India", dialCode: "+91", placeholder: "98765 43210" },
 ];
 
@@ -50,7 +61,22 @@ export const CURRENCIES: CurrencyOption[] = [
   { code: "SEK", name: "Swedish Krona (SEK)", symbol: "kr" },
   { code: "GBP", name: "British Pound (£)", symbol: "£" },
   { code: "USD", name: "US Dollar ($)", symbol: "$" },
+  { code: "AED", name: "UAE Dirham (AED)", symbol: "د.إ" },
+  { code: "CAD", name: "Canadian Dollar ($)", symbol: "$" },
+  { code: "AUD", name: "Australian Dollar ($)", symbol: "$" },
   { code: "INR", name: "Indian Rupee (₹)", symbol: "₹" },
+];
+
+export const LANGUAGES: LanguageOption[] = [
+  { code: "en-US", name: "English (US)", nativeName: "English (US)", flag: "🇺🇸" },
+  { code: "en-GB", name: "English (UK)", nativeName: "English (UK)", flag: "🇬🇧" },
+  { code: "ro", name: "Romanian", nativeName: "Română", flag: "🇷🇴" },
+  { code: "sv", name: "Swedish", nativeName: "Svenska", flag: "🇸🇪" },
+  { code: "es", name: "Spanish", nativeName: "Español", flag: "🇪🇸" },
+  { code: "fr", name: "French", nativeName: "Français", flag: "🇫🇷" },
+  { code: "de", name: "German", nativeName: "Deutsch", flag: "🇩🇪" },
+  { code: "ar", name: "Arabic", nativeName: "العربية", flag: "🇦🇪" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी", flag: "🇮🇳" },
 ];
 
 export const TREATMENT_CATEGORIES: string[] = [

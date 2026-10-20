@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { createSmoothPath } from "@/components/MetricDetailModal";
 
 type GraphViewType = "revenue" | "clients" | "treatments" | "memberships";
 
@@ -96,7 +97,7 @@ export default function DashboardAnalyticsGraph({
             <select
               value={graphType}
               onChange={(e) => setGraphType(e.target.value as GraphViewType)}
-              className="appearance-none bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-full px-4 py-2 pr-9 text-xs font-semibold cursor-pointer transition-all focus:outline-none"
+              className="select-pill"
             >
               <option value="revenue">📈 Revenue Growth (€)</option>
               <option value="clients">👥 Client Acquisition</option>

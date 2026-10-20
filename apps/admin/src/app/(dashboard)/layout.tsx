@@ -328,7 +328,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <motion.div
                   animate={{ rotate: expandedSections.appBuilder ? 180 : 0 }}
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 >
                   <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
                 </motion.div>
@@ -341,8 +341,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.28, ease: "easeInOut" }}
-                    className="relative pl-4 mt-1 space-y-0.5 overflow-hidden"
+                    transition={{ height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.22, ease: "easeInOut" } }}
+                    className="relative ml-4 pl-3.5 mt-1 space-y-0.5 overflow-hidden border-l border-neutral-200/80"
                   >
                     {appBuilderSubItems.map((subItem, sIdx) => {
                       const isSubActive = pathname === subItem.href;
@@ -504,7 +504,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </div>
                   <motion.div
                     animate={{ rotate: expandedSections.bookings ? 180 : 0 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   >
                     <ChevronDown className="w-3.5 h-3.5 text-neutral-400" />
                   </motion.div>
@@ -517,8 +517,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.28, ease: "easeInOut" }}
-                      className="relative pl-4 mt-1 space-y-0.5 overflow-hidden"
+                      transition={{ height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }, opacity: { duration: 0.22, ease: "easeInOut" } }}
+                      className="relative ml-4 pl-3.5 mt-1 space-y-0.5 overflow-hidden border-l border-neutral-200/80"
                     >
                       {bookingsSubItems.map((subItem, sIdx) => {
                         const isSubActive = pathname === subItem.href;
@@ -584,7 +584,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* User Session Footer */}
       <div className="shrink-0 p-4 bg-white space-y-3">
-        <div className="flex items-center gap-3 px-1">
+        <div className="flex items-center gap-2.5 px-1">
           <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-xs font-bold text-neutral-800 uppercase shrink-0">
             {user?.email ? user.email[0] : "A"}
           </div>
@@ -596,6 +596,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isSuperAdmin ? "Super Admin" : "Clinic Admin"}
             </span>
           </div>
+          <Link
+            href="/settings"
+            className={`p-2 rounded-xl transition-all cursor-pointer shrink-0 ${
+              pathname === "/settings" || pathname.startsWith("/settings/")
+                ? "bg-neutral-950 text-white shadow-xs"
+                : "text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100"
+            }`}
+            title="Settings"
+            aria-label="Settings"
+          >
+            <Settings className="w-4 h-4" />
+          </Link>
         </div>
 
         <button
@@ -610,6 +622,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   const getPageTitle = () => {
+    if (pathname === "/settings" || pathname.startsWith("/settings/")) return "Settings";
     if (pathname === "/bookings") return "Appointments Calendar";
     if (pathname.includes("/bookings/doctors")) return "Practitioners & Staff";
     if (pathname.includes("/bookings/schedules")) return "Operating Hours & Shifts";
@@ -635,9 +648,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 font-sans flex flex-col md:flex-row">
         {/* Desktop Sidebar (Left side) - Remains visible during loading */}
-        <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-white sticky top-0 h-screen flex-col overflow-hidden">
+        <motion.aside initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }} className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-white sticky top-0 h-screen flex-col overflow-hidden border-r border-neutral-200/60 shadow-[1px_0_3px_rgba(0,0,0,0.02)]">
           <SidebarContent />
-        </aside>
+        </motion.aside>
 
         {/* Main Workspace Area with Splash Screen centered directly in the middle (excluding sidebar) */}
         <main className="flex-1 flex flex-col items-center justify-center min-w-0 bg-[#f0f2f5] min-h-screen p-4 sm:p-8">
@@ -650,9 +663,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-[#f0f2f5] text-neutral-900 font-sans flex flex-col md:flex-row">
       {/* Desktop Sidebar (Left side) - Sticky full height, flat white surface on #f0f2f5 background */}
-      <aside className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-white sticky top-0 h-screen flex-col overflow-hidden">
+      <motion.aside initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }} className="hidden md:flex w-64 lg:w-72 flex-shrink-0 bg-white sticky top-0 h-screen flex-col overflow-hidden border-r border-neutral-200/60 shadow-[1px_0_3px_rgba(0,0,0,0.02)]">
         <SidebarContent />
-      </aside>
+      </motion.aside>
 
       {/* Mobile Header Bar */}
       <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white sticky top-0 z-30">
@@ -712,7 +725,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              transition={{ type: "spring", damping: 28, stiffness: 280 }}
               className="relative flex-1 w-full max-w-xs bg-white h-full flex flex-col z-10 overflow-hidden"
             >
               <SidebarContent />
